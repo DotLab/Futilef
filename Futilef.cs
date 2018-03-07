@@ -1,10 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace Futilef {
 	public sealed class Futilef : MonoBehaviour {
 		const float CameraOffsetZ = -10;
+
+		public static event Action SignalPreUpdate, SignalUpdate, SignalAfterUpdate;
+		public static event Action SignalAfterDraw;
+		public static event Action SignalFixedUpdate, SignalLateUpdate;
 
 		public static Futilef Instance;
 
@@ -15,23 +21,39 @@ namespace Futilef {
 		GameObject _cameraHolder;
 		Camera _camera;
 
-		public void Awake() {
+		void Awake() {
 			Instance = this;
 
 			IsOpenGl = SystemInfo.graphicsDeviceVersion.Contains("OpenGL");
 			enabled = false;
 		}
 
-		public void OnDestroy() {
+		void OnEnable() {
+			SignalPreUpdate += Display.OnUpdate;
+			SignalPreUpdate += TouchManager.OnUpdate; 
+
+			Display.SignalResize += ResizeCamera;
+		}
+
+		void OnDisable() {
+			SignalPreUpdate -= Display.OnUpdate;
+			SignalPreUpdate -= TouchManager.OnUpdate; 
+
 			Display.SignalResize -= ResizeCamera;
 		}
 
-		public void Init(float referenceLength, float displayScaling, float resourceScaling, Color backgroundColor = Color.black) {
+		[ContextMenu("Init")]
+		public void Init() {
+			Init(800, 1, 1, Color.black);
+		}
+
+		public void Init(float referenceLength, float displayScaling, float resourceScaling, Color backgroundColor) {
 			enabled = true;
+
+			Application.targetFrameRate = 30;
 
 			Display.Init(referenceLength, displayScaling, resourceScaling);
 			DisplayCorrection = IsOpenGl ? 0 : (0.5f * Display.Pixel2Display);
-			Display.SignalResize += ResizeCamera;
 
 			//Camera setup from https://github.com/prime31/UIToolkit/blob/master/Assets/Plugins/UIToolkit/UI.cs
 			_cameraHolder = new GameObject();
@@ -50,11 +72,28 @@ namespace Futilef {
 
 			//we multiply this stuff by scaleInverse to make sure everything is in points, not pixels
 			_camera.orthographic = true;
-			ResizeCamera();
 		}
 			
 		public void ResizeCamera() {
 			_camera.orthographicSize = Display.HalfHeight;
+
+			Debug.LogFormat("_camera.orthographicSize={0}", _camera.orthographicSize);
+		}
+
+		void Update() {
+			if (SignalPreUpdate != null) SignalPreUpdate();
+			if (SignalUpdate != null) SignalUpdate();
+			if (SignalAfterUpdate != null) SignalAfterUpdate();
+
+			if (SignalAfterDraw != null) SignalAfterDraw();
+		}
+
+		void LateUpdate() {
+			if (SignalLateUpdate != null) SignalLateUpdate();
+		}
+
+		void FixedUpdate() {
+			if (SignalFixedUpdate != null) SignalFixedUpdate();
 		}
 	}
 }
