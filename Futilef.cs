@@ -1,117 +1,60 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
-
 using UnityEngine;
 
 namespace Futilef {
-	public class DelayedCallback {
-		public Action callback;
-		public float timeDelayed;
+	public sealed class Futilef : MonoBehaviour {
+		const float CameraOffsetZ = -10;
 
-		public DelayedCallback(Action callback, float timeDelayed) {
-			this.callback = callback;
-			this.timeDelayed = timeDelayed;
-		}
-	}
-
-	public class Futilef : MonoBehaviour {
 		public static Futilef Instance;
 
-		// Set in Awake
+		// Assigned in Awake
 		public static bool IsOpenGl;
-		public static int BaseRenderQueueDepth = 3000;
-		public static bool ShouldRemoveAtlasElementFileExtensions = true;
+		public static float DisplayCorrection;
 
-		public static FAtlasElement whiteElement;
-		public static Color32 white = new Color32(255, 255, 255, 255);
-
-		internal static int nextRenderLayerDepth;
-
-		static List<object> _stages;
-
-		public event Action SignalUpdate;
-		public event Action SignalAfterUpdate;
-		public event Action SignalLateUpdate;
-		public event Action SignalFixedUpdate;
-
-		GameObject _cameraGo;
+		GameObject _cameraHolder;
 		Camera _camera;
 
-		bool _shouldRunGcNextUpdate;
-
-
-		void Awake() {
+		public void Awake() {
 			Instance = this;
+
 			IsOpenGl = SystemInfo.graphicsDeviceVersion.Contains("OpenGL");
 			enabled = false;
 		}
 
-		public void Init(FConfig config) {
+		public void OnDestroy() {
+			Display.SignalResize -= ResizeCamera;
+		}
+
+		public void Init(float referenceLength, float displayScaling, float resourceScaling, Color backgroundColor = Color.black) {
 			enabled = true;
 
-			Application.targetFrameRate = config.targetFrameRate;
+			Display.Init(referenceLength, displayScaling, resourceScaling);
+			DisplayCorrection = IsOpenGl ? 0 : (0.5f * Display.Pixel2Display);
+			Display.SignalResize += ResizeCamera;
 
-			// Global setup
-			FShader.Init();
-			FFacetType.Init();
-			FScreen.Init(config);
+			//Camera setup from https://github.com/prime31/UIToolkit/blob/master/Assets/Plugins/UIToolkit/UI.cs
+			_cameraHolder = new GameObject();
+			_cameraHolder.transform.parent = transform;
+			_cameraHolder.transform.position = new Vector3(DisplayCorrection, -DisplayCorrection, CameraOffsetZ);
 
-			// Camera setup
-			_cameraGo = new GameObject();
-			_cameraGo.transform.parent = transform;
-
-			_camera = _cameraGo.AddComponent<Camera>();
+			_camera = _cameraHolder.AddComponent<Camera>();
 			_camera.tag = "MainCamera";
 			_camera.name = "Camera";
 			_camera.clearFlags = CameraClearFlags.SolidColor;
-			_camera.backgroundColor = config.backgroundColor;
-			_camera.nearClipPlane = 0;
-			_camera.farClipPlane = 500;
+			_camera.backgroundColor = backgroundColor;
+			_camera.nearClipPlane = 0.0f;
+			_camera.farClipPlane = 500.0f;
+			_camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 			_camera.depth = 100;
-			_camera.rect = new Rect(0, 0, 1, 1);
+
+			//we multiply this stuff by scaleInverse to make sure everything is in points, not pixels
 			_camera.orthographic = true;
-			// _camera.orthographicSize = screen
-
-			UpdateCameraPosition();
-
-			FTouchManager.Init();
-			FAtlasManager.Init();
-
-			// Create defualt atlas
-			var whiteTex = new Texture2D(2, 2, TextureFormat.RGB24, false);
-			whiteTex.SetPixels32(new [] { new Color32(255, 255, 255, 255) });
-			whiteTex.Apply();
-
-			FAtlasManager.LoadAtlas("Futile_White", whiteTex);
-			whiteElement = FAtlasManager.GetElement("Futile_White");
+			ResizeCamera();
 		}
-
-		public void UpdateCameraPosition() {
-			_camera.orthographicSize = FScreen.PixelHeight / 2 / FScreen.DisplayScale;
-			_camera.transform.position = new Vector3(
-				((FScreen.OriginX - 0.5f) * -FScreen.PixelWidth) / FScreen.DisplayScale + FScreen.ScreenPixelOffset,
-				((FScreen.OriginX - 0.5f) * -FScreen.PixelWidth) / FScreen.DisplayScale + FScreen.ScreenPixelOffset,
-				-10.0f);
-		}
-
-		void Update() {
-			if (SignalUpdate != null) SignalUpdate();
-			if (SignalAfterUpdate != null) SignalAfterUpdate();
-
-			if (_shouldRunGcNextUpdate) {
-				_shouldRunGcNextUpdate = false;
-				GC.Collect();
-			}
-		}
-
-		void LateUpdate() {
-			nextRenderLayerDepth = 0;
-
-			if (SignalLateUpdate != null) SignalLateUpdate();
-		}
-
-		void FixedUpdate() {
-			if (SignalFixedUpdate != null) SignalFixedUpdate();
+			
+		public void ResizeCamera() {
+			_camera.orthographicSize = Display.HalfHeight;
 		}
 	}
 }
