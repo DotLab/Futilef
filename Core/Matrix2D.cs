@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Futilef {
+namespace Futilef.Core {
 
 	/**
 	 * m00 m01 m02
@@ -9,8 +9,10 @@ namespace Futilef {
 	 * 0   0   1
 	 */
 	public class Matrix2D {
-		//useful for doing calulations without allocating a new matrix every time
-		public static Matrix2D TempMatrix = new Matrix2D();
+		public static readonly Matrix2D Identity = new Matrix2D();
+
+		// Useful for doing calulations without allocating a new matrix every time
+		public static readonly Matrix2D TempMatrix = new Matrix2D();
 
 		public float m00 = 1;
 		public float m01 = 0;
@@ -40,7 +42,7 @@ namespace Futilef {
 		}
 
 		// Copy the values from one mat2d to another
-		public void Copy(Matrix2D a) {
+		public void FromCopy(Matrix2D a) {
 			m00 = a.m00;
 			m01 = a.m01;
 			m02 = a.m02;
@@ -50,7 +52,7 @@ namespace Futilef {
 			m12 = a.m12;
 		}
 
-		public void Identity() {
+		public void FromIdentity() {
 			m00 = 1;
 			m01 = 0;
 			m02 = 0;

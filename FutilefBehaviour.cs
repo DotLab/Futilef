@@ -5,18 +5,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Futilef {
-	public sealed class Futilef : MonoBehaviour {
+	public sealed class FutilefBehaviour : MonoBehaviour {
 		const float CameraOffsetZ = -10;
 
 		public static event Action SignalPreUpdate, SignalUpdate, SignalAfterUpdate;
 		public static event Action SignalAfterDraw;
 		public static event Action SignalFixedUpdate, SignalLateUpdate;
 
-		public static Futilef Instance;
+		public static FutilefBehaviour Instance;
 
 		// Assigned in Awake
 		public static bool IsOpenGl;
 		public static float DisplayCorrection;
+
+		// The stage
+		public static Futilef.Core.Stage Stage;
 
 		GameObject _cameraHolder;
 		Camera _camera;
@@ -48,6 +51,8 @@ namespace Futilef {
 		}
 
 		public void Init(float referenceLength, float displayScaling, float resourceScaling, Color backgroundColor) {
+			Stage = new Futilef.Core.Stage("main");
+
 			enabled = true;
 
 			Application.targetFrameRate = 30;

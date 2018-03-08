@@ -80,11 +80,11 @@ namespace Futilef.Core {
 				}
 
 				public override void Connect() {
-					Futilef.SignalPreUpdate += onPreUpdate;
+					FutilefBehaviour.SignalPreUpdate += onPreUpdate;
 				}
 
 				public override void Disconnect() {
-					Futilef.SignalPreUpdate -= onPreUpdate;
+					FutilefBehaviour.SignalPreUpdate -= onPreUpdate;
 				}
 			}
 
@@ -96,11 +96,11 @@ namespace Futilef.Core {
 				}
 
 				public override void Connect() {
-					Futilef.SignalUpdate += onUpdate;
+					FutilefBehaviour.SignalUpdate += onUpdate;
 				}
 
 				public override void Disconnect() {
-					Futilef.SignalUpdate -= onUpdate;
+					FutilefBehaviour.SignalUpdate -= onUpdate;
 				}
 			}
 
@@ -112,11 +112,11 @@ namespace Futilef.Core {
 				}
 
 				public override void Connect() {
-					Futilef.SignalAfterUpdate += onAfterUpdate;
+					FutilefBehaviour.SignalAfterUpdate += onAfterUpdate;
 				}
 
 				public override void Disconnect() {
-					Futilef.SignalAfterUpdate -= onAfterUpdate;
+					FutilefBehaviour.SignalAfterUpdate -= onAfterUpdate;
 				}
 			}
 
@@ -128,11 +128,11 @@ namespace Futilef.Core {
 				}
 
 				public override void Connect() {
-					Futilef.SignalLateUpdate += onLateUpdate;
+					FutilefBehaviour.SignalLateUpdate += onLateUpdate;
 				}
 
 				public override void Disconnect() {
-					Futilef.SignalLateUpdate -= onLateUpdate;
+					FutilefBehaviour.SignalLateUpdate -= onLateUpdate;
 				}
 			}
 
@@ -144,11 +144,11 @@ namespace Futilef.Core {
 				}
 
 				public override void Connect() {
-					Futilef.SignalFixedUpdate += onFixedUpdate;
+					FutilefBehaviour.SignalFixedUpdate += onFixedUpdate;
 				}
 
 				public override void Disconnect() {
-					Futilef.SignalFixedUpdate -= onFixedUpdate;
+					FutilefBehaviour.SignalFixedUpdate -= onFixedUpdate;
 				}
 			}
 

@@ -4,13 +4,13 @@ namespace Futilef.Core {
 	public class Container : Node {
 		protected readonly List<Node> _children = new List<Node>();
 
-		public override void Redraw(bool shouldForceMatricesDirty, bool shouldForceAlphaDirty) {
+		public override void Redraw(ref int currentDepth, bool shouldForceMatricesDirty, bool shouldForceAlphaDirty) {
 			shouldForceMatricesDirty = _isMatricesDirty || shouldForceMatricesDirty;
 			shouldForceAlphaDirty = _isAlphaDirty || shouldForceAlphaDirty;
 
-			base.Redraw(shouldForceMatricesDirty, shouldForceAlphaDirty);
+			base.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
 
-			foreach (var child in _children) child.Redraw(shouldForceMatricesDirty, shouldForceAlphaDirty);
+			foreach (var child in _children) child.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
 		}
 
 		public int GetChildCount() {
@@ -67,6 +67,18 @@ namespace Futilef.Core {
 			foreach (var child in _children) child.OnRemovedFromContainer();
 
 			_children.Clear();	
+		}
+
+		public override void OnAddedToStage(Stage stage) {
+			base.OnAddedToStage(stage);
+
+			foreach (var child in _children) child.OnAddedToStage(stage);
+		}
+
+		public override void OnRemovedFromStage() {
+			foreach (var child in _children) child.OnRemovedFromStage();
+
+			base.OnRemovedFromStage();
 		}
 	}
 }

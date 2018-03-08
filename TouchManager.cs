@@ -25,8 +25,11 @@ namespace Futilef {
 		}
 	}
 
-	public interface ISingleTouchable {
-		int TouchPriority{ get; }
+	public interface IDepthSortable {
+		int depth { get; }
+	}
+
+	public interface ISingleTouchable : IDepthSortable {
 		bool OnSingleTouchBegan(Touch touch);
 		void OnSingleTouchStay(Touch touch);
 		void OnSingleTouchEnded(Touch touch);
@@ -73,7 +76,7 @@ namespace Futilef {
 		public static void OnUpdate() {
 			if (_isSingleTouchablesDirty) {
 				_isSingleTouchablesDirty = false;
-				_singleTouchables.Sort((a, b) => b.TouchPriority - a.TouchPriority);
+				_singleTouchables.Sort((a, b) => b.depth - a.depth);
 			}
 
 			// Mouse Touch
