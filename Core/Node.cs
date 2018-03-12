@@ -62,17 +62,14 @@ namespace Futilef.Core {
 
 		public virtual Matrix2D matrix { get { return _matrix; } }
 		public virtual Matrix2D concatenatedMatrix { get { return _concatenatedMatrix; } }
+		public virtual Matrix2D inverseConcatenatedMatrix {
+			get {
+				if (_shouldRecalculateInverseCancatenatedMatrix) {
+					_shouldRecalculateInverseCancatenatedMatrix = false;
+					_inverseConcatenatedMatrix.FromInverse(_concatenatedMatrix);
+				}
 
-		public virtual Matrix2D screenConcatenatedMatrix {
-			get {
-				if (_isScreenMatricesDirty) RecalculateScreenMatrices();
-				return _screenConcatenatedMatrix;
-			}
-		}
-		public virtual Matrix2D inverseScreenConcatenatedMatrix {
-			get {
-				if (_isScreenMatricesDirty) RecalculateScreenMatrices();
-				return _inverseScreenConcatenatedMatrix;
+				return _inverseConcatenatedMatrix;
 			}
 		}
 
@@ -92,8 +89,8 @@ namespace Futilef.Core {
 		protected bool _isMatricesDirty;
 
 		// Screen matrices (_screenConcatenatedMatrix = _concatenatedMatrix * _stage.screenConcatenatedMatrix
-		protected readonly Matrix2D _screenConcatenatedMatrix = new Matrix2D(), _inverseScreenConcatenatedMatrix = new Matrix2D();
-		protected bool _isScreenMatricesDirty;
+		protected readonly Matrix2D _inverseConcatenatedMatrix = new Matrix2D();
+		protected bool _shouldRecalculateInverseCancatenatedMatrix;
 
 		// Alpha
 		protected float _alpha = 1f, _concatenatedAlpha = 1f;
@@ -125,11 +122,11 @@ namespace Futilef.Core {
 
 		// Must be called after Redraw() since matrices are calculated during Redraw()
 		public Vector2 ScreenToLocal(Vector2 position) {
-			return inverseScreenConcatenatedMatrix.Transform2D(position);
+			return inverseConcatenatedMatrix.Transform2D(position);
 		}
 
 		public Vector2 LocalToScreen(Vector2 position) {
-			return screenConcatenatedMatrix.Transform2D(position);
+			return inverseConcatenatedMatrix.Transform2D(position);
 		}
 
 		public Vector2 LocalToOther(Node other, Vector2 position) {
@@ -146,16 +143,7 @@ namespace Futilef.Core {
 			if (_container != null) _concatenatedMatrix.FromMultiply(_matrix, _container._concatenatedMatrix);
 			else _concatenatedMatrix.FromCopy(_matrix);
 
-			_isScreenMatricesDirty = true;
-		}
-
-		protected virtual void RecalculateScreenMatrices() {
-			_isScreenMatricesDirty = false;
-
-			if (_stage != null) _screenConcatenatedMatrix.FromMultiply(_concatenatedMatrix, _stage.screenConcatenatedMatrix);
-			else _screenConcatenatedMatrix.FromCopy(_concatenatedMatrix);
-
-			_inverseScreenConcatenatedMatrix.FromInvert(_screenConcatenatedMatrix);
+			_shouldRecalculateInverseCancatenatedMatrix = true;
 		}
 
 		protected void RecalculateAlpha() {

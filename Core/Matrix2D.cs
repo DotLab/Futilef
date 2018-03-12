@@ -193,7 +193,7 @@ namespace Futilef.Core {
 			m12 = -(a00 * a12 - a10 * a02) * det;
 		}
 
-		public void FromInvert(Matrix2D a) {
+		public void FromInverse(Matrix2D a) {
 			float det = 1.0f / (a.m00 * a.m11 - a.m10 * a.m01);		
 
 			m00 = a.m11 * det;
