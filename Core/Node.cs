@@ -6,7 +6,6 @@ namespace Futilef.Core {
 	public abstract partial class Node : IDepthSortable {
 		#region Transform
 
-		public Vector3 position { get { return new Vector3(_x, _y, _z); } }
 		public float x {
 			get { return _x; }
 			set {
@@ -26,7 +25,6 @@ namespace Futilef.Core {
 			set { _z = value; }
 		}
 
-		public Vector3 scaling { get { return new Vector3(_scalingX, _scalingY, 1); } }
 		public float scalingX {
 			get { return _scalingX; }
 			set {
@@ -42,7 +40,6 @@ namespace Futilef.Core {
 			}
 		}
 
-		public Quaternion rotation { get { return Quaternion.AngleAxis(_rotationZ, Vector3.forward); } }
 		public float rotationZ {
 			get { return _rotationZ; }
 			set {
@@ -68,14 +65,12 @@ namespace Futilef.Core {
 
 		public virtual Matrix2D screenConcatenatedMatrix {
 			get {
-				if (!_needsSpecialMatrices) _needsSpecialMatrices = true;
 				if (_isScreenMatricesDirty) RecalculateScreenMatrices();
 				return _screenConcatenatedMatrix;
 			}
 		}
 		public virtual Matrix2D inverseScreenConcatenatedMatrix {
 			get {
-				if (!_needsSpecialMatrices) _needsSpecialMatrices = true;
 				if (_isScreenMatricesDirty) RecalculateScreenMatrices();
 				return _inverseScreenConcatenatedMatrix;
 			}
@@ -96,9 +91,9 @@ namespace Futilef.Core {
 		protected readonly Matrix2D _matrix = new Matrix2D(), _concatenatedMatrix = new Matrix2D();
 		protected bool _isMatricesDirty;
 
-		// Special matrices
+		// Screen matrices (_screenConcatenatedMatrix = _concatenatedMatrix * _stage.screenConcatenatedMatrix
 		protected readonly Matrix2D _screenConcatenatedMatrix = new Matrix2D(), _inverseScreenConcatenatedMatrix = new Matrix2D();
-		protected bool _needsSpecialMatrices, _isScreenMatricesDirty;
+		protected bool _isScreenMatricesDirty;
 
 		// Alpha
 		protected float _alpha = 1f, _concatenatedAlpha = 1f;
@@ -108,10 +103,10 @@ namespace Futilef.Core {
 		protected int _depth;
 
 		// Parent
-		protected Container _container;
 		protected Stage _stage;
+		protected Container _container;
 
-		// Enablers
+		// Enablers (Receives signals when Node is on stage
 		readonly List<Enabler> _enablers = new List<Enabler>();
 
 		protected Node() {
@@ -128,7 +123,22 @@ namespace Futilef.Core {
 			if (shouldForceAlphaDirty || _isAlphaDirty) RecalculateAlpha();
 		}
 
-		protected void RecalculateMatrices() {
+		// Must be called after Redraw() since matrices are calculated during Redraw()
+		public Vector2 ScreenToLocal(Vector2 position) {
+			return inverseScreenConcatenatedMatrix.Transform2D(position);
+		}
+
+		public Vector2 LocalToScreen(Vector2 position) {
+			return screenConcatenatedMatrix.Transform2D(position);
+		}
+
+		public Vector2 LocalToOther(Node other, Vector2 position) {
+			return other.ScreenToLocal(LocalToScreen(position));
+		}
+
+		#region Recalculate
+
+		protected virtual void RecalculateMatrices() {
 			_isMatricesDirty = false;
 
 			_matrix.FromScalingRotationTranslation(_x, _y, _scalingX, _scalingY, _rotationZ);
@@ -154,6 +164,10 @@ namespace Futilef.Core {
 			if (_container != null) _concatenatedAlpha = _alpha * _container._concatenatedAlpha;
 			else _concatenatedAlpha = _alpha;
 		}
+
+		#endregion
+
+		#region On Container
 
 		public virtual void OnAddedToContainer(Container container) {
 			// Remove from the old container first if there is one
@@ -183,18 +197,7 @@ namespace Futilef.Core {
 			_stage = null;
 		}
 
-		// Must be called after Redraw() since matrices are calculated during Redraw()
-		public Vector2 ScreenToLocal(Vector2 position) {
-			return inverseScreenConcatenatedMatrix.Transform2D(position);
-		}
-
-		public Vector2 ScreenToDisplay(Vector2 position) {
-			return screenConcatenatedMatrix.Transform2D(position);
-		}
-
-		public Vector2 LocalToOther(Node other, Vector2 position) {
-			return other.ScreenToLocal(ScreenToDisplay(position));
-		}
+		#endregion
 	}
 }
 

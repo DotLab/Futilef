@@ -60,7 +60,6 @@ namespace Futilef {
 			Display.Init(referenceLength, displayScaling, resourceScaling);
 			DisplayCorrection = IsOpenGl ? 0 : (0.5f * Display.Pixel2Display);
 
-			//Camera setup from https://github.com/prime31/UIToolkit/blob/master/Assets/Plugins/UIToolkit/UI.cs
 			_cameraHolder = new GameObject();
 			_cameraHolder.transform.parent = transform;
 			_cameraHolder.transform.position = new Vector3(DisplayCorrection, -DisplayCorrection, CameraOffsetZ);
@@ -74,8 +73,6 @@ namespace Futilef {
 			_camera.farClipPlane = 500.0f;
 			_camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 			_camera.depth = 100;
-
-			//we multiply this stuff by scaleInverse to make sure everything is in points, not pixels
 			_camera.orthographic = true;
 		}
 			
@@ -89,6 +86,9 @@ namespace Futilef {
 			if (SignalPreUpdate != null) SignalPreUpdate();
 			if (SignalUpdate != null) SignalUpdate();
 			if (SignalAfterUpdate != null) SignalAfterUpdate();
+
+			int depth = 0;
+			Stage.Redraw(ref depth, false, false);
 
 			if (SignalAfterDraw != null) SignalAfterDraw();
 		}
