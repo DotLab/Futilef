@@ -1,7 +1,5 @@
 ﻿using System;
 
-using UnityEngine;
-
 namespace Futilef.Core {
 	public sealed class Stage : Container {
 		public readonly string name;

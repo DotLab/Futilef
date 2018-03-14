@@ -88,7 +88,9 @@ namespace Futilef {
 			if (SignalAfterUpdate != null) SignalAfterUpdate();
 
 			int depth = 0;
+			Renderer.StartRender();
 			Stage.Redraw(ref depth, false, false);
+			Renderer.EndRender();
 
 			if (SignalAfterDraw != null) SignalAfterDraw();
 		}
