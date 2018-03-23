@@ -1,18 +1,18 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Futilef.Core {
+namespace Futilef {
 
 	/**
 	 * m00 m01 m02
 	 * m10 m11 m12
 	 * 0   0   1
 	 */
-	public class Matrix2D {
-		public static readonly Matrix2D Identity = new Matrix2D();
+	public sealed class FMatrix {
+		public static readonly FMatrix Identity = new FMatrix();
 
 		// Useful for doing calulations without allocating a new matrix every time
-		public static readonly Matrix2D TempMatrix = new Matrix2D();
+		public static readonly FMatrix TempMatrix = new FMatrix();
 
 		public float m00 = 1;
 		public float m01 = 0;
@@ -22,13 +22,13 @@ namespace Futilef.Core {
 		public float m11 = 1;
 		public float m12 = 0;
 
-		public static Vector2 operator*(Matrix2D m, Vector2 v) {
+		public static Vector2 operator*(FMatrix m, Vector2 v) {
 			return m.Transform2D(v);
 		}
 
 		// Creates a new mat2d initialized with values from an existing matrix
-		public Matrix2D Clone() {
-			var res = new Matrix2D();
+		public FMatrix Clone() {
+			var res = new FMatrix();
 
 			res.m00 = m00;
 			res.m01 = m01;
@@ -42,7 +42,7 @@ namespace Futilef.Core {
 		}
 
 		// Copy the values from one mat2d to another
-		public void FromCopy(Matrix2D a) {
+		public void FromCopy(FMatrix a) {
 			m00 = a.m00;
 			m01 = a.m01;
 			m02 = a.m02;
@@ -86,6 +86,10 @@ namespace Futilef.Core {
 
 		public Vector3 Transform3D(Vector2 v, float z = 0) {
 			return Transform3D(v.x, v.y, z);
+		}
+
+		public Vector3 Transform3D(Vector3 v) {
+			return Transform3D(v.x, v.y, v.z);
 		}
 
 		public void ApplyTransform3D(ref Vector3 o, Vector2 v, float z = 0) {
@@ -152,7 +156,7 @@ namespace Futilef.Core {
 		 * b10 b11 b12 . a10 a11 a12 = (a00 * b10 + a10 * b11) (a01 * b10 + a11 * b11) (a00 * b10 + a10 * b11 + b12)
 		 * 0   0   1     0   0   1     0                       0                       1
 		 */
-		public void Multiply(Matrix2D b) {
+		public void Multiply(FMatrix b) {
 			float a00 = m00, a01 = m01, a02 = m02;
 			float a10 = m10, a11 = m11, a12 = m12;
 
@@ -165,7 +169,7 @@ namespace Futilef.Core {
 			m12 = a02 * b.m10 + a12 * b.m11 + b.m12;	
 		}
 
-		public void FromMultiply(Matrix2D a, Matrix2D b) {
+		public void FromMultiply(FMatrix a, FMatrix b) {
 			// a and b cannot be this!
 			if (this == a || this == b) throw new Exception("Cannot multiply a b");
 
@@ -193,7 +197,7 @@ namespace Futilef.Core {
 			m12 = -(a00 * a12 - a10 * a02) * det;
 		}
 
-		public void FromInverse(Matrix2D a) {
+		public void FromInverse(FMatrix a) {
 			float det = 1.0f / (a.m00 * a.m11 - a.m10 * a.m01);		
 
 			m00 = a.m11 * det;

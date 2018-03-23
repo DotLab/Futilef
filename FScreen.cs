@@ -3,13 +3,13 @@
 using UnityEngine;
 
 namespace Futilef {
-	public static class Display {
+	public static class FScreen {
 		public static event Action SignalResize;
 
 		// Set by Init()
-		public static float ReferenceLength;
-		public static float Pixel2Display, Display2Pixel;
-		public static float DisplayScaling, ResourceScaling;
+		public static float ReferenceLength, ScreenScaling;
+
+		public static float Pixel2Screen, Screen2Pixel;
 
 		public static float PixelWidth, PixelHeight;
 		public static float Width, Height;
@@ -17,25 +17,24 @@ namespace Futilef {
 
 		static int _intPixelWidth, _intPixelHeight;
 
-		public static void Init(float referenceLength, float displayScaling, float resourceScaling) {
+		public static void Init(float referenceLength, float screenScaling) {
 			ReferenceLength = referenceLength;
-			DisplayScaling = displayScaling;
-			ResourceScaling = resourceScaling;
+			ScreenScaling = screenScaling;
 		}
 
 		static void UpdateScreenDimensions() {
-			float screenLongLength = Mathf.Max(Screen.height, Screen.width);
-			Display2Pixel = DisplayScaling * (screenLongLength / ReferenceLength);
-			Pixel2Display = 1 / Display2Pixel;
+			float screenLongLength = Mathf.Max(Screen.width, Screen.height);
+			Screen2Pixel = Mathf.Lerp(1f, screenLongLength / ReferenceLength, ScreenScaling);
+			Pixel2Screen = 1f / Screen2Pixel;
 
 			PixelWidth = _intPixelWidth = Screen.width;
 			PixelHeight = _intPixelHeight = Screen.height;
-			
-			Width = PixelWidth * Pixel2Display;
-			Height = PixelHeight * Pixel2Display;
-			
-			HalfWidth = Width / 2;
-			HalfHeight = Height / 2;
+
+			Width = PixelWidth * Pixel2Screen;
+			Height = PixelHeight * Pixel2Screen;
+
+			HalfWidth = Width / 2f;
+			HalfHeight = Height / 2f;
 
 			Debug.LogFormat("PixelWidth={0}, PixelHeight={1}, Width={2}, Height={3}", PixelWidth, PixelHeight, Width, Height);
 		}

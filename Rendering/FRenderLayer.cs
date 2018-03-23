@@ -2,20 +2,20 @@
 
 using UnityEngine;
 
-namespace Futilef {
+namespace Futilef.Rendering {
 	public enum PrimitiveType {
 		Triangle,
 		Quad,
 	}
 
-	public abstract class RenderLayer {
+	public abstract class FRenderLayer {
 		public const int MinExpansionAmount = 16;
 		public const int MaxUnusedAmount = 64;
 
 		static int _count;
 
 		public readonly int index;
-		public readonly Atlas atlas;
+		public readonly Texture2D texture;
 		public readonly Shader shader;
 		public abstract PrimitiveType type { get; }
 
@@ -36,27 +36,26 @@ namespace Futilef {
 		protected int _currentPrimitiveIndex, _maxPrimitiveCount, _lowestUnusedPrimitiveIndex;
 		protected int _renderQueue;
 
-		protected string activeName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, atlas.name, shader.name, type); } }
-		protected string inactiveName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, atlas.name, shader.name, type); } }
+		protected string activeName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.name, shader.name, type); } }
+		protected string inactiveName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.name, shader.name, type); } }
 
-		protected RenderLayer(Atlas atlas, Shader shader) {
+		protected FRenderLayer(Texture2D texture, Shader shader) {
 			index = _count++;
-			this.atlas = atlas;
+			this.texture = texture;
 			this.shader = shader;
 
 			_gameObject = new GameObject(inactiveName);
 			_gameObject.SetActive(false);
 			_transform = _gameObject.transform;
-			_transform.parent = FutilefBehaviour.Instance.transform;
+			_transform.parent = Futile.Instance.transform;
 
 			_meshFilter = _gameObject.AddComponent<MeshFilter>();
 			_meshRenderer = _gameObject.AddComponent<MeshRenderer>();
 			_meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			_meshRenderer.receiveShadows = false;
 
-			_material = new Material(shader.shader);
-			_material.mainTexture = atlas.texture;
-			shader.SetProperties(_material);
+			_material = new Material(shader);
+			_material.mainTexture = texture;
 
 			_meshRenderer.sharedMaterial = _material;
 
@@ -128,9 +127,9 @@ namespace Futilef {
 
 			_isVerticesDirty = _isColorsDirty = _isUvsDirty = false;
 
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			_gameObject.name = activeName;
-			#endif
+#endif
 		}
 
 		protected void Expand(int newSize) {
@@ -176,17 +175,17 @@ namespace Futilef {
 
 		public void Deactivate() {
 			_gameObject.SetActive(false);
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			_gameObject.name = inactiveName;
-			#endif
+#endif
 		}
 
 		#region Primitives
 
-		public sealed class Triangle : RenderLayer {
+		public sealed class Triangle : FRenderLayer {
 			public override PrimitiveType type { get { return PrimitiveType.Triangle; } }
 
-			public Triangle(Atlas atlas, Shader shader) : base(atlas, shader) {
+			public Triangle(Texture2D texture, Shader shader) : base(texture, shader) {
 			}
 
 			public override int PrimitiveIndexToVertexIndex(int primitiveIndex) {
@@ -203,10 +202,10 @@ namespace Futilef {
 			}
 		}
 
-		public sealed class Quad : RenderLayer {
+		public sealed class Quad : FRenderLayer {
 			public override PrimitiveType type { get { return PrimitiveType.Quad; } }
 
-			public Quad(Atlas atlas, Shader shader) : base(atlas, shader) {
+			public Quad(Texture2D texture, Shader shader) : base(texture, shader) {
 			}
 
 			public override int PrimitiveIndexToVertexIndex(int primitiveIndex) {
@@ -220,13 +219,13 @@ namespace Futilef {
 			public override void WindPrimitive(int start, int end) {
 				end *= 4;
 				for (int i = start * 4, j = start * 6; i < end; i += 4, j += 6) {
-					_triangles[j] = i;
+					_triangles[j + 0] = i + 0;
 					_triangles[j + 1] = i + 1;
 					_triangles[j + 2] = i + 2;
 
-					_triangles[j + 3] = i;
-					_triangles[j + 4] = i + 2;
-					_triangles[j + 5] = i + 3;
+					_triangles[j + 3] = i + 2;
+					_triangles[j + 4] = i + 3;
+					_triangles[j + 5] = i + 0;
 				}
 			}
 		}

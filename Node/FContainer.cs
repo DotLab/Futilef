@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Futilef.Core {
-	public class Container : Node {
-		protected readonly List<Node> _children = new List<Node>();
+namespace Futilef.Node {
+	public class FContainer : FNode {
+		protected readonly List<FNode> _children = new List<FNode>();
 
 		public override void Redraw(ref int currentDepth, bool shouldForceMatricesDirty, bool shouldForceAlphaDirty) {
 			shouldForceMatricesDirty = _isMatricesDirty || shouldForceMatricesDirty;
@@ -17,23 +17,23 @@ namespace Futilef.Core {
 			return _children.Count;
 		}
 
-		public Node GetChild(int index) {
+		public FNode GetChild(int index) {
 			return _children[index];
 		}
 
-		public int GetChildIndex(Node child) {
+		public int GetChildIndex(FNode child) {
 			return _children.IndexOf(child);
 		}
 			
-		public void AddChild(Node node) {
+		public void AddChild(FNode node) {
 			AddChild(node, _children.Count);
 		}
 
-		public void AddChildAtBack(Node node) {
+		public void AddChildAtBack(FNode node) {
 			AddChild(node, 0);
 		}
 
-		public void AddChild(Node node, int index) {
+		public void AddChild(FNode node, int index) {
 			int nodeIndex = _children.IndexOf(node);
 
 			if (index > _children.Count) {  // If it's past the end, make it at the end
@@ -53,7 +53,7 @@ namespace Futilef.Core {
 			}
 		}
 
-		public void RemoveChild(Node node) {
+		public void RemoveChild(FNode node) {
 			if (node.container != this) throw new System.AccessViolationException("I ain't your daddy");  // I ain't your daddy
 
 			node.OnRemovedFromContainer();
@@ -69,13 +69,13 @@ namespace Futilef.Core {
 			_children.Clear();	
 		}
 
-		public override void OnAddedToStage(Stage stage) {
+		internal override void OnAddedToStage(FStage stage) {
 			base.OnAddedToStage(stage);
 
 			foreach (var child in _children) child.OnAddedToStage(stage);
 		}
 
-		public override void OnRemovedFromStage() {
+		internal override void OnRemovedFromStage() {
 			foreach (var child in _children) child.OnRemovedFromStage();
 
 			base.OnRemovedFromStage();

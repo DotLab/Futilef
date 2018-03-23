@@ -4,19 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Futilef {
+	public enum FTouchPhase {
+		Enter,
+		Stay,
+		Exit,
+	}
 
-	public sealed class Touch {
-		public enum Phase {
-			Began,
-			Stay,
-			Ended,
-		}
+	public sealed class FTouch {
 
 		public readonly int id;
 		public Vector2 position;
-		public Phase phase;
-		
-		public Touch(int id) {
+		public FTouchPhase phase;
+
+		public FTouch(int id) {
 			this.id = id;
 		}
 
@@ -30,16 +30,16 @@ namespace Futilef {
 	}
 
 	public interface ISingleTouchable : IDepthSortable {
-		bool OnSingleTouchBegan(Touch touch);
-		void OnSingleTouchStay(Touch touch);
-		void OnSingleTouchEnded(Touch touch);
+		bool OnSingleTouchBegan(FTouch touch);
+		void OnSingleTouchStay(FTouch touch);
+		void OnSingleTouchEnded(FTouch touch);
 	}
 
 	public interface IMultiTouchable {
-		void OnMultiTouch(Touch[] touches);
+		void OnMultiTouch(FTouch[] touches);
 	}
 
-	public static class TouchManager {
+	public static class FTouchManager {
 		public const int MouseTouchId = -1;
 
 		static readonly Dictionary<int, ISingleTouchable> _activeSingleTouchableById = new Dictionary<int, ISingleTouchable>();
@@ -81,30 +81,30 @@ namespace Futilef {
 
 			// Mouse Touch
 			bool isMouseActive = true;
-			var mouseTouch = new Touch(-1);
+			var mouseTouch = new FTouch(-1);
 
-			mouseTouch.position = ((Vector2)Input.mousePosition) * Display.Pixel2Display;
+			mouseTouch.position = ((Vector2)Input.mousePosition) * FScreen.Pixel2Screen;
 
-			if (Input.GetMouseButtonDown(0)) mouseTouch.phase = Touch.Phase.Began;
-			else if (Input.GetMouseButtonUp(0)) mouseTouch.phase = Touch.Phase.Ended;
-			else if (Input.GetMouseButton(0)) mouseTouch.phase = Touch.Phase.Stay;
+			if (Input.GetMouseButtonDown(0)) mouseTouch.phase = FTouchPhase.Enter;
+			else if (Input.GetMouseButtonUp(0)) mouseTouch.phase = FTouchPhase.Exit;
+			else if (Input.GetMouseButton(0)) mouseTouch.phase = FTouchPhase.Stay;
 			else isMouseActive = false;
 
 			// Unity Touches
 			var unityTouches = Input.touches;
-			var touches = new Touch[unityTouches.Length + (isMouseActive ? 1 : 0)];
+			var touches = new FTouch[unityTouches.Length + (isMouseActive ? 1 : 0)];
 			if (isMouseActive) touches[touches.Length - 1] = mouseTouch;
 
 			for (int i = 0; i < unityTouches.Length; i++) {
 				var unityTouch = unityTouches[i];
-				var touch = new Touch(unityTouch.fingerId);
+				var touch = new FTouch(unityTouch.fingerId);
 
-				touch.position = unityTouch.position * Display.Pixel2Display;
+				touch.position = unityTouch.position * FScreen.Pixel2Screen;
 
 				// Map touch phase
-				if (unityTouch.phase == TouchPhase.Began) touch.phase = Touch.Phase.Began;
-				else if (unityTouch.phase == TouchPhase.Moved || unityTouch.phase == TouchPhase.Stationary) touch.phase = Touch.Phase.Stay;
-				else if (unityTouch.phase == TouchPhase.Ended || unityTouch.phase == TouchPhase.Canceled) touch.phase = Touch.Phase.Ended;
+				if (unityTouch.phase == TouchPhase.Began) touch.phase = FTouchPhase.Enter;
+				else if (unityTouch.phase == TouchPhase.Moved || unityTouch.phase == TouchPhase.Stationary) touch.phase = FTouchPhase.Stay;
+				else if (unityTouch.phase == TouchPhase.Ended || unityTouch.phase == TouchPhase.Canceled) touch.phase = FTouchPhase.Exit;
 
 				touches[i] = touch;
 			}
@@ -112,14 +112,14 @@ namespace Futilef {
 			// Single Touch
 			foreach (var touch in touches) {
 				// End touches
-				if (touch.phase == Touch.Phase.Began || touch.phase == Touch.Phase.Ended) {
+				if (touch.phase == FTouchPhase.Enter || touch.phase == FTouchPhase.Exit) {
 					if (_activeSingleTouchableById.ContainsKey(touch.id)) {
 						_activeSingleTouchableById[touch.id].OnSingleTouchEnded(touch);
 						_activeSingleTouchableById.Remove(touch.id);
 					}
 				}
 
-				if (touch.phase == Touch.Phase.Began) {
+				if (touch.phase == FTouchPhase.Enter) {
 					// Find and add mapping
 					foreach (var touchable in _singleTouchables) {
 						if (touchable.OnSingleTouchBegan(touch)) {
@@ -127,7 +127,7 @@ namespace Futilef {
 							break;
 						}
 					}
-				} else if (touch.phase == Touch.Phase.Stay) {
+				} else if (touch.phase == FTouchPhase.Stay) {
 					// Stay on active touchable
 					if (_activeSingleTouchableById.ContainsKey(touch.id)) _activeSingleTouchableById[touch.id].OnSingleTouchStay(touch);
 				}
@@ -135,11 +135,11 @@ namespace Futilef {
 				// Multi Touch
 				if (touches.Length > 0) foreach (var touchable in _multiTouchables) touchable.OnMultiTouch(touches);
 
-//				LogTouches(touches);
+				LogTouches(touches);
 			}
 		}
 
-		public static void LogTouches(Touch[] touches) {
+		public static void LogTouches(FTouch[] touches) {
 			var sb = new System.Text.StringBuilder();
 
 			foreach (var touch in touches) {
