@@ -15,6 +15,8 @@ namespace Futilef {
 		public static Futile Instance;
 		public static Futilef.Node.FStage Stage;
 
+		public static float deltaTime { get; private set; }
+
 		GameObject _cameraHolder;
 		Camera _camera;
 
@@ -61,7 +63,7 @@ namespace Futilef {
 
 			enabled = true;
 
-//			Application.targetFrameRate = 30;
+//			Application.targetFrameRate = 60;
 
 			_cameraHolder = new GameObject();
 			_cameraHolder.transform.parent = transform;
@@ -84,6 +86,8 @@ namespace Futilef {
 		}
 
 		void Update() {
+			deltaTime = Time.deltaTime;
+
 			if (SignalPreUpdate != null) SignalPreUpdate();
 			if (SignalUpdate != null) SignalUpdate();
 			if (SignalAfterUpdate != null) SignalAfterUpdate();
@@ -148,22 +152,35 @@ namespace Futilef {
 			Init();
 			Load();
 			BuildMesh();
-//			LoadFont();
+			LoadFont();
 //			DrawText();
 
 			var shader = Shader.Find("Sprites/Default");
 
+
+			var container1 = new Futilef.Node.FContainer();
 			for (int i = 0; i < 1000; i++) {
 				var sprite = new Futilef.Node.Display.FSprite(atlas.frames["こいし（不満）.png"], shader);
-				sprite.x = i * 0.001f * (FScreen.Width - atlas.frames["こいし（不満）.png"].sourceSize.w) - FScreen.HalfWidth;
+				sprite.x = i * 0.001f * (FScreen.HalfWidth) - FScreen.HalfWidth;
 				sprite.scalingX = i * 0.0004f;
 				sprite.scalingY = i * 0.0004f;
-				Stage.AddChild(sprite);
+				sprite.alpha = 0.001f * i;
+				container1.AddChild(sprite);
 			}
+			Stage.AddChild(container1);
+
+			var label = new Futilef.Node.Display.FLabel(font, shader);
+			Stage.AddChild(label);
+
+			var label2 = new Futilef.Node.Display.FLabel(font, shader);
+			label2.y += font.lineHeight;
+			Stage.AddChild(label2);
 
 			SignalUpdate += () => {
+				label.text = (1f / Time.smoothDeltaTime).ToString("F1");
+				label2.text = (1f / Time.deltaTime).ToString("F1");
 				for (int i = 0; i < 1000; i++) {
-					Stage.GetChild(i).rotationZ += (i / 1000f) * 0.06f;
+					container1.GetChild(i).rotationZ += (i / 1000f) * 3.14f * deltaTime;
 //					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);
 //					Stage.GetChild(i).y += UnityEngine.Random.Range(-1f, 1f);
 				}
