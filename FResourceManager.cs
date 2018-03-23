@@ -46,7 +46,7 @@ namespace Futilef {
 
 		public static TpAtlas LoadTpAtlas(Texture2D texture, string path) {
 			using (var resource = new FResource<TextAsset>(path)) {
-				var atlas = fastJSON.JSON.ToObject<TpAtlas>(resource.asset.text);
+				var atlas = new TpAtlas((System.Collections.Generic.Dictionary<string, object>)MiniJson.Deserialize(resource.asset.text));
 
 				atlas.texture = texture;
 				foreach (var frame in atlas.frames.Values) {

@@ -1,10 +1,19 @@
 ﻿using System.Collections.Generic;
 
+using Dict = System.Collections.Generic.Dictionary<string, object>;
+
 using UnityEngine;
 
 namespace Futilef.Serialization {
 	public class TpRect {
 		public float x, y, w, h;
+
+		public TpRect(Dict dict) {
+			x = (long)dict["x"];
+			y = (long)dict["y"];
+			w = (long)dict["w"];
+			h = (long)dict["h"];
+		}
 
 		public override string ToString() {
 			return string.Format("[TpRect: x={0}, y={1}, w={2}, h={3}]", x, y, w, h);
@@ -13,7 +22,12 @@ namespace Futilef.Serialization {
 
 	public class TpSize {
 		public float w, h;
-	
+
+		public TpSize(Dict dict) {
+			w = (long)dict["w"];
+			h = (long)dict["h"];
+		}
+
 		public override string ToString() {
 			return string.Format("[TpSize: w={0}, h={1}]", w, h);
 		}
@@ -21,6 +35,11 @@ namespace Futilef.Serialization {
 
 	public class TpPosition {
 		public float x, y;
+
+		public TpPosition(Dict dict) {
+			x = (float)(double)dict["x"];
+			y = (float)(double)dict["y"];
+		}
 
 		public override string ToString() {
 			return string.Format("[TpPosition: x={0}, y={1}]", x, y);
@@ -30,6 +49,15 @@ namespace Futilef.Serialization {
 	public class TpMeta {
 		public string app, version, image, format;
 		public TpSize size;
+
+		public TpMeta(Dict dict) {
+			app = (string)dict["app"];
+			version = (string)dict["version"];
+			image = (string)dict["image"];
+			format = (string)dict["format"];
+
+			size = new TpSize((Dict)dict["size"]);
+		}
 
 		public override string ToString() {
 			return string.Format("[TpMeta: app={0}, version={1}, image={2}, format={3}, size={4}]", app, version, image, format, size);
@@ -42,6 +70,17 @@ namespace Futilef.Serialization {
 		public TpRect spriteSourceSize;
 		public TpSize sourceSize;
 		public TpPosition pivot;
+
+		public TpFrame(Dict dict) {
+			frame = new TpRect((Dict)dict["frame"]);
+			rotated = (bool)dict["rotated"];
+			trimmed = (bool)dict["trimmed"];
+			spriteSourceSize = new TpRect((Dict)dict["spriteSourceSize"]);
+			sourceSize = new TpSize((Dict)dict["sourceSize"]);
+			pivot = new TpPosition((Dict)dict["pivot"]);
+
+			Debug.Log(this);
+		}
 
 		// Non-serialized
 		public TpAtlas atlas;
@@ -98,8 +137,18 @@ namespace Futilef.Serialization {
 	}
 
 	public class TpAtlas {
-		public Dictionary<string, TpFrame> frames;
+		public Dictionary<string, TpFrame> frames = new Dictionary<string, TpFrame>();
 		public TpMeta meta;
+
+		public TpAtlas(Dict dict) {
+			var framesDict = (Dict)dict["frames"];
+			foreach (var pair in framesDict) {
+				Debug.Log(pair.Value.GetType());
+				frames.Add(pair.Key, new TpFrame((Dict)pair.Value));
+			}
+
+			meta = new TpMeta((Dict)dict["meta"]);
+		}
 
 		// Non-serialized
 		public Texture2D texture;
@@ -133,7 +182,7 @@ namespace Futilef.Serialization {
 				uvRightBottom.Set(uvLeft, uvBottom);
 			}
 		}
-	
+
 		public override string ToString() {
 			return string.Format("[TpAtlas: frames={0}, meta={1}]", frames, meta);
 		}
