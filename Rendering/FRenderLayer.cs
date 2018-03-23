@@ -40,15 +40,15 @@ namespace Futilef.Rendering {
 		protected int _currentPrimitiveIndex, _maxPrimitiveCount, _lowestUnusedPrimitiveIndex;
 		protected int _renderQueue;
 
-		protected string activeName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
-		protected string inactiveName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
+		protected string activeName { get { return string.Format("RL{0} {1:N0} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
+		protected string inactiveName { get { return string.Format("RL{0} {1} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
 
 		protected FRenderLayer(Texture2D texture, Shader shader) {
 			index = _count++;
 			this.texture = texture;
 			this.shader = shader;
 
-			_gameObject = new GameObject(inactiveName);
+			_gameObject = new GameObject("RL" + index);
 			_transform = _gameObject.transform;
 			_transform.parent = Futile.Instance.transform;
 

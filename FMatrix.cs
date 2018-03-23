@@ -137,7 +137,7 @@ namespace Futilef {
 		 * 0   0    1   0   0   1     0                       0                       1
 		 */
 		public void Rotate(float rad) {
-			float sin = Mathf.Sin(rad), cos = Mathf.Cos(rad);
+			float sin = (float)Math.Sin(rad), cos = (float)Math.Cos(rad);
 
 			float a00 = m00, a01 = m01, a02 = m02;
 			float a10 = m10, a11 = m11, a12 = m12;
@@ -216,7 +216,7 @@ namespace Futilef {
 		 */
 		public void FromScalingRotationTranslation(float x, float y, float sx, float sy, float rad) {
 			// scales then rotates then translates
-			float sin = Mathf.Sin(rad), cos = Mathf.Cos(rad);
+			float sin = (float)Math.Sin(rad), cos = (float)Math.Cos(rad);
 
 			m00 = sx * cos;
 			m01 = sy * -sin;
@@ -225,19 +225,6 @@ namespace Futilef {
 			m10 = sx * sin;
 			m11 = sy * cos;
 			m12 = y;
-		}
-
-		public float GetScalingX() {
-			return Mathf.Sqrt(m00 * m00 + m10 * m10);
-		}
-
-		public float GetScalingY() {
-			return Mathf.Sqrt(m01 * m01 + m11 * m11);
-		}
-
-		public float GetRotation() {
-			Vector2 newVector = Transform2D(1, 0);
-			return Mathf.Atan2(newVector.y - m12, newVector.x - m02);
 		}
 			
 		public override string ToString() {

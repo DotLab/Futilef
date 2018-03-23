@@ -79,7 +79,7 @@ namespace Futilef.Serialization {
 			sourceSize = new TpSize((Dict)dict["sourceSize"]);
 			pivot = new TpPosition((Dict)dict["pivot"]);
 
-			Debug.Log(this);
+//			Debug.Log(this);
 		}
 
 		// Non-serialized

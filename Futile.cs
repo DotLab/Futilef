@@ -31,7 +31,7 @@ namespace Futilef {
 			FScreen.SignalResize += ResizeCamera;
 
 #if UNITY_EDITOR
-			SignalAfterUpdate += ReportStatus;
+//			SignalAfterUpdate += ReportStatus;
 #endif
 		}
 
@@ -42,7 +42,7 @@ namespace Futilef {
 			FScreen.SignalResize -= ResizeCamera;
 
 #if UNITY_EDITOR
-			SignalAfterUpdate -= ReportStatus;
+//			SignalAfterUpdate -= ReportStatus;
 #endif
 		}
 
@@ -63,7 +63,10 @@ namespace Futilef {
 
 			enabled = true;
 
-//			Application.targetFrameRate = 60;
+#if !UNITY_EDITOR
+			Application.targetFrameRate = 30;
+#endif
+			Input.simulateMouseWithTouches = false;
 
 			_cameraHolder = new GameObject();
 			_cameraHolder.transform.parent = transform;
@@ -83,6 +86,8 @@ namespace Futilef {
 			_camera.allowHDR = false;
 
 			FScreen.Init(referenceLength, screenScaling);
+
+			FTouchManager.Init();
 		}
 
 		void Update() {
@@ -111,8 +116,6 @@ namespace Futilef {
 		void FixedUpdate() {
 			if (SignalFixedUpdate != null) SignalFixedUpdate();
 		}
-
-
 
 
 
@@ -170,15 +173,14 @@ namespace Futilef {
 			Stage.AddChild(container1);
 
 			var label = new Futilef.Node.Display.FLabel(font, shader);
+			label.horizontalAlignment = Futilef.Node.Display.FLabelHorizontalAlignment.Right;
+			label.verticalAlignment = Futilef.Node.Display.FLabelVerticalAlignment.Top;
+			label.x = FScreen.HalfWidth;
+			label.y = FScreen.HalfHeight;
 			Stage.AddChild(label);
 
-			var label2 = new Futilef.Node.Display.FLabel(font, shader);
-			label2.y += font.lineHeight;
-			Stage.AddChild(label2);
-
 			SignalUpdate += () => {
-				label.text = (1f / Time.smoothDeltaTime).ToString("F1");
-				label2.text = (1f / Time.deltaTime).ToString("F1");
+				label.text = (1f / Time.smoothDeltaTime).ToString("N0");
 				for (int i = 0; i < 1000; i++) {
 					container1.GetChild(i).rotationZ += (i / 1000f) * 3.14f * deltaTime;
 //					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);

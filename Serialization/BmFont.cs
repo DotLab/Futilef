@@ -106,7 +106,7 @@ namespace Futilef.Serialization {
 			// chnl			1	uint	19+c*20
 			ReadByte();
 
-			Debug.Log(this);
+//			Debug.Log(this);
 		}
 
 		public override string ToString() {
@@ -233,7 +233,7 @@ namespace Futilef.Serialization {
 				var glyph = new BmGlyph(stream);
 				glyphDict.Add(glyph.id, glyph);
 			}
-			Debug.Log(glyphDict.Count);
+//			Debug.Log(glyphDict.Count);
 
 			if (IsEnd()) return;
 
@@ -247,8 +247,12 @@ namespace Futilef.Serialization {
 				UInt64 key = (first << 32) | second;
 				kerningDict.Add(key, amount);
 
-				Debug.LogFormat("{0}-{1}: {2}", first, second, amount);
+//				Debug.LogFormat("{0}-{1}: {2}", first, second, amount);
 			}
+		}
+
+		public bool TryGetGlyph(UInt32 id, out BmGlyph glyph) {
+			return glyphDict.TryGetValue(id, out glyph);
 		}
 
 		public bool HasGlyph(UInt32 id) {

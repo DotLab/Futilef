@@ -45,6 +45,7 @@ namespace Futilef.Node {
 			get { return _rotationZ; }
 			set {
 				_rotationZ = value;
+
 				_isMatricesDirty = true;
 			}
 		}
