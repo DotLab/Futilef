@@ -3,7 +3,7 @@
 using UnityEngine;
 
 namespace Futilef.Rendering {
-	public enum PrimitiveType {
+	public enum FPrimitiveType {
 		Triangle,
 		Quad,
 	}
@@ -17,7 +17,11 @@ namespace Futilef.Rendering {
 		public readonly int index;
 		public readonly Texture2D texture;
 		public readonly Shader shader;
-		public abstract PrimitiveType type { get; }
+		public abstract FPrimitiveType type { get; }
+
+		public Vector3[] vertices { get { return _vertices; } }
+		public Vector2[] uvs { get { return _uvs; } }
+		public Color32[] colors { get { return _colors; } }
 
 		protected readonly GameObject _gameObject;
 		protected readonly Transform _transform;
@@ -36,8 +40,8 @@ namespace Futilef.Rendering {
 		protected int _currentPrimitiveIndex, _maxPrimitiveCount, _lowestUnusedPrimitiveIndex;
 		protected int _renderQueue;
 
-		protected string activeName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.name, shader.name, type); } }
-		protected string inactiveName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.name, shader.name, type); } }
+		protected string activeName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
+		protected string inactiveName { get { return string.Format("RL{0} {1} [{2}/{3}] ({4} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
 
 		protected FRenderLayer(Texture2D texture, Shader shader) {
 			index = _count++;
@@ -45,7 +49,6 @@ namespace Futilef.Rendering {
 			this.shader = shader;
 
 			_gameObject = new GameObject(inactiveName);
-			_gameObject.SetActive(false);
 			_transform = _gameObject.transform;
 			_transform.parent = Futile.Instance.transform;
 
@@ -95,7 +98,7 @@ namespace Futilef.Rendering {
 		public int GetQuota(int primativeCount) {
 			int lastPrimitiveIndex = _currentPrimitiveIndex;
 			_currentPrimitiveIndex += primativeCount;
-			if (_currentPrimitiveIndex > _vertices.Length) {
+			if (_currentPrimitiveIndex >= _maxPrimitiveCount) {
 				var newSize = _currentPrimitiveIndex + 1;
 				Expand(Math.Max(newSize, lastPrimitiveIndex + MinExpansionAmount));
 			}
@@ -110,12 +113,13 @@ namespace Futilef.Rendering {
 			_lowestUnusedPrimitiveIndex = _currentPrimitiveIndex;
 
 			// Old Update()
+			_mesh.vertices = _vertices;
+			_mesh.colors32 = _colors;
+			_mesh.uv = _uvs;
+
 			if (_didPrimitiveCountChange) {
 				_didPrimitiveCountChange = false;
 
-				_mesh.vertices = _vertices;
-				_mesh.colors32 = _colors;
-				_mesh.uv = _uvs;
 				_mesh.triangles = _triangles;
 
 				_mesh.bounds = new Bounds(Vector3.zero, new Vector3(9999999999, 9999999999, 9999999999));
@@ -165,7 +169,7 @@ namespace Futilef.Rendering {
 		}
 
 		protected void FillUnused(int start, int end) {
-			int endVertexIndex = PrimitiveIndexToVertexIndex(end + 1);
+			int endVertexIndex = PrimitiveIndexToVertexIndex(end);
 			for (int i = PrimitiveIndexToVertexIndex(start); i < endVertexIndex; i++) _vertices[i].Set(50, 0, 1000000);
 		}
 
@@ -183,7 +187,7 @@ namespace Futilef.Rendering {
 		#region Primitives
 
 		public sealed class Triangle : FRenderLayer {
-			public override PrimitiveType type { get { return PrimitiveType.Triangle; } }
+			public override FPrimitiveType type { get { return FPrimitiveType.Triangle; } }
 
 			public Triangle(Texture2D texture, Shader shader) : base(texture, shader) {
 			}
@@ -203,7 +207,7 @@ namespace Futilef.Rendering {
 		}
 
 		public sealed class Quad : FRenderLayer {
-			public override PrimitiveType type { get { return PrimitiveType.Quad; } }
+			public override FPrimitiveType type { get { return FPrimitiveType.Quad; } }
 
 			public Quad(Texture2D texture, Shader shader) : base(texture, shader) {
 			}

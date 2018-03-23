@@ -20,6 +20,8 @@ namespace Futilef {
 		public static void Init(float referenceLength, float screenScaling) {
 			ReferenceLength = referenceLength;
 			ScreenScaling = screenScaling;
+
+			OnUpdate();
 		}
 
 		static void UpdateScreenDimensions() {

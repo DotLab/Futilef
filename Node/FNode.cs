@@ -82,12 +82,12 @@ namespace Futilef.Node {
 
 		// Transform
 		protected float _x, _y, _z;
-		protected float _scalingX, _scalingY;
+		protected float _scalingX = 1, _scalingY = 1;
 		protected float _rotationZ;
 
 		// Transform matrices
 		protected readonly FMatrix _matrix = new FMatrix(), _concatenatedMatrix = new FMatrix();
-		protected bool _isMatricesDirty;
+		protected bool _isMatricesDirty = true;
 
 		// Screen matrices (_screenConcatenatedMatrix = _concatenatedMatrix * _stage.screenConcatenatedMatrix
 		protected readonly FMatrix _inverseConcatenatedMatrix = new FMatrix();
@@ -95,7 +95,7 @@ namespace Futilef.Node {
 
 		// Alpha
 		protected float _alpha = 1f, _concatenatedAlpha = 1f;
-		protected bool _isAlphaDirty;
+		protected bool _isAlphaDirty = true;
 
 		// Depth
 		protected int _depth;
@@ -109,7 +109,7 @@ namespace Futilef.Node {
 
 		protected FNode() {
 #if UNITY_EDITOR
-			Futile.WatchLifetime(this);
+//			Futile.WatchLifetime(this);
 #endif 
 		}
 

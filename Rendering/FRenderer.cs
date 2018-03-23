@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Futilef.Rendering {
 	public static class FRenderer {
-		public const int BaseRenderQueue = 3000;
+		public const int BaseRenderQueue = 3001;
 
 		static List<FRenderLayer> _activeLayers = new List<FRenderLayer>();
 		static List<FRenderLayer> _previouslyAcitiveLayers = new List<FRenderLayer>();
@@ -35,17 +35,18 @@ namespace Futilef.Rendering {
 			}
 		}
 
-		public static FRenderLayer GetRenderLayer(Texture2D texture, Shader shader, PrimitiveType type) {
+		public static FRenderLayer GetRenderLayer(Texture2D texture, Shader shader, FPrimitiveType type) {
 			if (_currentLayer == null || texture != _currentLayer.texture || shader != _currentLayer.shader || type != _currentLayer.type) {
 				if (_currentLayer != null) _currentLayer.Close();
 				_currentLayer = CreateRenderLayer(texture, shader, type);
+				_currentLayer.Activate();
 				_currentLayer.Open(_currentRenderQueue++);
 			}
 
 			return _currentLayer;
 		}
 
-		static FRenderLayer CreateRenderLayer(Texture2D texture, Shader shader, PrimitiveType type) {
+		static FRenderLayer CreateRenderLayer(Texture2D texture, Shader shader, FPrimitiveType type) {
 			// If there is a previouslyActiveLayer that mathes
 			for (int i = 0; i < _previouslyAcitiveLayers.Count; i++) {
 				var layer = _previouslyAcitiveLayers[i];
@@ -69,9 +70,11 @@ namespace Futilef.Rendering {
 
 			// Create a new one
 			FRenderLayer newLayer = null;
-			if (type == PrimitiveType.Triangle) newLayer = new FRenderLayer.Triangle(texture, shader);
-			else if (type == PrimitiveType.Quad) newLayer = new FRenderLayer.Quad(texture, shader);
+			if (type == FPrimitiveType.Triangle) newLayer = new FRenderLayer.Triangle(texture, shader);
+			else if (type == FPrimitiveType.Quad) newLayer = new FRenderLayer.Quad(texture, shader);
 			else throw new ArgumentOutOfRangeException();
+			_activeLayers.Add(newLayer);
+
 			return newLayer;
 		}
 	}

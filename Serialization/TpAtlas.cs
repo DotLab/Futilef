@@ -45,8 +45,23 @@ namespace Futilef.Serialization {
 
 		// Non-serialized
 		public TpAtlas atlas;
-		public Vector3 rectLeftBottom, rectLeftTop, rectRightTop, rectRightBottom;
+		public Vector2 rectLeftBottom, rectLeftTop, rectRightTop, rectRightBottom;
 		public Vector2 uvLeftBottom, uvLeftTop, uvRightTop, uvRightBottom;
+
+		public void CalculateVertices(ref Vector2 rectLeftBottom, ref Vector2 rectLeftTop, ref Vector2 rectRightTop, ref Vector2 rectRightBottom) {
+			float rectLeft = spriteSourceSize.x;
+			float rectRight = spriteSourceSize.x + spriteSourceSize.w;
+			float rectTop = sourceSize.h - (spriteSourceSize.y);
+			float rectBottom = sourceSize.h - (spriteSourceSize.y + spriteSourceSize.h);
+
+			float pivotX = sourceSize.w * pivot.x;
+			float pivotY = sourceSize.h - sourceSize.h * pivot.y;
+
+			rectLeftBottom.Set(rectLeft - pivotX, rectBottom - pivotY);
+			rectLeftTop.Set(rectLeft - pivotX, rectTop - pivotY);
+			rectRightTop.Set(rectRight - pivotX, rectTop - pivotY);
+			rectRightBottom.Set(rectRight - pivotX, rectBottom - pivotY);		
+		}
 
 		public void CalculateVertices(float z, ref Vector3 rectLeftBottom, ref Vector3 rectLeftTop, ref Vector3 rectRightTop, ref Vector3 rectRightBottom) {
 			float rectLeft = spriteSourceSize.x;

@@ -53,7 +53,7 @@ namespace Futilef {
 					frame.atlas = atlas;
 
 					frame.CalculateVertices(
-						0, ref frame.rectLeftBottom, ref frame.rectLeftTop, ref frame.rectRightTop, ref frame.rectRightBottom);
+						ref frame.rectLeftBottom, ref frame.rectLeftTop, ref frame.rectRightTop, ref frame.rectRightBottom);
 					atlas.CalculateUvsInsideAtlas(
 						frame.rotated, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h,
 						ref frame.uvLeftBottom, ref frame.uvLeftTop, ref frame.uvRightTop, ref frame.uvRightBottom);

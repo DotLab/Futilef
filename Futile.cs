@@ -52,7 +52,7 @@ namespace Futilef {
 
 		[ContextMenu("Init")]
 		void Init() {
-			Init(800, 1, Color.black);
+			Init(800, 0, Color.black);
 
 		}
 
@@ -61,9 +61,7 @@ namespace Futilef {
 
 			enabled = true;
 
-			Application.targetFrameRate = 30;
-
-			FScreen.Init(referenceLength, screenScaling);
+//			Application.targetFrameRate = 30;
 
 			_cameraHolder = new GameObject();
 			_cameraHolder.transform.parent = transform;
@@ -81,6 +79,8 @@ namespace Futilef {
 			_camera.orthographic = true;
 			_camera.allowMSAA = false;
 			_camera.allowHDR = false;
+
+			FScreen.Init(referenceLength, screenScaling);
 		}
 
 		void Update() {
@@ -96,7 +96,7 @@ namespace Futilef {
 			if (SignalAfterDraw != null) SignalAfterDraw();
 
 #if UNITY_EDITOR
-			GC.Collect();
+//			GC.Collect();
 #endif
 		}
 
@@ -148,8 +148,26 @@ namespace Futilef {
 			Init();
 			Load();
 			BuildMesh();
-			LoadFont();
-			DrawText();
+//			LoadFont();
+//			DrawText();
+
+			var shader = Shader.Find("Sprites/Default");
+
+			for (int i = 0; i < 1000; i++) {
+				var sprite = new Futilef.Node.Display.FSprite(atlas.frames["こいし（不満）.png"], shader);
+				sprite.x = i * 0.001f * (FScreen.Width - atlas.frames["こいし（不満）.png"].sourceSize.w) - FScreen.HalfWidth;
+				sprite.scalingX = i * 0.0004f;
+				sprite.scalingY = i * 0.0004f;
+				Stage.AddChild(sprite);
+			}
+
+			SignalUpdate += () => {
+				for (int i = 0; i < 1000; i++) {
+					Stage.GetChild(i).rotationZ += (i / 1000f) * 0.06f;
+//					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);
+//					Stage.GetChild(i).y += UnityEngine.Random.Range(-1f, 1f);
+				}
+			};
 		}
 
 		[ContextMenu("Draw Text")]
