@@ -26,17 +26,40 @@ namespace Futilef {
 	}
 
 	public static class FResourceManager {
-		public static BmFont LoadBmFont(string path) {
+		public static BmFont LoadBmFont(TpAtlas atlas, string path) {
 			using (var resource = new FResource<TextAsset>(path)) {
 				using (var stream = new System.IO.MemoryStream(resource.asset.bytes)) {
-					return new BmFont(stream);
+					var font = new BmFont(stream);
+					font.atlas = atlas;
+
+					foreach (var glyph in font.glyphDict.Values) {
+						var frame = atlas.frames[font.pageNames[glyph.page]];
+						frame.CalculateUvsInsideFrame(
+							glyph.x, glyph.y, glyph.width, glyph.height,
+							ref glyph.uvLeftBottom, ref glyph.uvLeftTop, ref glyph.uvRightTop, ref glyph.uvRightBottom);
+					}
+
+					return font;
 				}
 			}
 		}
 
-		public static TpAtlas LoadTpAtlas(string path) {
+		public static TpAtlas LoadTpAtlas(Texture2D texture, string path) {
 			using (var resource = new FResource<TextAsset>(path)) {
-				return fastJSON.JSON.ToObject<TpAtlas>(resource.asset.text);
+				var atlas = fastJSON.JSON.ToObject<TpAtlas>(resource.asset.text);
+
+				atlas.texture = texture;
+				foreach (var frame in atlas.frames.Values) {
+					frame.atlas = atlas;
+
+					frame.CalculateVertices(
+						0, ref frame.rectLeftBottom, ref frame.rectLeftTop, ref frame.rectRightTop, ref frame.rectRightBottom);
+					atlas.CalculateUvsInsideAtlas(
+						frame.rotated, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h,
+						ref frame.uvLeftBottom, ref frame.uvLeftTop, ref frame.uvRightTop, ref frame.uvRightBottom);
+				}
+
+				return atlas;
 			}
 		}
 

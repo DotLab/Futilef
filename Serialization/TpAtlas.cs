@@ -64,7 +64,6 @@ namespace Futilef.Serialization {
 		}
 
 		public void CalculateUvsInsideFrame(
-			TpAtlas atlas,
 			float glyphX, float glyphY, float glyphW, float glyphH,
 			ref Vector2 uvLeftBottom, ref Vector2 uvLeftTop, ref Vector2 uvRightTop, ref Vector2 uvRightBottom) {
 

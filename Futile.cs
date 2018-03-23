@@ -190,10 +190,11 @@ namespace Futilef {
 				vertices[i * 4 + 2].Set(rectRight, rectTop, 0);
 				vertices[i * 4 + 3].Set(rectRight, rectBottom, 0);
 
-				frame = atlas.frames[font.pageNames[glyph.page]];
-				frame.CalculateUvsInsideFrame(atlas,
-					glyph.x, glyph.y, glyph.width, glyph.height,
-					ref uvs[i * 4 + 0], ref uvs[i * 4 + 1], ref uvs[i * 4 + 2], ref uvs[i * 4 + 3]);
+
+				uvs[i * 4 + 0] = glyph.uvLeftBottom;
+				uvs[i * 4 + 1] = glyph.uvLeftTop;
+				uvs[i * 4 + 2] = glyph.uvRightTop;
+				uvs[i * 4 + 3] = glyph.uvRightBottom;
 
 				colors[i * 4 + 0] = new Color32(255, 255, 255, 255);
 				colors[i * 4 + 1] = new Color32(255, 255, 255, 255);
@@ -218,7 +219,7 @@ namespace Futilef {
 
 		[ContextMenu("Load Font")]
 		void LoadFont() {
-			font = FResourceManager.LoadBmFont("Consolas.fnt");
+			font = FResourceManager.LoadBmFont(atlas, "Consolas.fnt");
 			WatchLifetime(font);
 			Debug.Log(font);
 		}
@@ -234,18 +235,11 @@ namespace Futilef {
 				var matrix = new FMatrix();
 				matrix.FromScalingRotationTranslation(translation.x, translation.y, scaling.x, scaling.y, rotation);
 
-				float rectLeft = frame.spriteSourceSize.x;
-				float rectRight = frame.spriteSourceSize.x + frame.spriteSourceSize.w;
-				float rectTop = frame.sourceSize.h - (frame.spriteSourceSize.y);
-				float rectBottom = frame.sourceSize.h - (frame.spriteSourceSize.y + frame.spriteSourceSize.h);
-
-				float pivotX = frame.sourceSize.w * frame.pivot.x;
-				float pivotY = frame.sourceSize.h - frame.sourceSize.h * frame.pivot.y;
 				mesh.vertices = new [] { 
-					matrix.Transform3D(new Vector3(rectLeft - pivotX, rectBottom - pivotY, 0)),
-					matrix.Transform3D(new Vector3(rectLeft - pivotX, rectTop - pivotY, 0)),
-					matrix.Transform3D(new Vector3(rectRight - pivotX, rectTop - pivotY, 0)),
-					matrix.Transform3D(new Vector3(rectRight - pivotX, rectBottom - pivotY, 0)),
+					matrix.Transform3D(frame.rectLeftBottom),
+					matrix.Transform3D(frame.rectLeftTop),
+					matrix.Transform3D(frame.rectRightTop),
+					matrix.Transform3D(frame.rectRightBottom),
 				};
 			};
 		}
@@ -263,51 +257,19 @@ namespace Futilef {
 			var matrix = new FMatrix();
 			matrix.FromScalingRotationTranslation(translation.x, translation.y, scaling.x, scaling.y, rotation);
 
-			float rectLeft = frame.spriteSourceSize.x;
-			float rectRight = frame.spriteSourceSize.x + frame.spriteSourceSize.w;
-			float rectTop = frame.sourceSize.h - (frame.spriteSourceSize.y);
-			float rectBottom = frame.sourceSize.h - (frame.spriteSourceSize.y + frame.spriteSourceSize.h);
-
-			float pivotX = frame.sourceSize.w * frame.pivot.x;
-			float pivotY = frame.sourceSize.h - frame.sourceSize.h * frame.pivot.y;
 			mesh.vertices = new [] { 
-				matrix.Transform3D(new Vector3(rectLeft - pivotX, rectBottom - pivotY, 0)),
-				matrix.Transform3D(new Vector3(rectLeft - pivotX, rectTop - pivotY, 0)),
-				matrix.Transform3D(new Vector3(rectRight - pivotX, rectTop - pivotY, 0)),
-				matrix.Transform3D(new Vector3(rectRight - pivotX, rectBottom - pivotY, 0)),
+				matrix.Transform3D(frame.rectLeftBottom),
+				matrix.Transform3D(frame.rectLeftTop),
+				matrix.Transform3D(frame.rectRightTop),
+				matrix.Transform3D(frame.rectRightBottom),
 			};
-				
-			float frameX = frame.frame.x;
-			float frameY = frame.frame.y;
-			float frameW = frame.frame.w;
-			float frameH = frame.frame.h;
 
-			float atlasW = atlas.meta.size.w;
-			float atlasH = atlas.meta.size.h;
-
-			if (!frame.rotated) {
-				float uvLeft = frameX / atlasW;
-				float uvRight = (frameX + frameW) / atlasW;
-				float uvTop = 1f - frameY / atlasH;
-				float uvBottom = 1f - (frameY + frameH) / atlasH;
-				mesh.uv = new [] {
-					new Vector2(uvLeft, uvBottom),
-					new Vector2(uvLeft, uvTop),	
-					new Vector2(uvRight, uvTop),
-					new Vector2(uvRight, uvBottom),
-				};
-			} else {  // Is rotated
-				float uvLeft = frameX / atlasW;
-				float uvRight = (frameX + frameH) / atlasW;
-				float uvTop = 1f - frameY / atlasH;
-				float uvBottom = 1f - (frameY + frameW) / atlasH;
-				mesh.uv = new [] {
-					new Vector2(uvLeft, uvTop),	
-					new Vector2(uvRight, uvTop),
-					new Vector2(uvRight, uvBottom),
-					new Vector2(uvLeft, uvBottom),
-				};
-			}
+			mesh.uv = new [] {
+				frame.uvLeftBottom,	
+				frame.uvLeftTop,
+				frame.uvRightTop,
+				frame.uvRightBottom,
+			};
 
 			mesh.triangles = new [] {
 				0, 1, 2,
@@ -324,8 +286,8 @@ namespace Futilef {
 
 		[ContextMenu("Load")]
 		void Load() {
-			atlas = FResourceManager.LoadTpAtlas("packed");
-			texture = FResourceManager.LoadTexture2D(atlas.meta.image.Replace(".bytes", ""));
+			texture = FResourceManager.LoadTexture2D("packed.png");
+			atlas = FResourceManager.LoadTpAtlas(texture, "packed");
 			WatchLifetime(texture);
 			print(atlas);
 		}
