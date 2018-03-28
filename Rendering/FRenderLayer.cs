@@ -14,7 +14,7 @@ namespace Futilef.Rendering {
 
 		static int _count;
 
-		public readonly int index;
+		public readonly int id, index;
 		public readonly Texture2D texture;
 		public readonly Shader shader;
 		public abstract FPrimitiveType type { get; }
@@ -43,8 +43,9 @@ namespace Futilef.Rendering {
 		protected string activeName { get { return string.Format("RL{0} {1:N0} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
 		protected string inactiveName { get { return string.Format("RL{0} {1} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
 
-		protected FRenderLayer(Texture2D texture, Shader shader) {
+		protected FRenderLayer(int id, Texture2D texture, Shader shader) {
 			index = _count++;
+			this.id = id;
 			this.texture = texture;
 			this.shader = shader;
 
@@ -189,7 +190,7 @@ namespace Futilef.Rendering {
 		public sealed class Triangle : FRenderLayer {
 			public override FPrimitiveType type { get { return FPrimitiveType.Triangle; } }
 
-			public Triangle(Texture2D texture, Shader shader) : base(texture, shader) {
+			public Triangle(int id, Texture2D texture, Shader shader) : base(id, texture, shader) {
 			}
 
 			public override int PrimitiveIndexToVertexIndex(int primitiveIndex) {
@@ -209,7 +210,7 @@ namespace Futilef.Rendering {
 		public sealed class Quad : FRenderLayer {
 			public override FPrimitiveType type { get { return FPrimitiveType.Quad; } }
 
-			public Quad(Texture2D texture, Shader shader) : base(texture, shader) {
+			public Quad(int id, Texture2D texture, Shader shader) : base(id, texture, shader) {
 			}
 
 			public override int PrimitiveIndexToVertexIndex(int primitiveIndex) {

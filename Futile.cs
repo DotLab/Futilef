@@ -157,7 +157,7 @@ namespace Futilef {
 			if (shader == null) throw new Exception("no shader");
 
 			var container1 = new Futilef.Node.FContainer();
-			int count = 10000;
+			int count = 1000;
 			for (int i = 0; i < count; i++) {
 				var sprite = new Futilef.Node.Display.FSprite(atlas.frameByName["こいし（不満）.png"], shader);
 				sprite.x = (float)i / count * (FScreen.HalfWidth) - FScreen.HalfWidth;

@@ -10,7 +10,8 @@ namespace Futilef.Node {
 
 			base.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
 
-			foreach (var child in _children) child.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
+			int count = _children.Count;
+			for (int i = 0; i < count; i++) _children[i].Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
 		}
 
 		public int GetChildCount() {

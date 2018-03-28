@@ -36,9 +36,10 @@ namespace Futilef.Rendering {
 		}
 
 		public static FRenderLayer GetRenderLayer(Texture2D texture, Shader shader, FPrimitiveType type) {
-			if (_currentLayer == null || texture != _currentLayer.texture || shader != _currentLayer.shader || type != _currentLayer.type) {
+			int id = texture.GetHashCode() ^ shader.GetHashCode() ^ ((int)type);
+			if (_currentLayer == null || id != _currentLayer.id) {
 				if (_currentLayer != null) _currentLayer.Close();
-				_currentLayer = CreateRenderLayer(texture, shader, type);
+				_currentLayer = CreateRenderLayer(id, texture, shader, type);
 				_currentLayer.Activate();
 				_currentLayer.Open(_currentRenderQueue++);
 			}
@@ -46,11 +47,11 @@ namespace Futilef.Rendering {
 			return _currentLayer;
 		}
 
-		static FRenderLayer CreateRenderLayer(Texture2D texture, Shader shader, FPrimitiveType type) {
+		static FRenderLayer CreateRenderLayer(int id, Texture2D texture, Shader shader, FPrimitiveType type) {
 			// If there is a previouslyActiveLayer that mathes
 			for (int i = 0; i < _previouslyAcitiveLayers.Count; i++) {
 				var layer = _previouslyAcitiveLayers[i];
-				if (layer.texture == texture && layer.shader == shader) {
+				if (layer.id == id) {
 					_previouslyAcitiveLayers.RemoveAt(i);
 					_activeLayers.Add(layer);
 					return layer;
@@ -60,7 +61,7 @@ namespace Futilef.Rendering {
 			// If there is a inactiveLayer that matches
 			for (int i = 0; i < _inactiveLayers.Count; i++) {
 				var layer = _inactiveLayers[i];
-				if (layer.texture == texture && layer.shader == shader) {
+				if (layer.id == id) {
 					_inactiveLayers.RemoveAt(i);
 					layer.Activate();
 					_activeLayers.Add(layer);
@@ -70,8 +71,8 @@ namespace Futilef.Rendering {
 
 			// Create a new one
 			FRenderLayer newLayer = null;
-			if (type == FPrimitiveType.Triangle) newLayer = new FRenderLayer.Triangle(texture, shader);
-			else if (type == FPrimitiveType.Quad) newLayer = new FRenderLayer.Quad(texture, shader);
+			if (type == FPrimitiveType.Triangle) newLayer = new FRenderLayer.Triangle(id, texture, shader);
+			else if (type == FPrimitiveType.Quad) newLayer = new FRenderLayer.Quad(id, texture, shader);
 			else throw new ArgumentOutOfRangeException();
 			_activeLayers.Add(newLayer);
 
