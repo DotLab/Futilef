@@ -33,7 +33,7 @@ namespace Futilef {
 					font.atlas = atlas;
 
 					foreach (var glyph in font.glyphDict.Values) {
-						var frame = atlas.frames[font.pageNames[glyph.page]];
+						var frame = atlas.frameByName[font.pageNames[glyph.page]];
 						frame.CalculateUvsInsideFrame(
 							glyph.x, glyph.y, glyph.width, glyph.height,
 							ref glyph.uvLeftBottom, ref glyph.uvLeftTop, ref glyph.uvRightTop, ref glyph.uvRightBottom);
@@ -46,26 +46,16 @@ namespace Futilef {
 
 		public static TpAtlas LoadTpAtlas(Texture2D texture, string path) {
 			using (var resource = new FResource<TextAsset>(path)) {
-				var atlas = new TpAtlas((System.Collections.Generic.Dictionary<string, object>)MiniJson.Deserialize(resource.asset.text));
-
-				atlas.texture = texture;
-				foreach (var frame in atlas.frames.Values) {
-					frame.atlas = atlas;
-
-					frame.CalculateVertices(
-						ref frame.rectLeftBottom, ref frame.rectLeftTop, ref frame.rectRightTop, ref frame.rectRightBottom);
-					atlas.CalculateUvsInsideAtlas(
-						frame.rotated, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h,
-						ref frame.uvLeftBottom, ref frame.uvLeftTop, ref frame.uvRightTop, ref frame.uvRightBottom);
-				}
-
+				var atlas = JsonUtility.FromJson<TpAtlas>(resource.asset.text);
+				atlas.Init(texture);
 				return atlas;
 			}
 		}
 
-		public static Texture2D LoadTexture2D(string path) {
+		public static Texture2D LoadTexture2D(string path, FilterMode mode = FilterMode.Bilinear) {
 			using (var resource = new FResource<TextAsset>(path)) {
-				var texture = new Texture2D(0, 0);
+				var texture = new Texture2D(0, 0, TextureFormat.RGBAHalf, true);
+				texture.filterMode = mode;
 				texture.LoadImage(resource.asset.bytes);
 				return texture;
 			}

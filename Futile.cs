@@ -26,7 +26,7 @@ namespace Futilef {
 
 		void OnEnable() {
 			SignalPreUpdate += FScreen.OnUpdate;
-			SignalPreUpdate += FTouchManager.OnUpdate; 
+			SignalPreUpdate += FTouchManager.OnUpdate;
 
 			FScreen.SignalResize += ResizeCamera;
 
@@ -63,9 +63,6 @@ namespace Futilef {
 
 			enabled = true;
 
-#if !UNITY_EDITOR
-			Application.targetFrameRate = 30;
-#endif
 			Input.simulateMouseWithTouches = false;
 
 			_cameraHolder = new GameObject();
@@ -86,8 +83,6 @@ namespace Futilef {
 			_camera.allowHDR = false;
 
 			FScreen.Init(referenceLength, screenScaling);
-
-			FTouchManager.Init();
 		}
 
 		void Update() {
@@ -148,7 +143,7 @@ namespace Futilef {
 
 		public Vector2 translation, scaling;
 		public float rotation;
-
+		Shader shader;
 		public Futilef.Serialization.BmFont font;
 
 		void Start() {
@@ -158,19 +153,22 @@ namespace Futilef {
 			LoadFont();
 //			DrawText();
 
-			var shader = Shader.Find("Sprites/Default");
-
+			shader = Shader.Find("Futilef/Basic");
+			if (shader == null) throw new Exception("no shader");
 
 			var container1 = new Futilef.Node.FContainer();
-			for (int i = 0; i < 1000; i++) {
-				var sprite = new Futilef.Node.Display.FSprite(atlas.frames["こいし（不満）.png"], shader);
-				sprite.x = i * 0.001f * (FScreen.HalfWidth) - FScreen.HalfWidth;
-				sprite.scalingX = i * 0.0004f;
-				sprite.scalingY = i * 0.0004f;
-				sprite.alpha = 0.001f * i;
+			int count = 10000;
+			for (int i = 0; i < count; i++) {
+				var sprite = new Futilef.Node.Display.FSprite(atlas.frameByName["こいし（不満）.png"], shader);
+				sprite.x = (float)i / count * (FScreen.HalfWidth) - FScreen.HalfWidth;
+				sprite.scalingX = i * 0.4f / count;
+				sprite.scalingY = i * 0.4f / count;
+				sprite.alpha = 1f - (float)i / count;
 				container1.AddChild(sprite);
 			}
 			Stage.AddChild(container1);
+
+//			var quadGroup = new Futilef.Node.Display.FQuadGroup(frame, shader);
 
 			var label = new Futilef.Node.Display.FLabel(font, shader);
 			label.horizontalAlignment = Futilef.Node.Display.FLabelHorizontalAlignment.Right;
@@ -180,9 +178,9 @@ namespace Futilef {
 			Stage.AddChild(label);
 
 			SignalUpdate += () => {
-				label.text = (1f / Time.smoothDeltaTime).ToString("N0");
-				for (int i = 0; i < 1000; i++) {
-					container1.GetChild(i).rotationZ += (i / 1000f) * 3.14f * deltaTime;
+				label.text = (1f / Time.smoothDeltaTime).ToString("N1");
+				for (int i = 0; i < count; i++) {
+					container1.GetChild(i).rotationZ += ((float)i / count) * 3.14f * deltaTime;
 //					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);
 //					Stage.GetChild(i).y += UnityEngine.Random.Range(-1f, 1f);
 				}
@@ -289,7 +287,7 @@ namespace Futilef {
 			var material = renderer.sharedMaterial = new Material(Shader.Find("Sprites/Default"));
 			material.mainTexture = texture;
 
-			frame = atlas.frames["こいし（余裕）.png"];
+			frame = atlas.frameByName["こいし（余裕）.png"];
 
 			var matrix = new FMatrix();
 			matrix.FromScalingRotationTranslation(translation.x, translation.y, scaling.x, scaling.y, rotation);

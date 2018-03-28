@@ -46,7 +46,7 @@ namespace Futilef {
 
 		static FTouch[] touches = new FTouch[4];
 
-		public static void Init() {
+		static FTouchManager() {
 			Input.multiTouchEnabled = true;
 
 			for (int i = 0; i < touches.Length; i++) touches[i] = new FTouch();
