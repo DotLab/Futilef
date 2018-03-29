@@ -157,17 +157,20 @@ namespace Futilef {
 			if (shader == null) throw new Exception("no shader");
 
 			var container1 = new Futilef.Node.FContainer();
-			int count = 1000;
+			const int count = 100;
 			for (int i = 0; i < count; i++) {
 				var sprite = new Futilef.Node.Display.FSprite(atlas.frameByName["こいし（不満）.png"], shader);
 				sprite.x = (float)i / count * (FScreen.HalfWidth) - FScreen.HalfWidth;
-				sprite.scalingX = i * 0.4f / count;
-				sprite.scalingY = i * 0.4f / count;
-				sprite.alpha = 1f - (float)i / count;
+				sprite.scalingX = i * 0.2f / count;
+				sprite.scalingY = i * 0.2f / count;
+//				sprite.alpha = 1f - (float)i / count;
 				container1.AddChild(sprite);
 			}
 			Stage.AddChild(container1);
-
+			var slicedSprite = new Futilef.Node.Display.FSlicedSprite(frame, shader);
+			slicedSprite.scalingX = 0.4f;
+			slicedSprite.scalingY = 0.4f;
+			Stage.AddChild(slicedSprite);
 //			var quadGroup = new Futilef.Node.Display.FQuadGroup(frame, shader);
 
 			var label = new Futilef.Node.Display.FLabel(font, shader);
@@ -179,6 +182,8 @@ namespace Futilef {
 
 			SignalUpdate += () => {
 				label.text = (1f / Time.smoothDeltaTime).ToString("N1");
+				slicedSprite.width += (float)Math.Sin(Time.time);
+				slicedSprite.height += (float)Math.Cos(Time.time);
 				for (int i = 0; i < count; i++) {
 					container1.GetChild(i).rotationZ += ((float)i / count) * 3.14f * deltaTime;
 //					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);

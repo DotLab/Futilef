@@ -40,17 +40,23 @@ namespace Futilef.Serialization {
 		public void Init(TpAtlas atlas) {
 			this.atlas = atlas;
 
-			CalculateVertices(ref rectLeftBottom, ref rectLeftTop, ref rectRightTop, ref rectRightBottom);
+			CalculateVertices(
+				quad.x, quad.y, quad.w, quad.h,
+				ref rectLeftBottom, ref rectLeftTop, ref rectRightTop, ref rectRightBottom);
+
 			atlas.CalculateUvsInsideAtlas(
 				rotated, uv.x, uv.y, uv.w, uv.h,
 				ref uvLeftBottom, ref uvLeftTop, ref uvRightTop, ref uvRightBottom);
 		}
 
-		public void CalculateVertices(ref Vector2 rectLeftBottom, ref Vector2 rectLeftTop, ref Vector2 rectRightTop, ref Vector2 rectRightBottom) {
-			float rectLeft = quad.x;
-			float rectRight = quad.x + quad.w;
-			float rectTop = size.y - quad.y;
-			float rectBottom = size.y - (quad.y + quad.h);
+		public void CalculateVertices(
+			float quadX, float quadY, float quadW, float quadH,
+			ref Vector2 rectLeftBottom, ref Vector2 rectLeftTop, ref Vector2 rectRightTop, ref Vector2 rectRightBottom) {
+
+			float rectLeft = quadX;
+			float rectRight = quadX + quadW;
+			float rectTop = size.y - quadY;
+			float rectBottom = size.y - (quadY + quadH);
 
 			float pivotX = pivot.x;
 			float pivotY = size.y - pivot.y;
