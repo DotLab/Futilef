@@ -151,19 +151,19 @@ namespace Futilef {
 			Load();
 			BuildMesh();
 			LoadFont();
-//			DrawText();
+			//DrawText();
 
 			shader = Shader.Find("Futilef/Basic");
 			if (shader == null) throw new Exception("no shader");
 
 			var container1 = new Futilef.Node.FContainer();
-			const int count = 100;
+			const int count = 10000;
 			for (int i = 0; i < count; i++) {
 				var sprite = new Futilef.Node.Display.FSprite(atlas.frameByName["こいし（不満）.png"], shader);
 				sprite.x = (float)i / count * (FScreen.HalfWidth) - FScreen.HalfWidth;
 				sprite.scalingX = i * 0.2f / count;
 				sprite.scalingY = i * 0.2f / count;
-//				sprite.alpha = 1f - (float)i / count;
+				sprite.alpha = 1f - (float)i / count;
 				container1.AddChild(sprite);
 			}
 			Stage.AddChild(container1);
@@ -174,20 +174,30 @@ namespace Futilef {
 //			var quadGroup = new Futilef.Node.Display.FQuadGroup(frame, shader);
 
 			var label = new Futilef.Node.Display.FLabel(font, shader);
-			label.horizontalAlignment = Futilef.Node.Display.FLabelHorizontalAlignment.Right;
-			label.verticalAlignment = Futilef.Node.Display.FLabelVerticalAlignment.Top;
+			label.horizontalAlignment = Futilef.Node.Display.FHorizontalAlignment.Right;
+			label.verticalAlignment = Futilef.Node.Display.FVerticalAlignment.Top;
 			label.x = FScreen.HalfWidth;
 			label.y = FScreen.HalfHeight;
 			Stage.AddChild(label);
 
+			var label2 = new Futilef.Node.Display.FText(font, shader);
+			label2.horizontalAlignment = Futilef.Node.Display.FHorizontalAlignment.Left;
+			label2.verticalAlignment = Futilef.Node.Display.FVerticalAlignment.Bottom;
+			label2.x = -FScreen.HalfWidth;
+			label2.y = -FScreen.HalfHeight;
+			Stage.AddChild(label2);
+			label2.text = "Console Ready\n";
+
+			Application.logMessageReceived += (condition, stackTrace, type) => {
+				label2.text = condition + "\n" + stackTrace;
+			};
+
 			SignalUpdate += () => {
-				label.text = (1f / Time.smoothDeltaTime).ToString("N1");
+//				label.text = (1f / Time.smoothDeltaTime).ToString("N1");
 				slicedSprite.width += (float)Math.Sin(Time.time);
 				slicedSprite.height += (float)Math.Cos(Time.time);
 				for (int i = 0; i < count; i++) {
 					container1.GetChild(i).rotationZ += ((float)i / count) * 3.14f * deltaTime;
-//					Stage.GetChild(i).x += UnityEngine.Random.Range(-1f, 1f);
-//					Stage.GetChild(i).y += UnityEngine.Random.Range(-1f, 1f);
 				}
 			};
 		}
@@ -259,7 +269,7 @@ namespace Futilef {
 
 		[ContextMenu("Load Font")]
 		void LoadFont() {
-			font = FResourceManager.LoadBmFont(atlas, "Consolas.fnt");
+			font = FResourceManager.LoadBmFont(atlas, "Zpix.fnt");
 			WatchLifetime(font);
 			Debug.Log(font);
 		}

@@ -40,7 +40,6 @@ namespace Futilef.Rendering {
 			if (_currentLayer == null || id != _currentLayer.id) {
 				if (_currentLayer != null) _currentLayer.Close();
 				_currentLayer = CreateRenderLayer(id, texture, shader, type);
-				_currentLayer.Activate();
 				_currentLayer.Open(_currentRenderQueue++);
 			}
 

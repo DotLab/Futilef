@@ -5,19 +5,7 @@ using Futilef.Serialization;
 using UnityEngine;
 
 namespace Futilef.Node.Display {
-	public enum FVerticalAlignment {
-		Top,
-		Middle,
-		Bottom,
-	}
-
-	public enum FHorizontalAlignment {
-		Left,
-		Center,
-		Right,
-	}
-
-	public class FLabel : FNode {
+	public class FText : FNode {
 		public readonly BmFont font;
 		public readonly Shader shader;
 
@@ -54,15 +42,16 @@ namespace Futilef.Node.Display {
 
 		BmGlyph[] _glyphs = new BmGlyph[1];
 		Vector2[] _localVertices = new Vector2[4];
+		int[] _widths = new int[1];
 
-		public FLabel(BmFont font, Shader shader) {
+		public FText(BmFont font, Shader shader) {
 			this.font = font;
 			this.shader = shader;
 		}
 
 		public override void Redraw(ref int currentDepth, bool shouldForceMatricesDirty, bool shouldForceAlphaDirty) {
 			base.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
-					
+
 			if (_isTextDirty) RecalculateLocalVertices();
 
 			var layer = Futilef.Rendering.FRenderer.GetRenderLayer(font.atlas.texture, shader, Futilef.Rendering.FPrimitiveType.Quad);
@@ -102,15 +91,41 @@ namespace Futilef.Node.Display {
 				_localVertices = new Vector2[_glyphs.Length << 2];
 			}
 
+			int currentLine = 0;
 			float currentX = 0, currentY = 0;
+			for (int i = 0, lineX = 0; i < _text.Length; i++) {
+				if (_text[i] == '\n') {
+					_widths[currentLine] = lineX;
 
-			if (_verticalAlignment != FVerticalAlignment.Top) {
-				currentY = _verticalAlignment == FVerticalAlignment.Middle ? font.lineHeight / 2 : font.lineHeight;
+					lineX = 0;
+					currentLine += 1;
+					if (currentLine >= _widths.Length) System.Array.Resize(ref _widths, _widths.Length << 1);
+				} else {
+					if (!font.TryGetGlyph(_text[i], out _glyphs[i])) continue;
+					if (i > 0) lineX += font.GetKerning(_text[i - 1], _text[i]);
+					lineX += _glyphs[i].xAdvance;
+				}
 			}
 
-			for (int i = 0; i < _text.Length; i++) {
-				BmGlyph glyph;
-				if (!font.TryGetGlyph(_text[i], out glyph)) continue;
+			if (_verticalAlignment != FVerticalAlignment.Top) {
+				currentY = _verticalAlignment == FVerticalAlignment.Middle ? font.lineHeight * (currentLine + 1) >> 1 : font.lineHeight * (currentLine + 1);
+			}
+
+			if (_horizontalAlignment != FHorizontalAlignment.Left) {
+				currentX = _horizontalAlignment == FHorizontalAlignment.Center ? _widths[0] >> 1 : _widths[0];
+			}
+
+			for (int i = 0, k = 1; i < _text.Length; i++) {
+				if (_text[i] == '\n') {
+					if (_horizontalAlignment != FHorizontalAlignment.Left) {
+						currentX = _horizontalAlignment == FHorizontalAlignment.Center ? _widths[k] >> 1 : _widths[k];
+					} else currentX = 0;
+					currentY -= font.lineHeight;
+					continue;
+				}
+
+				var glyph = _glyphs[i];
+				if (glyph == null) continue;
 
 				if (i > 0) currentX += font.GetKerning(_text[i - 1], _text[i]);
 
@@ -131,11 +146,6 @@ namespace Futilef.Node.Display {
 
 				currentX += glyph.xAdvance;
 				_glyphs[i] = glyph;
-			}
-
-			if (_horizontalAlignment != FHorizontalAlignment.Left) {
-				float xOffset = _horizontalAlignment == FHorizontalAlignment.Center ? currentX / 2 : currentX;
-				for (int i = 0; i < _text.Length << 2; i++) _localVertices[i].x -= xOffset;
 			}
 		}
 	}

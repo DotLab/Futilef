@@ -40,8 +40,8 @@ namespace Futilef.Rendering {
 		protected int _currentPrimitiveIndex, _maxPrimitiveCount, _lowestUnusedPrimitiveIndex;
 		protected int _renderQueue;
 
-		protected string activeName { get { return string.Format("RL{0} {1:N0} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
-		protected string inactiveName { get { return string.Format("RL{0} {1} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
+		//		protected string activeName { get { return string.Format("RL{0} {1:N0} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, _renderQueue, _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
+		//		protected string inactiveName { get { return string.Format("RL{0} {1} [{2:N0}/{3:N0}] ({4:X} {5} {6})", index, "X", _currentPrimitiveIndex, _maxPrimitiveCount, texture.GetHashCode(), shader.name, type); } }
 
 		protected FRenderLayer(int id, Texture2D texture, Shader shader) {
 			index = _count++;
@@ -133,7 +133,7 @@ namespace Futilef.Rendering {
 			_isVerticesDirty = _isColorsDirty = _isUvsDirty = false;
 
 #if UNITY_EDITOR
-			_gameObject.name = activeName;
+//			_gameObject.name = activeName;
 #endif
 		}
 
@@ -181,7 +181,7 @@ namespace Futilef.Rendering {
 		public void Deactivate() {
 			_gameObject.SetActive(false);
 #if UNITY_EDITOR
-			_gameObject.name = inactiveName;
+//			_gameObject.name = inactiveName;
 #endif
 		}
 

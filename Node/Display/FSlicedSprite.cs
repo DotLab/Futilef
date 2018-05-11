@@ -21,6 +21,7 @@ namespace Futilef.Node.Display {
 			height = frame.border.h;
 		}
 
+		readonly float[] _xs = new float[4], _ys = new float[4];
 		public override void Redraw(ref int currentDepth, bool shouldForceMatricesDirty, bool shouldForceAlphaDirty) {
 			base.Redraw(ref currentDepth, shouldForceMatricesDirty, shouldForceAlphaDirty);
 
@@ -31,24 +32,22 @@ namespace Futilef.Node.Display {
 			var uvs = layer.uvs;
 			var colors = layer.colors;
 
-			var xs = new float[4];
-			var ys = new float[4];
-			xs[0] = frame.quad.x;
-			xs[1] = xs[0] + frame.border.x;
-			xs[2] = xs[1] + width;
-			xs[3] = xs[0] + frame.quad.w - frame.border.w + width;
+			_xs[0] = frame.quad.x;
+			_xs[1] = _xs[0] + frame.border.x;
+			_xs[2] = _xs[1] + width;
+			_xs[3] = _xs[0] + frame.quad.w - frame.border.w + width;
 
-			ys[0] = frame.quad.y;
-			ys[1] = ys[0] + frame.border.y;
-			ys[2] = ys[1] + height;
-			ys[3] = ys[0] + frame.quad.h - frame.border.h + height;
+			_ys[0] = frame.quad.y;
+			_ys[1] = _ys[0] + frame.border.y;
+			_ys[2] = _ys[1] + height;
+			_ys[3] = _ys[0] + frame.quad.h - frame.border.h + height;
 
 			float sizeY = frame.size.y - frame.border.h + height;
 			float pivotX = frame.pivot.x / frame.size.x * (frame.size.x - frame.border.w + width);
 			float pivotY = (1f - frame.pivot.y / frame.size.y) * (frame.size.y - frame.border.h + height);
 			for (int yy = 0; yy < 4; yy++) {
 				for (int xx = 0; xx < 4; xx++) {
-					localVertices[(yy << 2) + xx].Set(xs[xx] - pivotX, sizeY - ys[yy] - pivotY);
+					localVertices[(yy << 2) + xx].Set(_xs[xx] - pivotX, sizeY - _ys[yy] - pivotY);
 				}
 			}
 
@@ -60,19 +59,19 @@ namespace Futilef.Node.Display {
 				 * y2 08 09 10 11
 				 * y3 12 13 14 15
 				 */
-				xs[0] = frame.uv.x;
-				xs[1] = xs[0] + frame.border.x;
-				xs[2] = xs[1] + frame.border.w;
-				xs[3] = xs[0] + frame.uv.w;
+				_xs[0] = frame.uv.x;
+				_xs[1] = _xs[0] + frame.border.x;
+				_xs[2] = _xs[1] + frame.border.w;
+				_xs[3] = _xs[0] + frame.uv.w;
 
-				ys[0] = frame.uv.y;
-				ys[1] = ys[0] + frame.border.y;
-				ys[2] = ys[1] + frame.border.h;
-				ys[3] = ys[0] + frame.uv.h;
+				_ys[0] = frame.uv.y;
+				_ys[1] = _ys[0] + frame.border.y;
+				_ys[2] = _ys[1] + frame.border.h;
+				_ys[3] = _ys[0] + frame.uv.h;
 
 				for (int yy = 0; yy < 4; yy++) {
 					for (int xx = 0; xx < 4; xx++) {
-						localUvs[(yy << 2) + xx].Set(xs[xx] / texW, 1f - ys[yy] / texH);
+						localUvs[(yy << 2) + xx].Set(_xs[xx] / texW, 1f - _ys[yy] / texH);
 					}
 				}
 			} else {
@@ -82,19 +81,19 @@ namespace Futilef.Node.Display {
 				 * y2 14 10 06 02
 				 * y3 15 11 07 03
 				 */
-				xs[0] = frame.uv.x + frame.uv.w;
-				xs[1] = xs[0] - frame.border.y;
-				xs[2] = xs[1] - frame.border.h;
-				xs[3] = frame.uv.x;
+				_xs[0] = frame.uv.x + frame.uv.w;
+				_xs[1] = _xs[0] - frame.border.y;
+				_xs[2] = _xs[1] - frame.border.h;
+				_xs[3] = frame.uv.x;
 
-				ys[0] = frame.uv.y;
-				ys[1] = ys[0] + frame.border.x;
-				ys[2] = ys[1] + frame.border.w;
-				ys[3] = ys[0] + frame.uv.h;
+				_ys[0] = frame.uv.y;
+				_ys[1] = _ys[0] + frame.border.x;
+				_ys[2] = _ys[1] + frame.border.w;
+				_ys[3] = _ys[0] + frame.uv.h;
 
 				for (int yy = 0; yy < 4; yy++) {
 					for (int xx = 0; xx < 4; xx++) {
-						localUvs[(xx << 2) + yy].Set(xs[xx] / texW, 1f - ys[yy] / texH);
+						localUvs[(xx << 2) + yy].Set(_xs[xx] / texW, 1f - _ys[yy] / texH);
 					}
 				}
 			}
