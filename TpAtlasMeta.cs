@@ -21,26 +21,26 @@ namespace Futilef {
 			atlas->spriteCount = nums[i++];
 			atlas->sprites = (TpSpriteMeta *)Mem.Alloc(atlas->spriteCount * sizeof(TpSpriteMeta));
 			for (int j = 0, end = atlas->spriteCount; j < end; j += 1) {
-				var sprite = atlas->sprites[j];
-				sprite.atlas = atlas;
-				sprite.name = nums[i++];
-				sprite.rotated = nums[i++] != 0;
-				sprite.size[0] = nums[i++];
-				sprite.size[1] = nums[i++];
-				sprite.pivot[0] = nums[i++];
-				sprite.pivot[1] = nums[i++];
-				sprite.quad[0] = nums[i++];
-				sprite.quad[1] = nums[i++];
-				sprite.quad[2] = nums[i++];
-				sprite.quad[3] = nums[i++];
-				sprite.uv[0] = nums[i++];
-				sprite.uv[1] = nums[i++];
-				sprite.uv[2] = nums[i++];
-				sprite.uv[3] = nums[i++];
-				sprite.border[0] = nums[i++];
-				sprite.border[1] = nums[i++];
-				sprite.border[2] = nums[i++];
-				sprite.border[3] = nums[i++];
+				var sprite = atlas->sprites + j;
+				sprite->atlas = atlas;
+				sprite->name = nums[i++];
+				sprite->rotated = nums[i++] != 0;
+				sprite->size[0] = nums[i++];
+				sprite->size[1] = nums[i++];
+				sprite->pivot[0] = nums[i++];
+				sprite->pivot[1] = nums[i++];
+				sprite->quad[0] = nums[i++];
+				sprite->quad[1] = nums[i++];
+				sprite->quad[2] = nums[i++];
+				sprite->quad[3] = nums[i++];
+				sprite->uv[0] = nums[i++];
+				sprite->uv[1] = nums[i++];
+				sprite->uv[2] = nums[i++];
+				sprite->uv[3] = nums[i++];
+				sprite->border[0] = nums[i++];
+				sprite->border[1] = nums[i++];
+				sprite->border[2] = nums[i++];
+				sprite->border[3] = nums[i++];
 			}
 
 			return atlas;

@@ -1,0 +1,27 @@
+﻿namespace Futilef {
+	public unsafe static class Vec4 {
+		public static float *Create(int n = 1) {
+			return (float *)Mem.Alloc(n * 4 * sizeof(float));
+		}
+
+		public static void Free(float *a) {
+			Mem.Free(a);
+		}
+
+		public static float *Copy(float *o, float *a) {
+			o[0] = a[0];
+			o[1] = a[1];
+			o[2] = a[2];
+			o[3] = a[3];
+			return o;
+		}
+
+		public static float *Set(float *o, float x, float y, float z, float w) {
+			o[0] = x;
+			o[1] = y;
+			o[2] = z;
+			o[3] = w;
+			return o;
+		}
+	}
+}
