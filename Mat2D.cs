@@ -2,12 +2,8 @@
 
 namespace Futilef {
 	public unsafe static class Mat2D {
-		public static float *Create(int n = 1) {
+		public static float *New(int n = 1) {
 			return (float *)Mem.Alloc(n * 6 * sizeof(float));
-		}
-
-		public static void Free(float *a) {
-			Mem.Free(a);
 		}
 
 		/**

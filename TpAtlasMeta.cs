@@ -6,23 +6,26 @@ namespace Futilef {
 		public int spriteCount;
 		public TpSpriteMeta *sprites;
 
-		public static TpAtlasMeta *Create(string str) {
+		public static TpAtlasMeta *New(string str) {
+			return Init((TpAtlasMeta *)Mem.Alloc(sizeof(TpAtlasMeta)), str);
+		}
+
+		public static TpAtlasMeta *Init(TpAtlasMeta *self, string str) {
 			string[] segs = str.Split(',');
 			int *nums = stackalloc int[segs.Length];
 			for (int j = 0, end = segs.Length; j < end; j += 1) {
 				nums[j] = int.Parse(segs[j]);
 			}
 
-			var atlas = (TpAtlasMeta *)Mem.Alloc(sizeof(TpAtlasMeta));
 			int i = 0;
-			atlas->name = nums[i++];
-			atlas->size[0] = nums[i++];
-			atlas->size[1] = nums[i++];
-			atlas->spriteCount = nums[i++];
-			atlas->sprites = (TpSpriteMeta *)Mem.Alloc(atlas->spriteCount * sizeof(TpSpriteMeta));
-			for (int j = 0, end = atlas->spriteCount; j < end; j += 1) {
-				var sprite = atlas->sprites + j;
-				sprite->atlas = atlas;
+			self->name = nums[i++];
+			self->size[0] = nums[i++];
+			self->size[1] = nums[i++];
+			self->spriteCount = nums[i++];
+			self->sprites = (TpSpriteMeta *)Mem.Alloc(self->spriteCount * sizeof(TpSpriteMeta));
+			for (int j = 0, end = self->spriteCount; j < end; j += 1) {
+				var sprite = self->sprites + j;
+				sprite->atlas = self;
 				sprite->name = nums[i++];
 				sprite->rotated = nums[i++] != 0;
 				sprite->size[0] = nums[i++];
@@ -43,12 +46,11 @@ namespace Futilef {
 				sprite->border[3] = nums[i++];
 			}
 
-			return atlas;
+			return self;
 		}
 
-		public static void Free(TpAtlasMeta *atlas) {
-			Mem.Free(atlas->sprites);
-			Mem.Free(atlas);
+		public static void Decon(TpAtlasMeta *self) {
+			Mem.Free(self->sprites);
 		}
 	}
 

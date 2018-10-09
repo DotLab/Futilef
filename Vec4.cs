@@ -4,10 +4,6 @@
 			return (float *)Mem.Alloc(n * 4 * sizeof(float));
 		}
 
-		public static void Free(float *a) {
-			Mem.Free(a);
-		}
-
 		public static float *Copy(float *o, float *a) {
 			o[0] = a[0];
 			o[1] = a[1];
