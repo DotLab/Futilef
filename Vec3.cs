@@ -11,6 +11,13 @@
 			return o;
 		}
 
+		public static float *Zero(float *o) {
+			o[0] = 0;
+			o[1] = 0;
+			o[2] = 0;
+			return o;
+		}
+
 		public static float *Set(float *o, float x, float y, float z) {
 			o[0] = x;
 			o[1] = y;

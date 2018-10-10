@@ -1,28 +1,27 @@
 using Math = System.Math;
 
 namespace Futilef {
-	[System.Flags]
-	public enum EsType {
-		In = 1, Out = 2, InOut = 3,
+	public static class EsType {
+		public const int In = 1, Out = 2, InOut = 3;
 
-		Linear = 4, 
-		Quad = 8, QuadIn = 9, QuadOut = 10, QuadInOut = 11, 
-		Cubic = 12, CubicIn = 13, CubicOut = 14, CubicInOut = 15, 
-		Quart = 16, QuartIn = 17, QuartOut = 18, QuartInOut = 19, 
-		Quint = 20, QuintIn = 21, QuintOut = 22, QuintInOut = 23, 
-		Sine = 24, SineIn = 25, SineOut = 26, SineInOut = 27, 
-		Expo = 28, ExpoIn = 29, ExpoOut = 30, ExpoInOut = 31, 
-		Circ = 32, CircIn = 33, CircOut = 34, CircInOut = 35, 
-		Back = 36, BackIn = 37, BackOut = 38, BackInOut = 39, 
-		Elastic = 40, ElasticIn = 41, ElasticOut = 42, ElasticInOut = 43, 
-		Bounce = 44, BounceIn = 45, BounceOut = 46, BounceInOut = 47,
+		public const int Linear = 4, 
+			Quad = 8, QuadIn = 9, QuadOut = 10, QuadInOut = 11, 
+			Cubic = 12, CubicIn = 13, CubicOut = 14, CubicInOut = 15, 
+			Quart = 16, QuartIn = 17, QuartOut = 18, QuartInOut = 19, 
+			Quint = 20, QuintIn = 21, QuintOut = 22, QuintInOut = 23, 
+			Sine = 24, SineIn = 25, SineOut = 26, SineInOut = 27, 
+			Expo = 28, ExpoIn = 29, ExpoOut = 30, ExpoInOut = 31, 
+			Circ = 32, CircIn = 33, CircOut = 34, CircInOut = 35, 
+			Back = 36, BackIn = 37, BackOut = 38, BackInOut = 39, 
+			Elastic = 40, ElasticIn = 41, ElasticOut = 42, ElasticInOut = 43, 
+			Bounce = 44, BounceIn = 45, BounceOut = 46, BounceInOut = 47;
 	}
 
 	public static class Es {
 		public const float Pi = 3.14159265359f, HalfPi = 1.57079632679f, TwoPi = 6.28318530718f;
 
-		public static float Ease(EsType type, float t) {
-			switch (type) {
+		public static float Ease(int esType, float t) {
+			switch (esType) {
 			case EsType.Quad:
 			case EsType.QuadIn:       return t * t;
 			case EsType.QuadOut:      return t * (2 - t);
