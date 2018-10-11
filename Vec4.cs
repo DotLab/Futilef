@@ -23,5 +23,8 @@
 		public static UnityEngine.Color Color(float *o) {
 			return new UnityEngine.Color(o[0], o[1], o[2], o[3]);
 		}
+		public static UnityEngine.Color Color(float *o, float s) {
+			return new UnityEngine.Color(o[0] * s, o[1] * s, o[2] * s, o[3] * s);
+		}
 	}
 }

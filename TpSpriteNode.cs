@@ -121,7 +121,7 @@
 			bUvs[vertIdx + 3].Set(uvs[6], uvs[7]);
 
 			float *color = self->color;
-			var bColor = Vec4.Color(color);
+			var bColor = Vec4.Color(color, 0.5f);
 			var bColors = bat.colors;
 			bColors[vertIdx    ] = bColor;
 			bColors[vertIdx + 1] = bColor;
