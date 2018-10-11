@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace Futilef {
-	public class DrawBatch {
+	public class DrawBat {
 		const int VertExpandAmount = 60, TriExpandAmount = 30;
 		const int VertUnusedLimit = 600, TriUnusedLimit = 300;
 
@@ -25,7 +25,7 @@ namespace Futilef {
 		public int triLen = TriExpandAmount, triCount;
 		public int[] tris = new int[TriExpandAmount];
 
-		public DrawBatch(Shader shader, Texture2D texture) {
+		public DrawBat(Shader shader, Texture2D texture) {
 			this.shader = shader; this.texture = texture;
 
 			gameObject = new GameObject(string.Format("Batch[{0}|{1}x{2}]", shader.name, texture.width, texture.height));

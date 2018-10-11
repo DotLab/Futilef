@@ -6,9 +6,8 @@
 
 		public int type;
 
-//		bool interactable;
+		public bool interactable;
 		bool shouldRebuild;
-		// bool resetTouch;
 
 		public fixed float pos[3];
 		public fixed float scl[2];
@@ -27,7 +26,7 @@
 
 		public static TpSpriteNode *Init(TpSpriteNode *self, TpSpriteMeta *spriteMeta) {
 			self->type = 1;
-//			self->interactable = false;
+			self->interactable = false;
 			self->shouldRebuild = true;
 
 			Vec3.Zero(self->pos);
@@ -39,8 +38,7 @@
 		}
 
 		public static void SetInteractable(TpSpriteNode *self, bool val) {
-//			self->interactable = val;
-			// self->resetTouch = true;
+			self->interactable = val;
 		}
 
 		public static void SetPosition(TpSpriteNode *self, float x, float y, float z) {
@@ -66,10 +64,14 @@
 			Vec3.Set(self->color, r, g, b);
 		}
 
-		public static void Draw(TpSpriteNode *self, DrawContext ctx) {
-			var batch = ctx.GetBatch(self->spriteMeta->atlas->name);
-			int vertIdx = batch.vertCount, triIdx = batch.triCount;
-			batch.RequestQuota(4, 6);
+		public static void Touch(TpSpriteNode *self) {
+			
+		}
+
+		public static void Draw(TpSpriteNode *self) {
+			var bat = DrawCtx.GetBatch(self->spriteMeta->atlas->name);
+			int vertIdx = bat.vertCount, triIdx = bat.triCount;
+			bat.RequestQuota(4, 6);
 
 			float *verts = self->verts;
 			float *uvs = self->uvs;
@@ -107,7 +109,7 @@
 				}
 			}
 
-			var bVerts = batch.verts; var bUvs = batch.uvs; 
+			var bVerts = bat.verts; var bUvs = bat.uvs; 
 			bVerts[vertIdx    ].Set(verts[0], verts[1], 0);
 			bVerts[vertIdx + 1].Set(verts[2], verts[3], 0);
 			bVerts[vertIdx + 2].Set(verts[4], verts[5], 0);
@@ -120,13 +122,13 @@
 
 			float *color = self->color;
 			var bColor = Vec4.Color(color);
-			var bColors = batch.colors;
+			var bColors = bat.colors;
 			bColors[vertIdx    ] = bColor;
 			bColors[vertIdx + 1] = bColor;
 			bColors[vertIdx + 2] = bColor;
 			bColors[vertIdx + 3] = bColor;
 
-			var bTris = batch.tris;
+			var bTris = bat.tris;
 			bTris[triIdx]     = vertIdx;
 			bTris[triIdx + 1] = vertIdx + 1;
 			bTris[triIdx + 2] = vertIdx + 2;

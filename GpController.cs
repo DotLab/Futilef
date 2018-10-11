@@ -32,7 +32,6 @@ namespace Futilef {
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
-		DrawContext ctx;
 		Lst *spriteNodeLst = Lst.New(sizeof(TpSpriteNode));
 		PtrLst *spriteNodePtrLst = PtrLst.New();
 
@@ -40,15 +39,12 @@ namespace Futilef {
 
 		public void Init() {
 			Debug.Log("Init GPC");
-
-			Res.LoadAtlases(10);
-			ctx = new DrawContext();
 		}
 
 		public void Dispose() {
 			Lst.Decon(spriteNodeLst); Mem.Free(spriteNodeLst);
 			PtrLst.Decon(spriteNodePtrLst); Mem.Free(spriteNodePtrLst);
-			ctx.Dispose();
+			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
 		}
@@ -88,10 +84,10 @@ namespace Futilef {
 
 			// draw
 			if (needDepthSort) { needDepthSort = false; PtrLst.Qsort(spriteNodePtrLst, TpSpriteNode.DepthCmp); }
-			ctx.Start();
+			DrawCtx.Start();
 			var arr = (TpSpriteNode **)spriteNodePtrLst->arr;
-			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) TpSpriteNode.Draw(arr[i], ctx);
-			ctx.Finish();
+			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) TpSpriteNode.Draw(arr[i]);
+			DrawCtx.Finish();
 		}
 
 		public void Wait(float time = -1) {

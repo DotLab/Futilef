@@ -2,23 +2,24 @@
 using UnityEngine;
 
 namespace Futilef {
-	public class DrawContext {
-		const int BaseQueue = 3001;
+	public static class DrawCtx {
+		public const int BackgroundQueue = 1000, GeometryQueue = 2000, TransparentQueue = 3000, OverlayQueue = 4000;
+
 		static readonly Shader DefaultShader = Shader.Find("Futilef/Basic");
 
-		public LinkedList<DrawBatch> prevBatches = new LinkedList<DrawBatch>();
-		public LinkedList<DrawBatch> activeBatches = new LinkedList<DrawBatch>();
-		public readonly LinkedList<DrawBatch> inactiveBatches = new LinkedList<DrawBatch>();
+		static LinkedList<DrawBat> prevBatches = new LinkedList<DrawBat>();
+		static LinkedList<DrawBat> activeBatches = new LinkedList<DrawBat>();
+		static readonly LinkedList<DrawBat> inactiveBatches = new LinkedList<DrawBat>();
 
-		int curQueue;
-		DrawBatch curBatch;
+		static int curQueue;
+		static DrawBat curBatch;
 
-		public void Start() {
-			curQueue = BaseQueue;
+		public static void Start() {
+			curQueue = TransparentQueue + 1;
 			curBatch = null;
 		}
 
-		public void Finish() {
+		public static void Finish() {
 			for (var node = prevBatches.First; prevBatches.Count > 0; node = prevBatches.First) {
 				node.Value.Deactivate();
 				inactiveBatches.AddLast(node.Value);
@@ -36,11 +37,11 @@ namespace Futilef {
 			}
 		}
 
-		public DrawBatch GetBatch(int textureId) {
+		public static DrawBat GetBatch(int textureId) {
 			return GetBatch(DefaultShader, Res.GetTexture(textureId));
 		}
 
-		public DrawBatch GetBatch(Shader shader, Texture2D texture) {
+		public static DrawBat GetBatch(Shader shader, Texture2D texture) {
 			if (curBatch != null) {
 				if (curBatch.shader == shader && curBatch.texture == texture) return curBatch;
 				curBatch.Close();
@@ -72,16 +73,16 @@ namespace Futilef {
 			}
 
 			// create a new batch
-			curBatch = new DrawBatch(shader, texture);
+			curBatch = new DrawBat(shader, texture);
 			curBatch.Open(curQueue);
 			activeBatches.AddLast(curBatch);
 			return curBatch;
 		}
 
-		public void Dispose() {
-			foreach (var batch in activeBatches) batch.Dispose();
-			foreach (var batch in prevBatches) batch.Dispose();
-			foreach (var batch in inactiveBatches) batch.Dispose();
+		public static void Dispose() {
+			foreach (var batch in activeBatches) batch.Dispose(); activeBatches.Clear();
+			foreach (var batch in prevBatches) batch.Dispose(); prevBatches.Clear();
+			foreach (var batch in inactiveBatches) batch.Dispose(); inactiveBatches.Clear();
 		}
 	}
 }
