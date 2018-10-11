@@ -37,13 +37,12 @@ namespace Futilef {
 
 		bool needDepthSort;
 
-		public void Init() {
-			Debug.Log("Init GPC");
-		}
-
 		public void Dispose() {
-			Lst.Decon(spriteNodeLst); Mem.Free(spriteNodeLst);
-			PtrLst.Decon(spriteNodePtrLst); Mem.Free(spriteNodePtrLst);
+			cmdQueue.Clear();
+			esJobList.Clear();
+			nodeIdxDict.Clear();
+			Lst.Decon(spriteNodeLst); spriteNodeLst->count = 0;
+			PtrLst.Decon(spriteNodePtrLst); spriteNodePtrLst->count = 0;
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
@@ -83,10 +82,19 @@ namespace Futilef {
 			}
 
 			// draw
-			if (needDepthSort) { needDepthSort = false; PtrLst.Qsort(spriteNodePtrLst, TpSpriteNode.DepthCmp); }
+			if (needDepthSort) { 
+				needDepthSort = false; 
+				Debug.Log("sort"); 
+				PtrLst.Qsort(spriteNodePtrLst, TpSpriteNode.DepthCmp); 
+			}
+
 			DrawCtx.Start();
 			var arr = (TpSpriteNode **)spriteNodePtrLst->arr;
-			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) TpSpriteNode.Draw(arr[i]);
+			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) {
+				Debug.Log("Draw #" + i);
+
+				TpSpriteNode.Draw(arr[i]);
+			}
 			DrawCtx.Finish();
 		}
 
@@ -110,11 +118,15 @@ namespace Futilef {
 			}
 		}
 		void AddImg(AddImgCmd cmd) {
-			Lst.Push(spriteNodeLst);
+			var needRebuildPtrLst = Lst.Push(spriteNodeLst);
 			var node = (TpSpriteNode *)Lst.Last(spriteNodeLst);
 			TpSpriteNode.Init(node, Res.GetSpriteMeta(cmd.imgId));
 
 			PtrLst.Push(spriteNodePtrLst, node);
+			if (needRebuildPtrLst) {
+				Debug.Log("Rebuild PtrLst");
+				Lst.FillPtrLst(spriteNodeLst, spriteNodePtrLst);
+			}
 			nodeIdxDict.Add(cmd.id, spriteNodeLst->count - 1);
 		}
 

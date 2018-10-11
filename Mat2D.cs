@@ -13,13 +13,13 @@ namespace Futilef {
 		 */
 		public static float *FromScalingRotationTranslation(float *o, float *t, float *s, float r) {
 			float sin = (float)Math.Sin(r), cos = (float)Math.Cos(r);
-			float sx = s[0], sy = s[1];
+			float sx = s[0], sy = s[1], x = t[0], y = t[1];
 			o[0] = sx * cos;
 			o[1] = sy * -sin;
-			o[2] = t[0];
+			o[2] = x;
 			o[3] = sx * sin;
 			o[4] = sy * cos;
-			o[5] = t[1];
+			o[5] = y;
 			return o;
 		}
 

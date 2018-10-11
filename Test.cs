@@ -18,9 +18,9 @@ namespace Futilef {
 			var lst = stackalloc Lst[1];
 			int t = 100;
 			Lst.Init(lst, sizeof(int));
-			Lst.Push(lst, &t);
+			Lst.Push(lst, (byte *)&t);
 			t = 200;
-			Lst.Push(lst, &t);
+			Lst.Push(lst, (byte *)&t);
 			Lst.RemoveAt(lst, 0);
 			Debug.Log(Lst.Str(lst));
 			Debug.Log(*(int *)lst->arr);

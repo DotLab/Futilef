@@ -61,5 +61,32 @@ namespace Futilef {
 		public bool rotated;
 		public fixed float size[2], pivot[2];
 		public fixed float quad[4], uv[4], border[4];
+
+		public static void FillQuad(TpSpriteMeta *self, float *verts, float *uvs, float *mat) {
+			float *pivot = self->pivot;
+			float pivotX = pivot[0], pivotY = pivot[1];
+			float *quad = self->quad;
+			float quadX = quad[0], quadY = quad[1], quadW = quad[2], quadH = quad[3];
+			Vec2.TransformMat2D(verts,     mat, -pivotX + quadX,         pivotY - quadY);
+			Vec2.TransformMat2D(verts + 2, mat, -pivotX + quadX + quadW, pivotY - quadY);
+			Vec2.TransformMat2D(verts + 4, mat, -pivotX + quadX + quadW, pivotY - quadY - quadH);
+			Vec2.TransformMat2D(verts + 6, mat, -pivotX + quadX,         pivotY - quadY - quadH);
+
+			float *size = self->atlas->size;
+			float invSizeX = 1 / size[0], invSizeY = 1 / size[1];
+			float *uv = self->uv;
+			float uvX = uv[0], uvY = uv[1], uvW = uv[2], uvH = uv[3];
+			if (self->rotated) {
+				Vec2.Set(uvs    , (uvX + uvW) * invSizeX,  -uvY        * invSizeY);
+				Vec2.Set(uvs + 2, (uvX + uvW) * invSizeX, (-uvY - uvH) * invSizeY);
+				Vec2.Set(uvs + 4,  uvX        * invSizeX, (-uvY - uvH) * invSizeY);
+				Vec2.Set(uvs + 6,  uvX        * invSizeX,  -uvY        * invSizeY);
+			} else {
+				Vec2.Set(uvs    ,  uvX        * invSizeX,  -uvY        * invSizeY);
+				Vec2.Set(uvs + 2, (uvX + uvW) * invSizeX,  -uvY        * invSizeY);
+				Vec2.Set(uvs + 4, (uvX + uvW) * invSizeX, (-uvY - uvH) * invSizeY);
+				Vec2.Set(uvs + 6,  uvX        * invSizeX, (-uvY - uvH) * invSizeY);
+			}
+		}
 	}
 }

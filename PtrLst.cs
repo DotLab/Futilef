@@ -17,7 +17,22 @@ namespace Futilef {
 		}
 
 		public static void Decon(PtrLst *self) {
+			self->count = 0;
 			Mem.Free(self->arr);
+		}
+
+		public static void Expand(PtrLst *self, int amout) {
+			if ((self->count += amout) >= self->len) {
+				self->len = self->count + 1;
+				self->arr = (void **)Mem.Realloc(self->arr, self->len * sizeof(void *));
+			}
+		}
+
+		public static void Push(PtrLst *self) {
+			if ((self->count += 1) >= self->len) {  // expand
+				self->len <<= 1;
+				self->arr = (void **)Mem.Realloc(self->arr, self->len * sizeof(void *));
+			}
 		}
 
 		public static void Push(PtrLst *self, void *p) {
@@ -38,11 +53,17 @@ namespace Futilef {
 			while (i < len && arr[i] != p) i += 1;
 			if (i < len) {  // arr[i] == p
 				for (len = self->count -= 1; i < len; i += 1) arr[i] = arr[i + 1];
+			} else {
+				UnityEngine.Debug.LogError("Remove fail");
 			}
 		}
 
 		public static void Clear(PtrLst *self) {
 			self->count = 0;
+		}
+
+		public static void **End(PtrLst *self) {
+			return self->arr + self->count;
 		}
 
 		public static void Qsort(PtrLst *self, Algo.Cmp cmp) {

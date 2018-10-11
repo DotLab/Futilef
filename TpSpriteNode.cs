@@ -1,10 +1,12 @@
 ﻿namespace Futilef {
 	public unsafe struct TpSpriteNode {
+		public const short Type = 0x5453;
+
 		public static int DepthCmp(void *a, void *b) {
-			return ((TpSpriteNode *)a)->pos[2] - ((TpSpriteNode *)b)->pos[2] < 0 ? -1 : 1;
+			return ((TpSpriteNode *)a)->pos[2] - ((TpSpriteNode *)b)->pos[2] < 0 ? 1 : -1;
 		}
 
-		public int type;
+		public short type;
 
 		public bool interactable;
 		bool shouldRebuild;
@@ -25,7 +27,8 @@
 		}
 
 		public static TpSpriteNode *Init(TpSpriteNode *self, TpSpriteMeta *spriteMeta) {
-			self->type = 1;
+			self->type = Type;
+
 			self->interactable = false;
 			self->shouldRebuild = true;
 
@@ -69,6 +72,8 @@
 		}
 
 		public static void Draw(TpSpriteNode *self) {
+			if (self->type != Type) UnityEngine.Debug.LogWarning("deformed struct");
+
 			var bat = DrawCtx.GetBatch(self->spriteMeta->atlas->name);
 			int vertIdx = bat.vertCount, triIdx = bat.triCount;
 			bat.RequestQuota(4, 6);
@@ -82,38 +87,15 @@
 			if (self->shouldRebuild) {
 				float *mat = stackalloc float[6];
 				Mat2D.FromScalingRotationTranslation(mat, self->pos, self->scl, self->rot);
-
-				float *pivot = self->spriteMeta->pivot;
-				float pivotX = pivot[0], pivotY = pivot[1];
-				float *quad = self->spriteMeta->quad;
-				float quadX = quad[0], quadY = quad[1], quadW = quad[2], quadH = quad[3];
-				Vec2.TransformMat2D(verts,     mat, -pivotX + quadX,         pivotY - quadY);
-				Vec2.TransformMat2D(verts + 2, mat, -pivotX + quadX + quadW, pivotY - quadY);
-				Vec2.TransformMat2D(verts + 4, mat, -pivotX + quadX + quadW, pivotY - quadY - quadH);
-				Vec2.TransformMat2D(verts + 6, mat, -pivotX + quadX,         pivotY - quadY - quadH);
-
-				float *size = self->spriteMeta->atlas->size;
-				float invSizeX = 1 / size[0], invSizeY = 1 / size[1];
-				float *uv = self->spriteMeta->uv;
-				float uvX = uv[0], uvY = uv[1], uvW = uv[2], uvH = uv[3];
-				if (self->spriteMeta->rotated) {
-					Vec2.Set(uvs    , (uvX + uvW) * invSizeX,  -uvY        * invSizeY);
-					Vec2.Set(uvs + 2, (uvX + uvW) * invSizeX, (-uvY - uvH) * invSizeY);
-					Vec2.Set(uvs + 4,  uvX        * invSizeX, (-uvY - uvH) * invSizeY);
-					Vec2.Set(uvs + 6,  uvX        * invSizeX,  -uvY        * invSizeY);
-				} else {
-					Vec2.Set(uvs    ,  uvX        * invSizeX,  -uvY        * invSizeY);
-					Vec2.Set(uvs + 2, (uvX + uvW) * invSizeX,  -uvY        * invSizeY);
-					Vec2.Set(uvs + 4, (uvX + uvW) * invSizeX, (-uvY - uvH) * invSizeY);
-					Vec2.Set(uvs + 6,  uvX        * invSizeX, (-uvY - uvH) * invSizeY);
-				}
+				TpSpriteMeta.FillQuad(self->spriteMeta, self->verts, self->uvs, mat);
 			}
 
-			var bVerts = bat.verts; var bUvs = bat.uvs; 
-			bVerts[vertIdx    ].Set(verts[0], verts[1], 0);
-			bVerts[vertIdx + 1].Set(verts[2], verts[3], 0);
-			bVerts[vertIdx + 2].Set(verts[4], verts[5], 0);
-			bVerts[vertIdx + 3].Set(verts[6], verts[7], 0);
+			var bVerts = bat.verts; var bUvs = bat.uvs;
+			float z = self->pos[2];
+			bVerts[vertIdx    ].Set(verts[0], verts[1], z);
+			bVerts[vertIdx + 1].Set(verts[2], verts[3], z);
+			bVerts[vertIdx + 2].Set(verts[4], verts[5], z);
+			bVerts[vertIdx + 3].Set(verts[6], verts[7], z);
 
 			bUvs[vertIdx    ].Set(uvs[0], uvs[1]);
 			bUvs[vertIdx + 1].Set(uvs[2], uvs[3]);

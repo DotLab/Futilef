@@ -21,7 +21,7 @@
 		public static float *Set(float *o, float x, float y, float z) {
 			o[0] = x;
 			o[1] = y;
-			o[2] = y;
+			o[2] = z;
 			return o;
 		}
 	}

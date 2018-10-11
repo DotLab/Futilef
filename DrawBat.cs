@@ -81,8 +81,6 @@ namespace Futilef {
 			mesh.uv = uvs;
 
 			mesh.triangles = tris;
-
-			mesh.RecalculateBounds();
 		}
 
 		public void Activate() {
