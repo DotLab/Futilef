@@ -40,6 +40,7 @@
 			self->shouldRebuild = true;
 
 			Vec3.Zero(self->pos);
+			self->rot = 0;
 			Vec2.Set(self->scl, 1, 1);
 			Vec4.Set(self->color, 1, 1, 1, 0);
 			self->spriteMeta = spriteMeta;
