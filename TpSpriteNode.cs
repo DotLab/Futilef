@@ -1,12 +1,13 @@
 ﻿namespace Futilef {
 	public unsafe struct TpSpriteNode {
-		public const short Type = 0x5453;
-
 		public static int DepthCmp(void *a, void *b) {
 			return ((TpSpriteNode *)a)->pos[2] - ((TpSpriteNode *)b)->pos[2] < 0 ? 1 : -1;
 		}
 
-		public short type;
+		#if FDB
+		public static readonly int Type = Fdb.NewType("TpSpriteNode");
+		public int type;
+		#endif
 
 		public bool interactable;
 		bool shouldRebuild;
@@ -23,12 +24,18 @@
 		TpSpriteMeta *spriteMeta;
 
 		public static TpSpriteNode *New(TpSpriteMeta *spriteMeta) {
+			#if FDB
+			Should.NotNull("spriteMeta", spriteMeta);
+			#endif
 			return Init((TpSpriteNode *)Mem.Alloc(sizeof(TpSpriteNode)), spriteMeta);
 		}
 
 		public static TpSpriteNode *Init(TpSpriteNode *self, TpSpriteMeta *spriteMeta) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("spriteMeta", spriteMeta);
 			self->type = Type;
-
+			#endif
 			self->interactable = false;
 			self->shouldRebuild = true;
 
@@ -40,40 +47,78 @@
 			return self;
 		}
 
+		public static void Decon(TpSpriteNode *self) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			self->type = Fdb.NullType;
+			#endif
+		}
+
 		public static void SetInteractable(TpSpriteNode *self, bool val) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			self->interactable = val;
 		}
 
 		public static void SetPosition(TpSpriteNode *self, float x, float y, float z) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			Vec3.Set(self->pos, x, y, z);
 			self->shouldRebuild = true;
 		}
 
 		public static void SetRotation(TpSpriteNode *self, float rotation) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			self->rot = rotation;
 			self->shouldRebuild = true;
 		}
 
 		public static void SetScale(TpSpriteNode *self, float x, float y) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			Vec2.Set(self->scl, x, y);
 			self->shouldRebuild = true;
 		}
 
 		public static void SetAlpha(TpSpriteNode *self, float a) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			self->color[3] = a;
 		}
 
 		public static void SetTint(TpSpriteNode *self, float r, float g, float b) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 			Vec3.Set(self->color, r, g, b);
 		}
 
 		public static void Touch(TpSpriteNode *self) {
-			
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
 		}
 
 		public static void Draw(TpSpriteNode *self) {
-			if (self->type != Type) UnityEngine.Debug.LogWarning("deformed struct");
-
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.NotNull("self->spriteMeta", self->spriteMeta);
+			#endif
 			var bat = DrawCtx.GetBatch(self->spriteMeta->atlas->name);
 			int vertIdx = bat.vertCount, triIdx = bat.triCount;
 			bat.RequestQuota(4, 6);

@@ -2,7 +2,7 @@ namespace Futilef {
 	public unsafe struct Lst {
 		const int InitLen = 2;
 
-		#if DEBUG
+		#if FDB
 		static readonly int Type = Fdb.NewType("Lst");
 		int type;
 		#endif
@@ -12,11 +12,16 @@ namespace Futilef {
 		int size;
 
 		public static Lst *New(int size) {
+			#if FDB
+			Should.GreaterThan("size", size, 0);
+			#endif
 			return Init((Lst *)Mem.Alloc(sizeof(Lst)), size);
 		}
 
 		public static Lst *Init(Lst *self, int size) {
-			#if DEBUG
+			#if FDB
+			Should.NotNull("self", self);
+			Should.GreaterThan("size", size, 0);
 			self->type = Type;
 			#endif
 			self->count = 0;
@@ -27,8 +32,9 @@ namespace Futilef {
 		}
 
 		public static void Decon(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			self->type = Fdb.NullType;
 			#endif
 			self->count = self->len = 0;
@@ -36,29 +42,32 @@ namespace Futilef {
 		}
 
 		public static bool Push(Lst *self) {  // push a garbage item
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			int oldCount = self->count;
 			int oldLen = self->len;
 			#endif
 			if ((self->count += 1) >= self->len) {  // resize
 				self->len <<= 1;
 				self->arr = (byte *)Mem.Realloc(self->arr, self->len * self->size);
-				#if DEBUG
-				Should.BeGreaterThan("self->len", self->len, oldLen);
+				#if FDB
+				Should.GreaterThan("self->len", self->len, oldLen);
 				Should.Equal("self->count", self->count, oldCount + 1);
 				#endif
 				return true;
 			}
-			#if DEBUG
+			#if FDB
 			Should.Equal("self->count", self->count, oldCount + 1);
 			#endif
 			return false;
 		}
 
 		public static bool Push(Lst *self, byte *src) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("src", src);
+			Should.TypeEqual("self", self->type, Type);
 			int oldCount = self->count;
 			int oldLen = self->len;
 			#endif
@@ -69,70 +78,82 @@ namespace Futilef {
 			if ((self->count += 1) >= self->len) {  // resize
 				self->len <<= 1;
 				self->arr = (byte *)Mem.Realloc(self->arr, self->len * size);
-				#if DEBUG
-				Should.BeGreaterThan("self->len", self->len, oldLen);
+				#if FDB
+				Should.GreaterThan("self->len", self->len, oldLen);
 				Should.Equal("self->count", self->count, oldCount + 1);
 				#endif
 				return true;
 			}
-			#if DEBUG
+			#if FDB
 			Should.Equal("self->count", self->count, oldCount + 1);
 			#endif
 			return false;
 		}
 
 		public static void *Pop(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.GreaterThan("self->count", self->count, 0);
 			#endif
 			return self->arr + (self->count -= 1) * self->size;
 		}
 
 		public static void RemoveAt(Lst *self, int idx) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.InRange("idx", idx, 0, self->count - 1);
 			int oldCount = self->count;
 			#endif
 			int size = self->size;
 			var dst = self->arr + idx * size;
 			var src = self->arr + (idx + 1) * size;
 			for (int i = 0, len = ((self->count -= 1) - idx) * size; i < len; i += 1) *dst++ = *src++;
-			#if DEBUG
+			#if FDB
 			Should.Equal("self->count", self->count, oldCount - 1);
 			#endif
 		}
 
 		public static void Clear(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			self->count = 0;
 		}
 
 		public static void *Get(Lst *self, int idx) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.InRange("idx", idx, 0, self->count - 1);
 			#endif
 			return self->arr + idx * self->size;
 		}
 
 		public static void *Last(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			return self->arr + (self->count - 1) * self->size;
 		}
 
 		public static void *End(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			return self->arr + self->count * self->size;
 		}
 
 		public static void FillPtrLst(Lst *self, PtrLst *ptrLst) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("ptrLst", ptrLst);
+			Should.GreaterThanOrEqualTo("ptrLst->len", ptrLst->len, self->count);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			int size = self->size;
 			var ptrArr = ptrLst->arr;
@@ -140,15 +161,15 @@ namespace Futilef {
 		}
 
 		public static string Str(Lst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			return string.Format("lst({0}, {1}, {2}, 0x{3:X})", self->size, self->count, self->len, (int)self->arr);
 		}
 
-		#if DEBUG
+		#if FDB
 		public static void Test() {
-			Fdb.Log(Fdb.GetName(Type));
 			TestPush();
 			TestPop();
 			TestRemoveAt();

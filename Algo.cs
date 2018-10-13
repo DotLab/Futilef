@@ -2,10 +2,13 @@
 	public static unsafe class Algo {
 		public delegate int Cmp(void *a, void *b);
 		public static void Qsort(void **arr, int len, Cmp cmp) {
+			Should.NotNull("arr", arr);
+			Should.GreaterThan("len", len, 0);
+			Should.NotNull("cmp", cmp);
 			Qsort(arr, 0, len - 1, cmp);
 		}
 
-		public static void Qsort(void **arr, int low, int high, Cmp cmp) {
+		static void Qsort(void **arr, int low, int high, Cmp cmp) {
 			if (low < high) {
 				int i = low - 1; var pivot = arr[high]; void *swap;
 				for (int j = low; j < high; j += 1) {
@@ -21,10 +24,8 @@
 			}
 		}
 
-		#if DEBUG
+		#if FDB
 		public static void Test() {
-			Fdb.Log("Algo");
-
 			const int len = 100;
 			var arr = stackalloc void *[len];
 			for (int i = 0; i < len; i += 1) {
@@ -32,7 +33,7 @@
 			}
 			Qsort(arr, len, (a, b) => (int)a - (int)b);
 			for (int i = 1; i < len; i += 1) {
-				Should.BeLessThanOrEqualTo("(int)arr[i - 1]", (int)arr[i - 1], (int)arr[i]);
+				Should.LessThanOrEqualTo("(int)arr[i - 1]", (int)arr[i - 1], (int)arr[i]);
 			}
 		}
 		#endif

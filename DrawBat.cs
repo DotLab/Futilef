@@ -26,6 +26,10 @@ namespace Futilef {
 		public int[] tris = new int[TriExpandAmount];
 
 		public DrawBat(Shader shader, Texture2D texture) {
+			#if FDB
+			Should.NotNull("shader", shader);
+			Should.NotNull("texture", texture);
+			#endif
 			this.shader = shader; this.texture = texture;
 
 			gameObject = new GameObject(string.Format("Batch[{0}|{1}x{2}]", shader.name, texture.width, texture.height));
@@ -46,6 +50,11 @@ namespace Futilef {
 		}
 
 		public void RequestQuota(int v, int t) {
+			#if FDB
+			Should.GreaterThan("v", v, 0);
+			Should.GreaterThan("t", t, 0);
+			Should.Equal("t % 3", t % 3, 0);
+			#endif
 			if ((vertCount += v) >= vertLen) {
 				vertLen = vertCount + VertExpandAmount;
 				Array.Resize(ref verts, vertLen);

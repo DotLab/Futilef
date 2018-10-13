@@ -1,5 +1,9 @@
 namespace Futilef {
 	public unsafe struct TpAtlasMeta {
+		#if FDB
+		public static readonly int Type = Fdb.NewType("TpAtlasMeta");
+		public int type;
+		#endif
 		public int name;
 		public fixed float size[2];
 
@@ -7,10 +11,18 @@ namespace Futilef {
 		public TpSpriteMeta *sprites;
 
 		public static TpAtlasMeta *New(string str) {
+			#if FDB
+			Should.NotNullOrEmpty("str", str);
+			#endif
 			return Init((TpAtlasMeta *)Mem.Alloc(sizeof(TpAtlasMeta)), str);
 		}
 
 		public static TpAtlasMeta *Init(TpAtlasMeta *self, string str) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNullOrEmpty("str", str);
+			self->type = Type;
+			#endif
 			string[] segs = str.Split(',');
 			int *nums = stackalloc int[segs.Length];
 			for (int j = 0, end = segs.Length; j < end; j += 1) {
@@ -25,6 +37,9 @@ namespace Futilef {
 			self->sprites = (TpSpriteMeta *)Mem.Alloc(self->spriteCount * sizeof(TpSpriteMeta));
 			for (int j = 0, end = self->spriteCount; j < end; j += 1) {
 				var sprite = self->sprites + j;
+				#if FDB
+				sprite->type = TpSpriteMeta.Type;
+				#endif
 				sprite->atlas = self;
 				sprite->name = nums[i++];
 				sprite->rotated = nums[i++] != 0;
@@ -50,11 +65,27 @@ namespace Futilef {
 		}
 
 		public static void Decon(TpAtlasMeta *self) {
-			Mem.Free(self->sprites);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.NotNull("self->sprites", self->sprites);
+			self->type = Fdb.NullType;
+			for (int j = 0, end = self->spriteCount; j < end; j += 1) {
+				var sprite = self->sprites + j;
+				Should.TypeEqual("sprite->type", sprite->type, TpSpriteMeta.Type);
+				sprite->type = Fdb.NullType;
+			}
+			#endif
+			self->name = -1;
+			Mem.Free(self->sprites); self->sprites = null;
 		}
 	}
 
 	public unsafe struct TpSpriteMeta {
+		#if FDB
+		public static readonly int Type = Fdb.NewType("TpSpriteMeta");
+		public int type;
+		#endif
 		public TpAtlasMeta *atlas;
 
 		public int name;
@@ -63,6 +94,15 @@ namespace Futilef {
 		public fixed float quad[4], uv[4], border[4];
 
 		public static void FillQuad(TpSpriteMeta *self, float *verts, float *uvs, float *mat) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("verts", verts);
+			Should.NotNull("uvs", uvs);
+			Should.NotNull("mat", mat);
+			Should.TypeEqual("self", self->type, Type);
+			Should.NotNull("self->atlas", self->atlas);
+			Should.TypeEqual("self->atlas->type", self->atlas->type, TpAtlasMeta.Type);
+			#endif
 			float *pivot = self->pivot;
 			float pivotX = pivot[0], pivotY = pivot[1];
 			float *quad = self->quad;

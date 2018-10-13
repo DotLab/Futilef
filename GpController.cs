@@ -16,7 +16,7 @@ namespace Futilef {
 		class SetCamAttrCmd : Cmd { public int camAttrId; public object[] args; }
 		class SetCamAttrEasedCmd : SetCamAttrCmd { public float duration; public int esType; }
 		
-		public static class ImgAttr { public const int Interactable = 0, Position = 1, Rotation = 2, Scale = 3, Alpha = 4, Tint = 5, ImgId = 6; }
+		public static class ImgAttr { public const int Interactable = 0, Position = 1, Rotation = 2, Scale = 3, Alpha = 4, Tint = 5, ImgId = 6, End = 7; }
 
 		class EsJob { public float time, duration; public int esType; public TpSpriteNode *node; public virtual void Apply(float step) {} public virtual void Finish() {} }
 		class EsSetPositionJob : EsJob { public float x, y, z, dx, dy, dz; public override void Apply(float step) { TpSpriteNode.SetPosition(node, x + dx * step, y + dy * step, z + dz * step); } public override void Finish() { TpSpriteNode.SetPosition(node, x + dx, y + dy, z + dz); } }
@@ -41,8 +41,8 @@ namespace Futilef {
 			cmdQueue.Clear();
 			esJobList.Clear();
 			nodeIdxDict.Clear();
-			Lst.Decon(spriteNodeLst); spriteNodeLst->count = 0;
-			PtrLst.Decon(spriteNodePtrLst); spriteNodePtrLst->count = 0;
+			Lst.Decon(spriteNodeLst);
+			PtrLst.Decon(spriteNodePtrLst);
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
@@ -108,13 +108,13 @@ namespace Futilef {
 		}
 
 		public void AddImg(int id, int imgId) {
-			if (Res.HasSpriteMeta(imgId)) {
-				cmdQueue.Enqueue(new AddImgCmd{ id = id, imgId = imgId });
-			} else {
-				Debug.LogWarningFormat("gpc.addImg: img {0} does not exist", imgId);
-			}
+			cmdQueue.Enqueue(new AddImgCmd{ id = id, imgId = imgId });
 		}
 		void AddImg(AddImgCmd cmd) {
+			#if FDB
+			Should.False("nodeIdxDict.ContainsKey(cmd.id)", nodeIdxDict.ContainsKey(cmd.id));
+			Should.True("Res.HasSpriteMeta(cmd.imgId)", Res.HasSpriteMeta(cmd.imgId));
+			#endif
 			var needRebuildPtrLst = Lst.Push(spriteNodeLst);
 			var node = (TpSpriteNode *)Lst.Last(spriteNodeLst);
 			TpSpriteNode.Init(node, Res.GetSpriteMeta(cmd.imgId));
@@ -130,6 +130,9 @@ namespace Futilef {
 			cmdQueue.Enqueue(new RmImgCmd{ id = id });
 		}
 		void RmImg(RmImgCmd cmd) {
+			#if FDB
+			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodeIdxDict.ContainsKey(cmd.id));
+			#endif
 			if (cmd.id < 0) {
 				nodeIdxDict.Clear();
 				PtrLst.Clear(spriteNodePtrLst);
@@ -146,6 +149,10 @@ namespace Futilef {
 			cmdQueue.Enqueue(new SetImgAttrCmd{ id = id, imgAttrId = imgAttrId, args = args });
 		}
 		void SetImgAttr(SetImgAttrCmd cmd) {
+			#if FDB
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodeIdxDict.ContainsKey(cmd.id));
+			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
+			#endif
 			var img = (TpSpriteNode *)Lst.Get(spriteNodeLst, nodeIdxDict[cmd.id]);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
@@ -163,6 +170,12 @@ namespace Futilef {
 			cmdQueue.Enqueue(new SetImgAttrEasedCmd{ id = id, imgAttrId = imgAttrId, duration = duration, esType = esType, args = args });
 		}
 		void SetImgAttrEased(SetImgAttrEasedCmd cmd) {
+			#if FDB
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodeIdxDict.ContainsKey(cmd.id));
+			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
+			Should.GreaterThan("cmd.duration", cmd.duration, 0);
+			Should.InRange("cmd.esType", cmd.esType, 0, EsType.End - 1);
+			#endif
 			float endTime = time + cmd.duration;
 			if (endTime > lastEsEndTime) lastEsEndTime = endTime;
 

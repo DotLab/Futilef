@@ -1,11 +1,26 @@
 ﻿using System.Collections.Generic;
 
 namespace Futilef {
-	#if DEBUG
-	public static unsafe class Fdb {
+	#if FDB
+	public static class Fdb {
+		class FdbError : System.Exception { public FdbError(string msg) : base(msg) {} }
+		class FdbAssertionFail : System.Exception { public FdbAssertionFail(string msg) : base(msg) {} }
+
 		public const int NullType = -1;
 
 		static readonly List<string> typeList = new List<string>();
+
+		static Fdb() {
+			System.Reflection.Assembly
+				.GetAssembly(typeof(UnityEditor.SceneView))
+				.GetType("UnityEditor.LogEntries")
+				.GetMethod("Clear")
+				.Invoke(new object(), null);
+
+			Log("Algo Test"); Algo.Test();
+			Log("Lst Test"); Lst.Test();
+			Log("PtrLst Test"); PtrLst.Test();
+		}
 
 		public static int NewType(string name) {
 			typeList.Add(name);
@@ -27,7 +42,11 @@ namespace Futilef {
 		}
 
 		public static void Error(string fmt, params object[] args) {
-			UnityEngine.Debug.LogErrorFormat("Fdb: " + fmt, args);
+			throw new FdbError(string.Format(fmt, args));
+		}
+
+		public static void AssertionFail(string fmt, params object[] args) {
+			throw new FdbAssertionFail(string.Format(fmt, args));
 		}
 	}
 	#endif

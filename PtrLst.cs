@@ -2,7 +2,7 @@ namespace Futilef {
 	public unsafe struct PtrLst {
 		const int InitLen = 2;
 
-		#if DEBUG
+		#if FDB
 		static readonly int Type = Fdb.NewType("PtrLst");
 		int type;
 		#endif
@@ -14,7 +14,8 @@ namespace Futilef {
 		}
 
 		public static PtrLst *Init(PtrLst *self) {
-			#if DEBUG
+			#if FDB
+			Should.NotNull("self", self);
 			self->type = Type;
 			#endif
 			self->count = 0;
@@ -23,7 +24,9 @@ namespace Futilef {
 			return self;
 		}
 		public static PtrLst *Init(PtrLst *self, int len) {
-			#if DEBUG
+			#if FDB
+			Should.NotNull("self", self);
+			Should.GreaterThan("len", len, 0);
 			self->type = Type;
 			#endif
 			self->count = 0;
@@ -33,8 +36,9 @@ namespace Futilef {
 		}
 
 		public static void Decon(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			self->type = Fdb.NullType;
 			#endif
 			self->count = self->len = 0;
@@ -42,26 +46,28 @@ namespace Futilef {
 		}
 
 		public static void Push(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			int oldCount = self->count;
 			int oldLen = self->len;
 			#endif
 			if ((self->count += 1) >= self->len) {  // expand
 				self->len <<= 1;
 				self->arr = (void **)Mem.Realloc(self->arr, self->len * sizeof(void *));
-				#if DEBUG
-				Should.BeGreaterThan("self->len", self->len, oldLen);
+				#if FDB
+				Should.GreaterThan("self->len", self->len, oldLen);
 				#endif
 			}
-			#if DEBUG
+			#if FDB
 			Should.Equal("self->count", self->count, oldCount + 1);
 			#endif
 		}
 
 		public static void Push(PtrLst *self, void *p) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			int oldCount = self->count;
 			int oldLen = self->len;
 			#endif
@@ -69,25 +75,28 @@ namespace Futilef {
 			if ((self->count += 1) >= self->len) {  // expand
 				self->len <<= 1;
 				self->arr = (void **)Mem.Realloc(self->arr, self->len * sizeof(void *));
-				#if DEBUG
-				Should.BeGreaterThan("self->len", self->len, oldLen);
+				#if FDB
+				Should.GreaterThan("self->len", self->len, oldLen);
 				#endif
 			}
-			#if DEBUG
+			#if FDB
 			Should.Equal("self->count", self->count, oldCount + 1);
 			#endif
 		}
 
 		public static void *Pop(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Should.GreaterThan("size->count", self->count, 0);
 			#endif
 			return self->arr[self->count -= 1];
 		}
 
 		public static void Remove(PtrLst *self, void *p) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			int oldCount = self->count;
 			#endif
 			var arr = self->arr;
@@ -96,43 +105,47 @@ namespace Futilef {
 			if (i < len) {  // arr[i] == p
 				for (len = self->count -= 1; i < len; i += 1) arr[i] = arr[i + 1];
 			}
-			#if DEBUG
-			else Should.Fail("else");
+			#if FDB
+			else Fdb.Error("{0} does not exist in PtrLst {1}", (ulong)p, (ulong) self);
 			Should.Equal("self->count", self->count, oldCount - 1);
 			#endif
 		}
 
 		public static void Clear(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			self->count = 0;
 		}
 
 		public static void **End(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			return self->arr + self->count;
 		}
 
 		public static void Qsort(PtrLst *self, Algo.Cmp cmp) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("cmp", cmp);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
-			Algo.Qsort(self->arr, 0, self->count - 1, cmp);
+			Algo.Qsort(self->arr, self->count, cmp);
 		}
 
 		public static string Str(PtrLst *self) {
-			#if DEBUG
-			Should.TypeCheck("self", self->type, Type);
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
 			#endif
 			return string.Format("ptrlst({0}, {1}, 0x{2:X})", self->count, self->len, (int)self->arr);
 		}
 
-		#if DEBUG
+		#if FDB
 		public static void Test() {
-			Fdb.Log(Fdb.GetName(Type));
 			TestPush();
 			TestPop();
 			TestRemove();
@@ -205,7 +218,7 @@ namespace Futilef {
 			}
 			Qsort(lst, (a, b) => (int)a - (int)b);
 			for (int i = 1; i < len; i += 1) {
-				Should.BeLessThanOrEqualTo("(int)lst->arr[i - 1]", (int)lst->arr[i - 1], (int)lst->arr[i]);
+				Should.LessThanOrEqualTo("(int)lst->arr[i - 1]", (int)lst->arr[i - 1], (int)lst->arr[i]);
 			}
 		}
 		#endif

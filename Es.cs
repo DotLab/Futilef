@@ -14,7 +14,8 @@ namespace Futilef {
 			Circ = 32, CircIn = 33, CircOut = 34, CircInOut = 35, 
 			Back = 36, BackIn = 37, BackOut = 38, BackInOut = 39, 
 			Elastic = 40, ElasticIn = 41, ElasticOut = 42, ElasticInOut = 43, 
-			Bounce = 44, BounceIn = 45, BounceOut = 46, BounceInOut = 47;
+			Bounce = 44, BounceIn = 45, BounceOut = 46, BounceInOut = 47,
+			End = 48;
 	}
 
 	public static class Es {
