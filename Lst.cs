@@ -2,6 +2,10 @@ namespace Futilef {
 	public unsafe struct Lst {
 		const int InitLen = 2;
 
+		#if DEBUG
+		static readonly int Type = Fdb.NewType("Lst");
+		int type;
+		#endif
 		public int count, len;
 		public byte *arr;
 
@@ -12,6 +16,9 @@ namespace Futilef {
 		}
 
 		public static Lst *Init(Lst *self, int size) {
+			#if DEBUG
+			self->type = Type;
+			#endif
 			self->count = 0;
 			self->len = InitLen;
 			self->arr = (byte *)Mem.Alloc(InitLen * size);
@@ -20,20 +27,41 @@ namespace Futilef {
 		}
 
 		public static void Decon(Lst *self) {
-			self->count = 0;
-			Mem.Free(self->arr);
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			self->type = Fdb.NullType;
+			#endif
+			self->count = self->len = 0;
+			Mem.Free(self->arr); self->arr = null;
 		}
 
 		public static bool Push(Lst *self) {  // push a garbage item
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			int oldCount = self->count;
+			int oldLen = self->len;
+			#endif
 			if ((self->count += 1) >= self->len) {  // resize
 				self->len <<= 1;
 				self->arr = (byte *)Mem.Realloc(self->arr, self->len * self->size);
+				#if DEBUG
+				Should.BeGreaterThan("self->len", self->len, oldLen);
+				Should.Equal("self->count", self->count, oldCount + 1);
+				#endif
 				return true;
 			}
+			#if DEBUG
+			Should.Equal("self->count", self->count, oldCount + 1);
+			#endif
 			return false;
 		}
 
 		public static bool Push(Lst *self, byte *src) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			int oldCount = self->count;
+			int oldLen = self->len;
+			#endif
 			int size = self->size;
 			var dst = self->arr + self->count * size;
 			for (int i = 0; i < size; i += 1) *dst++ = *src++;
@@ -41,46 +69,166 @@ namespace Futilef {
 			if ((self->count += 1) >= self->len) {  // resize
 				self->len <<= 1;
 				self->arr = (byte *)Mem.Realloc(self->arr, self->len * size);
+				#if DEBUG
+				Should.BeGreaterThan("self->len", self->len, oldLen);
+				Should.Equal("self->count", self->count, oldCount + 1);
+				#endif
 				return true;
 			}
+			#if DEBUG
+			Should.Equal("self->count", self->count, oldCount + 1);
+			#endif
 			return false;
 		}
 
 		public static void *Pop(Lst *self) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			return self->arr + (self->count -= 1) * self->size;
 		}
 
 		public static void RemoveAt(Lst *self, int idx) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			int oldCount = self->count;
+			#endif
 			int size = self->size;
 			var dst = self->arr + idx * size;
 			var src = self->arr + (idx + 1) * size;
 			for (int i = 0, len = ((self->count -= 1) - idx) * size; i < len; i += 1) *dst++ = *src++;
+			#if DEBUG
+			Should.Equal("self->count", self->count, oldCount - 1);
+			#endif
 		}
 
 		public static void Clear(Lst *self) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			self->count = 0;
 		}
 
 		public static void *Get(Lst *self, int idx) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			return self->arr + idx * self->size;
 		}
 
 		public static void *Last(Lst *self) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			return self->arr + (self->count - 1) * self->size;
 		}
 
 		public static void *End(Lst *self) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			return self->arr + self->count * self->size;
 		}
 
 		public static void FillPtrLst(Lst *self, PtrLst *ptrLst) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			int size = self->size;
 			var ptrArr = ptrLst->arr;
 			for (byte *p = self->arr, end = (byte *)End(self); p < end; p += size) *ptrArr++ = p;
 		}
 
 		public static string Str(Lst *self) {
+			#if DEBUG
+			Should.TypeCheck("self", self->type, Type);
+			#endif
 			return string.Format("lst({0}, {1}, {2}, 0x{3:X})", self->size, self->count, self->len, (int)self->arr);
 		}
+
+		#if DEBUG
+		public static void Test() {
+			Fdb.Log(Fdb.GetName(Type));
+			TestPush();
+			TestPop();
+			TestRemoveAt();
+			TestLastEnd();
+			TestFillPtrLst();
+		}
+
+		static void TestPush() {
+			const int len = 100;
+			var arr = stackalloc int[len];
+			var lst = stackalloc Lst[1]; Init(lst, sizeof(int));
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = Fdb.Random(0, len);
+				Push(lst, (byte *)&arr[i]);
+			}
+			for (int i = 0; i < len; i += 1) {
+				Should.Equal("*(int *)Get(lst, i)", *(int *)Get(lst, i), arr[i]);
+			}
+		}
+
+		static void TestPop() {
+			const int len = 100;
+			var arr = stackalloc int[len];
+			var lst = stackalloc Lst[1]; Init(lst, sizeof(int));
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = Fdb.Random(0, len);
+				Push(lst, (byte *)&arr[i]);
+			}
+			for (int i = 0; i < len; i += 1) {
+				Should.Equal("*(int *)Pop(lst)", *(int *)Pop(lst), arr[len - i - 1]);
+			}
+			Should.Equal("lst->count", lst->count, 0);
+		}
+
+		static void TestRemoveAt() {
+			const int len = 100;
+			var arr = new System.Collections.Generic.List<int>();
+			var lst = stackalloc Lst[1]; Init(lst, sizeof(int));
+			for (int i = 0; i < len; i += 1) {
+				int v = Fdb.Random(0, len);
+				arr.Add(v);
+				Push(lst, (byte *)&v);
+			}
+			for (int i = 0; i < len >> 1; i += 1) {
+				int idx = Fdb.Random(0, arr.Count);
+				arr.RemoveAt(idx);
+				RemoveAt(lst, idx);
+			}
+			for (int i = 0; i < arr.Count; i += 1) {
+				Should.Equal("*(int *)Get(lst, i)", *(int *)Get(lst, i), arr[i]);
+			}
+		}
+
+		static void TestLastEnd() {
+			const int len = 100;
+			var arr = stackalloc int[len];
+			var lst = stackalloc Lst[1]; Init(lst, sizeof(int));
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = Fdb.Random(0, len);
+				Push(lst, (byte *)&arr[i]);
+			}
+			Should.Equal("*(int *)Last(lst)", *(int *)Last(lst), arr[len - 1]);
+			Should.Equal("(byte *)Last(lst) - lst->arr", (byte *)Last(lst) - lst->arr, (lst->count - 1) * lst->size);
+			Should.Equal("(byte *)End(lst) - lst->arr", (byte *)End(lst) - lst->arr, lst->count * lst->size);
+		}
+
+		static void TestFillPtrLst() {
+			const int len = 100;
+			var arr = stackalloc int[len];
+			var lst = stackalloc Lst[1]; Init(lst, sizeof(int));
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = Fdb.Random(0, len);
+				Push(lst, (byte *)&arr[i]);
+			}
+			var ptrlst = stackalloc PtrLst[1]; PtrLst.Init(ptrlst, lst->count);
+			FillPtrLst(lst, ptrlst);
+			for (int i = 0; i < len; i += 1) {
+				Should.Equal("Get(lst, i)", Get(lst, i), ptrlst->arr[i]);
+			}
+		}
+		#endif
 	}
 }

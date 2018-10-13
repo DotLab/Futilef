@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Futilef {
+﻿namespace Futilef {
 	public static unsafe class Algo {
 		public delegate int Cmp(void *a, void *b);
 		public static void Qsort(void **arr, int len, Cmp cmp) {
@@ -22,6 +20,22 @@ namespace Futilef {
 				Qsort(arr, i + 1, high, cmp);
 			}
 		}
+
+		#if DEBUG
+		public static void Test() {
+			Fdb.Log("Algo");
+
+			const int len = 100;
+			var arr = stackalloc void *[len];
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = (void *)Fdb.Random(-len, len);
+			}
+			Qsort(arr, len, (a, b) => (int)a - (int)b);
+			for (int i = 1; i < len; i += 1) {
+				Should.BeLessThanOrEqualTo("(int)arr[i - 1]", (int)arr[i - 1], (int)arr[i]);
+			}
+		}
+		#endif
 	}
 }
 

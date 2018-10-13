@@ -84,15 +84,12 @@ namespace Futilef {
 			// draw
 			if (needDepthSort) { 
 				needDepthSort = false; 
-				Debug.Log("sort"); 
 				PtrLst.Qsort(spriteNodePtrLst, TpSpriteNode.DepthCmp); 
 			}
 
 			DrawCtx.Start();
 			var arr = (TpSpriteNode **)spriteNodePtrLst->arr;
 			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) {
-				Debug.Log("Draw #" + i);
-
 				TpSpriteNode.Draw(arr[i]);
 			}
 			DrawCtx.Finish();
@@ -124,7 +121,6 @@ namespace Futilef {
 
 			PtrLst.Push(spriteNodePtrLst, node);
 			if (needRebuildPtrLst) {
-				Debug.Log("Rebuild PtrLst");
 				Lst.FillPtrLst(spriteNodeLst, spriteNodePtrLst);
 			}
 			nodeIdxDict.Add(cmd.id, spriteNodeLst->count - 1);
