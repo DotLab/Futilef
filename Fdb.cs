@@ -17,10 +17,16 @@ namespace Futilef {
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
 
-			Log("Algo Test"); Algo.Test();
-			Log("Lst Test"); Lst.Test();
-			Log("PtrLst Test"); PtrLst.Test();
-			Log("Pool Test"); Pool.Test();
+			var sw = new System.Diagnostics.Stopwatch();
+			sw.Reset(); sw.Start();
+			Algo.Test();
+			Log("Algo Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Lst.Test();
+			Log("Lst Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			PtrLst.Test();
+			Log("PtrLst Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Pool.Test();
+			Log("Pool Test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {

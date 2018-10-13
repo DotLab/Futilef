@@ -99,17 +99,18 @@ namespace Futilef {
 			return self->arr + (self->count -= 1) * self->size;
 		}
 
-		public static void RemoveAt(Lst *self, int idx) {
+		public static void RemoveAt(Lst *self, long pos) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
-			Should.InRange("idx", idx, 0, self->count - 1);
+			Should.InRange("pos", pos, 0, (self->count - 1) * self->size);
+			Should.Equal("pos % self->size", pos % self->size, 0);
 			int oldCount = self->count;
 			#endif
 			int size = self->size;
-			var dst = self->arr + idx * size;
-			var src = self->arr + (idx + 1) * size;
-			for (int i = 0, len = ((self->count -= 1) - idx) * size; i < len; i += 1) *dst++ = *src++;
+			var dst = self->arr + pos;
+			var src = self->arr + pos + size;
+			for (long i = 0, len = (self->count -= 1) * size - pos; i < len; i += 1) *dst++ = *src++;
 			#if FDB
 			Should.Equal("self->count", self->count, oldCount - 1);
 			#endif
@@ -121,15 +122,6 @@ namespace Futilef {
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 			self->count = 0;
-		}
-
-		public static void *Get(Lst *self, int idx) {
-			#if FDB
-			Should.NotNull("self", self);
-			Should.TypeEqual("self", self->type, Type);
-			Should.InRange("idx", idx, 0, self->count - 1);
-			#endif
-			return self->arr + idx * self->size;
 		}
 
 		public static void *Last(Lst *self) {
@@ -186,7 +178,7 @@ namespace Futilef {
 				Push(lst, (byte *)&arr[i]);
 			}
 			for (int i = 0; i < len; i += 1) {
-				Should.Equal("*(int *)Get(lst, i)", *(int *)Get(lst, i), arr[i]);
+				Should.Equal("*(int *)(lst->arr + i)", *(int *)(lst->arr + i * lst->size), arr[i]);
 			}
 		}
 
@@ -216,10 +208,10 @@ namespace Futilef {
 			for (int i = 0; i < len >> 1; i += 1) {
 				int idx = Fdb.Random(0, arr.Count);
 				arr.RemoveAt(idx);
-				RemoveAt(lst, idx);
+				RemoveAt(lst, idx * lst->size);
 			}
 			for (int i = 0; i < arr.Count; i += 1) {
-				Should.Equal("*(int *)Get(lst, i)", *(int *)Get(lst, i), arr[i]);
+				Should.Equal("*(int *)(lst->arr + i)", *(int *)(lst->arr + i * lst->size), arr[i]);
 			}
 		}
 
@@ -247,7 +239,7 @@ namespace Futilef {
 			var ptrlst = stackalloc PtrLst[1]; PtrLst.Init(ptrlst, lst->count);
 			FillPtrLst(lst, ptrlst);
 			for (int i = 0; i < len; i += 1) {
-				Should.Equal("Get(lst, i)", Get(lst, i), ptrlst->arr[i]);
+				Should.Equal("(lst->arr + i)", (lst->arr + i * lst->size), ptrlst->arr[i]);
 			}
 		}
 		#endif

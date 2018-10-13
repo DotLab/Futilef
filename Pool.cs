@@ -9,8 +9,8 @@
 		#endif
 		public int count, len;
 		public byte *arr;
-		public byte *free;
 		public byte *first;
+		public byte *free;
 
 		int size, elmtSize;
 
@@ -29,25 +29,47 @@
 			self->type = Type;
 			#endif
 			int elmtSize = self->elmtSize = size;
-			size += TwoPtrSize;
-			self->size = size;
+			self->size = (size += TwoPtrSize);
+
 			self->count = 0;
 			self->len = InitLen;
-			self->arr = (byte *)Mem.Alloc(InitLen * size);
+			var arr = self->arr = (byte *)Mem.Alloc(InitLen * size);
 
 			self->first = null;
-			self->free = self->arr;
-			for (int i = 0, len = InitLen; i < len; i += 1) {
-				var prePtr = (byte **)(self->arr + i * size + elmtSize);
-				*prePtr = self->arr + (i - 1) * size;  // pre
-				*(prePtr + 1) = (byte *)(prePtr + 2);  // next
-			}
-			*(byte **)(self->arr + elmtSize) = null;  // pre of the first
-			*(byte **)(self->arr + InitLen * size - PtrSize) = null;  // next of the last
+			self->free = Link(arr, size, elmtSize, 0, InitLen * size);
 			#if FDB
 			Verify(self);
 			#endif
 			return self;
+		}
+
+		public static void Clear(Pool *self) {
+			self->count = 0;
+			self->first = null;
+			int size = self->size;
+			self->free = Link(self->arr, size, self->elmtSize, 0, self->len * size);
+		}
+
+		static byte *Link(byte *arr, int size, int elmtSize, int start, int end) {  // link node at start ... (end - 1)
+			for (int i = start; i < end; i += size) {
+				var prePtr = (byte **)(arr + i + elmtSize);
+				*prePtr = arr + i - size;
+				*(prePtr + 1) = (byte *)(prePtr + 2);
+			}
+			*(byte **)(arr + start + elmtSize) = null;  // pre of start
+			*(byte **)(arr + end - PtrSize) = null;  // next of last
+			return arr + start;
+		}
+
+		static byte *LinkRev(byte *arr, int size, int elmtSize, int last, int start) {  // link node at last ... start
+			for (int i = last; i >= start; i -= size) {
+				var prePtr = (byte **)(arr + i + elmtSize);
+				*prePtr = (byte *)(prePtr + 2);
+				*(prePtr + 1) = arr + i - size;
+			}
+			*(byte **)(arr + last + elmtSize) = null;  // pre of last
+			*(byte **)(arr + start + elmtSize + PtrSize) = null;  // next of start
+			return arr + last;
 		}
 
 		public static void Decon(Pool *self) {
@@ -61,7 +83,49 @@
 			Mem.Free(self->arr); self->arr = self->free = self->first = null;
 		}
 
-		public static int Push(Pool *self, byte *src) {
+		public static bool Push(Pool *self) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			Verify(self);
+			#endif
+			int elmtSize = self->elmtSize;
+
+			if (self->free == null) {
+				var size = self->size;
+				// expand
+				int len = self->len <<= 1;
+				var arr = self->arr = (byte *)Mem.Realloc(self->arr, self->len * size);
+				// link used
+				self->first = LinkRev(arr, size, elmtSize, self->count * size, 0);
+				// link free
+				self->free = Link(arr, size, elmtSize, (self->count += 1) * size, len * size);
+				#if FDB
+				Verify(self);
+				#endif
+				return true;
+			} else {
+				// remove node from free
+				var prePtr = self->free + elmtSize;
+				var pre = *(byte **)prePtr; 
+				var next = *(byte **)(prePtr + PtrSize);
+				if (pre != null) *(byte **)(pre + elmtSize + PtrSize) = next;  // pre->next = next
+				if (next != null) *(byte **)(next + elmtSize) = pre;  // next->pre = pre
+				// insert node to used
+				if (self->first != null) *(byte **)(self->first + elmtSize) = self->free;  // first->pre = free
+				*(byte **)prePtr = null;  // node->pre = null
+				*(byte **)(prePtr + PtrSize) = self->first;  // node->next = first
+				self->first = self->free;  // first = free
+				self->free = next;  // free = next
+				self->count += 1;
+				#if FDB
+				Verify(self);
+				#endif
+				return false;
+			}
+		}
+
+		public static bool Push(Pool *self, byte *src) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.NotNull("src", src);
@@ -69,36 +133,35 @@
 			Verify(self);
 			#endif
 			int elmtSize = self->elmtSize;
+
 			if (self->free == null) {
 				var size = self->size;
-				self->len <<= 1;
-				self->arr = (byte *)Mem.Realloc(self->arr, self->len * size);
-				var dst = self->arr + self->count * size;
-				for (int i = 0; i < elmtSize; i += 1) *dst++ = *src++;  // copy
-
-				self->count += 1;
-				for (int i = 0, len = self->len; i < len; i += 1) {
-					var prePtr = (byte **)(self->arr + i * size + elmtSize);
-					*prePtr = self->arr + (i - 1) * size;  // pre
-					*(prePtr + 1) = (byte *)(prePtr + 2);  // next
-				}
-				self->first = self->arr;
-				self->free = self->arr + self->count * size;
-				*(byte **)(self->arr + elmtSize) = null;  // pre of the first of used list
-				*(byte **)(self->arr + self->count * size + elmtSize) = null;  // pre of the first of free list
-				*(byte **)(self->arr + self->count * size - PtrSize) = null;  // next of the last of used list
-				*(byte **)(self->arr + self->len * size - PtrSize) = null;  // next of the last of free list
+				// expand
+				int len = self->len <<= 1;
+				var arr = self->arr = (byte *)Mem.Realloc(self->arr, self->len * size);
+				// copy
+				int oldCount = self->count;
+				var dst = arr + oldCount * size;
+				for (int i = 0; i < elmtSize; i += 1) *dst++ = *src++;
+				// link used
+				self->first = LinkRev(arr, size, elmtSize, oldCount * size, 0);
+				// link free
+				int count = self->count += 1;
+				self->free = Link(arr, size, elmtSize, count * size, len * size);
 				#if FDB
 				Verify(self);
 				#endif
-				return (self->count - 1) * size;
+				return true;
 			} else {
+				// copy
 				var dst = self->free;
 				for (int i = 0; i < elmtSize; i += 1) *dst++ = *src++;
+				// remove node from free
 				var pre = *(byte **)dst; 
 				var next = *(byte **)(dst + PtrSize);
 				if (pre != null) *(byte **)(pre + elmtSize + PtrSize) = next;  // pre->next = next
 				if (next != null) *(byte **)(next + elmtSize) = pre;  // next->pre = pre
+				// insert node to used
 				if (self->first != null) *(byte **)(self->first + elmtSize) = self->free;  // first->pre = free
 				*(byte **)dst = null;  // node->pre = null
 				*(byte **)(dst + PtrSize) = self->first;  // node->next = first
@@ -108,37 +171,57 @@
 				#if FDB
 				Verify(self);
 				#endif
-				return (int)(self->first - self->arr);
+				return false;
 			}
 		}
 
-		public static void RemoveAt(Pool *self, int pos) {
+		public static int Idx(Pool *self, byte *ptr) {
+			return (int)(ptr - self->arr) / self->size;
+		}
+
+		public static void RemoveAt(Pool *self, long pos) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
-			Should.InRange("pos", pos, 0, self->len * self->size - 1);
+			Should.InRange("pos", pos, 0, (self->len - 1) * self->size);
 			Should.Equal("pos % self->size", pos % self->size, 0);
-			byte *p;
-			for (p = self->first; p != null && p != self->arr + pos; p = *(byte **)(p + self->elmtSize + PtrSize));
-			Should.Equal("p", p, self->arr + pos);
+			var ptr = self->first;
+			while (ptr != null && ptr != self->arr + pos) ptr = *(byte **)(ptr + self->elmtSize + PtrSize);
+			Should.Equal("p", ptr, self->arr + pos);
 			Verify(self);
 			#endif
 			int elmtSize = self->elmtSize;
-			*(self->arr + pos) = 0;
-			var prePtr = (byte **)(self->arr + pos + self->elmtSize);
+
+			var node = self->arr + pos;
+			var prePtr = (byte **)(node + elmtSize);
 			var pre = *prePtr;
 			var next = *(prePtr + 1);
-			*prePtr = null;
-			*(prePtr + 1) = self->free;
-			if (self->free != null) *(byte **)(self->free + elmtSize) = self->arr + pos;
-			if (self->first == self->arr + pos) self->first = next;
+			// remove from used
 			if (pre != null) *(byte **)(pre + elmtSize + PtrSize) = next;  // pre->next = next
 			if (next != null) *(byte **)(next + elmtSize) = pre;  // next->pre = pre
-			self->free = self->arr + pos;
+			if (self->first == node) self->first = next;
+			// insert to free
+			if (self->free != null) *(byte **)(self->free + elmtSize) = node;  // free->next = node
+			*prePtr = null;  // node->pre = null
+			*(prePtr + 1) = self->free;  // node->next = free
+			self->free = node;  // free = node
 			self->count -= 1;
 			#if FDB
 			Verify(self);
 			#endif
+		}
+
+		public static void FillPtrLst(Pool *self, PtrLst *ptrLst) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("ptrLst", ptrLst);
+			Should.GreaterThanOrEqualTo("ptrLst->len", ptrLst->len, self->count);
+			Should.TypeEqual("self", self->type, Type);
+			Verify(self);
+			#endif
+			var ptrArr = ptrLst->arr;
+			int nextOff = self->elmtSize + PtrSize;
+			for (var p = self->first; p != null; p = *(byte **)(p + nextOff)) *ptrArr++ = p;
 		}
 
 		#if FDB 
@@ -157,19 +240,26 @@
 			Push(pool, (byte *)&i);
 			RemoveAt(pool, 0 * pool->size);
 			RemoveAt(pool, 1 * pool->size);
+			RemoveAt(pool, 4 * pool->size);
 			RemoveAt(pool, 2 * pool->size);
 			RemoveAt(pool, 3 * pool->size);
-			RemoveAt(pool, 4 * pool->size);
 		}
 
 		static void RandomPushRemoveTest() {
 			var pool = stackalloc Pool[1]; Init(pool, sizeof(int));
 			uint i = 0xa4a4a4a4;
-			var list = new System.Collections.Generic.List<int>();
-			for (int j = 0; j < 1000; j += 1) {
-				list.Add(Push(pool, (byte *)&i));
-				list.Add(Push(pool, (byte *)&i));
-				RemoveAt(pool, list[Fdb.Random(0, list.Count - 1)]);
+			var list = new System.Collections.Generic.List<long>();
+			for (int j = 0; j < 200; j += 1) {
+				if (pool->count <= 0 || Fdb.Random(0, 2) == 0) {
+					Push(pool, (byte *)&i);
+					list.Add(pool->first - pool->arr);
+					Push(pool, (byte *)&i);
+					list.Add(pool->first - pool->arr);
+				} else {
+					var idx = Fdb.Random(0, list.Count);
+					RemoveAt(pool, list[idx]);
+					list.RemoveAt(idx);
+				}
 			}
 		}
 

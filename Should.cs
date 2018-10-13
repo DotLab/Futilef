@@ -28,6 +28,7 @@ namespace Futilef {
 		public static void GreaterThanOrEqualTo(string o, int v1, int v2)     { if (v1 < v2) Fdb.AssertionFail(GreaterThanOrEqualToFmt, o, v1, v2); }
 		public static void GreaterThanOrEqualTo(string o, float v1, float v2) { if (v1 < v2) Fdb.AssertionFail(GreaterThanOrEqualToFmt, o, v1, v2); }
 		public static void InRange(string o, int v, int v1, int v2)           { if (v < v1 || v > v2) Fdb.AssertionFail(InRangeFmt, o, v, v1, v2); }
+		public static void InRange(string o, long v, long v1, long v2)        { if (v < v1 || v > v2) Fdb.AssertionFail(InRangeFmt, o, v, v1, v2); }
 
 		public static void Equal(string o, int v1, int v2)     { if (v1 != v2) Fdb.AssertionFail(EqualFmt, o, v1, v2); }
 		public static void Equal(string o, long v1, long v2)   { if (v1 != v2) Fdb.AssertionFail(EqualFmt, o, v1, v2); }
