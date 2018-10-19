@@ -13,6 +13,7 @@ namespace Futilef {
 			if (textureDict.ContainsKey(id)) return textureDict[id];
 
 			var texture = new Texture2D(0, 0);
+//			texture.wrapMode = TextureWrapMode.Clamp;
 			Debug.Log("Load " + id + "i");
 			texture.LoadImage(Resources.Load<TextAsset>(id + "i").bytes);
 			textureDict.Add(id, texture);

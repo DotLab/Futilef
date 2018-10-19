@@ -64,20 +64,20 @@
 			}
 
 			var arr = self->arr; int len = self->len; uint prim = self->prim;
-			uint h1 = Algo.Hash32(hash), h2 = prim - (hash % prim);
+			uint h2 = prim - (hash % prim);
 			
-			var hashPtr = arr + (h1 % len) * Size;
+			var hashPtr = arr + (hash % len) * Size;
 			var keyCur = *(void **)(hashPtr + HashSize);
 
 //			var str = Fdb.Dump(arr, self->len * Size, Size);
 
-			int i = 0;
+			uint i = h2;
 			while (keyCur != null && keyCur != (void *)DeletedKey) {
 				if (*(uint *)hashPtr == hash && eq(keyCur, key)) {  // found key
 					*(void **)(hashPtr + HashKeySize) = val;
 					return;
 				}
-				hashPtr = arr + ((h1 + (++i) * h2) % len) * Size;
+				hashPtr = arr + ((hash + i) % len) * Size; i += h2;
 				keyCur = *(void **)(hashPtr + HashSize);
 			}
 
@@ -117,16 +117,16 @@
 				var hashPtr = arr + j;
 				var keyCur = *(void **)(hashPtr + HashSize);
 				if (keyCur != null && keyCur != (void *)DeletedKey) {  // reinsert
-					uint hash = *(uint *)hashPtr, h1 = Algo.Hash32(hash), h2 = prim - (hash % prim);
+					uint hash = *(uint *)hashPtr, h2 = prim - (hash % prim);
 
-					var newHashPtr = newArr + (h1 % newLen) * Size;
+					var newHashPtr = newArr + (hash % newLen) * Size;
 					var newKeyCur = *(void **)(newHashPtr + HashSize);
 
 //					var str2 = Fdb.Dump(newArr, newLen * Size, Size);
 
-					int i = 0;
+					uint i = h2;
 					while (newKeyCur != null) {  // do not check hash or key eq
-						newHashPtr = newArr + ((h1 + (++i) * h2) % newLen) * Size;
+						newHashPtr = newArr + ((hash + i) % newLen) * Size; i += h2;
 						newKeyCur = *(void **)(newHashPtr + HashSize);
 					}
 
@@ -150,17 +150,17 @@
 			Should.NotNull("eq", eq);
 			#endif
 			var arr = self->arr; int len = self->len; uint prim = self->prim;
-			uint h1 = Algo.Hash32(hash), h2 = prim - (hash % prim);
+			uint h2 = prim - (hash % prim);
 
-			var hashPtr = arr + (h1 % len) * Size;
+			var hashPtr = arr + (hash % len) * Size;
 			var keyCur = *(void **)(hashPtr + HashSize);
 
-			int i = 0;
+			uint i = h2;
 			while (keyCur != null) {
 				if (*(uint *)hashPtr == hash && eq(keyCur, key)) {  // found key
 					return *(void **)(hashPtr + HashKeySize);
 				}
-				hashPtr = arr + ((h1 + (++i) * h2) % len) * Size;
+				hashPtr = arr + ((hash + i) % len) * Size; i += h2;
 				keyCur = *(void **)(hashPtr + HashSize);
 			}
 
@@ -175,20 +175,21 @@
 			Should.NotNull("eq", eq);
 			#endif
 			var arr = self->arr; int len = self->len; uint prim = self->prim;
-			uint h1 = Algo.Hash32(hash), h2 = prim - (hash % prim);
+			uint h2 = prim - (hash % prim);
 
-			var hashPtr = arr + (h1 % len) * Size;
+			var hashPtr = arr + (hash % len) * Size;
 			var keyCur = *(void **)(hashPtr + HashSize);
 
-			int i = 0;
+			uint i = h2;
 			while (keyCur != null) {
 				if (*(uint *)hashPtr == hash && eq(keyCur, key)) {  // found key
 					*(uint *)hashPtr = EmptyHash;
 					*(void **)(hashPtr + HashSize) = (void *)DeletedKey;
 					*(void **)(hashPtr + HashKeySize) = null;
+					self->count -= 1;
 					return;
 				}
-				hashPtr = arr + ((h1 + (++i) * h2) % len) * Size;
+				hashPtr = arr + ((hash + i) % len) * Size; i += h2;
 				keyCur = *(void **)(hashPtr + HashSize);
 			}
 			#if FDB
@@ -258,6 +259,61 @@
 					}
 				}
 			}Fdb.Log("{0}", dict->len);
+		}
+
+		public static void Benchmark() {
+			Algo.Eq eq = (a, b) => (uint)a == (uint)b;
+			var sw = new System.Diagnostics.Stopwatch();
+			var refDict = new System.Collections.Generic.Dictionary<uint, uint>();
+			sw.Stop();
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				refDict.Add(i, i);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
+
+			var dict = stackalloc Dict[1]; Dict.Init(dict);
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				Dict.Set(dict, i, (void *)i, (void *)i, eq);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
+
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				refDict.Remove(i);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
+
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				Dict.Remove(dict, i, (void *)i, eq);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
+
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				refDict.Add(i, i);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
+
+			sw.Reset();
+			sw.Start();
+			for (uint i = 2; i < 100000; i += 1) {
+				Dict.Set(dict, i, (void *)i, (void *)i, eq);
+			}
+			sw.Stop();
+			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
 		}
 		#endif
 	}

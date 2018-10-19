@@ -96,12 +96,12 @@ namespace Futilef {
 		public BmFont(byte[] buf) {
 			int i = 0;
 
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'B');
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'M');
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'F');
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 3);
-
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 1);
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'B');
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'M');
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'F');
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 3);
+//
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 1);
 			var length = Bit.ReadInt32(buf, ref i);
 
 			// fontSize		2	int		0
@@ -130,11 +130,11 @@ namespace Futilef {
 			Bit.ReadUInt8(buf, ref i);
 			// fontName		n+1	string	14	null terminated string with length n
 			fontName = Bit.ReadString(buf, ref i, length - 15);
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), '\0');
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), '\0');
 
 			Debug.Log(fontName);
 
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 2);
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 2);
 			length = Bit.ReadInt32(buf, ref i);
 
 			// lineHeight	2	uint	0
@@ -158,15 +158,15 @@ namespace Futilef {
 			// blueChnl		1	uint	14
 			Bit.ReadUInt8(buf, ref i);
 
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 3);
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 3);
 			length = Bit.ReadInt32(buf, ref i);
 			pageNames = Bit.ReadString(buf, ref i, length).Split(new [] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
-			Should.Equal("pageNames.Length", pageNames.Length, pages);
+//			Should.Equal("pageNames.Length", pageNames.Length, pages);
 			foreach (var n in pageNames) {
 				Debug.Log(n);
 			}
 
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 4);
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 4);
 			length = Bit.ReadInt32(buf, ref i);
 			for (int j = 0; j < length; j += 20) {
 //				var glyph = new BmGlyph(stream);
@@ -176,7 +176,7 @@ namespace Futilef {
 
 //			if (IsEnd()) return;
 
-			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 5);
+//			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 5);
 			length = Bit.ReadInt32(buf, ref i);
 			for (int j = 0; j < length; j += 10) {
 				UInt64 first = Bit.ReadUInt32(buf, ref i);
