@@ -93,11 +93,13 @@ namespace Futilef {
 		public fixed float size[2], pivot[2];
 		public fixed float quad[4], uv[4], border[4];
 
-		public static void FillQuad(TpSpriteMeta *self, float *verts, float *uvs, float *mat) {
+		// v0 - v1
+		// |  \ |
+		// v3 - v2
+		public static void FillQuad(TpSpriteMeta *self, float *mat, float *verts) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.NotNull("verts", verts);
-			Should.NotNull("uvs", uvs);
 			Should.NotNull("mat", mat);
 			Should.TypeEqual("self", self->type, Type);
 			Should.NotNull("self->atlas", self->atlas);
@@ -112,6 +114,16 @@ namespace Futilef {
 			Vec2.TransformMat2D(verts + 4, mat, -pivotX + quadX + quadW, pivotY - quadY - quadH);
 			Vec2.TransformMat2D(verts + 6, mat, -pivotX + quadX,         pivotY - quadY - quadH);
 
+		}
+
+		public static void FillUvs(TpSpriteMeta *self, float *uvs) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.NotNull("uvs", uvs);
+			Should.TypeEqual("self", self->type, Type);
+			Should.NotNull("self->atlas", self->atlas);
+			Should.TypeEqual("self->atlas->type", self->atlas->type, TpAtlasMeta.Type);
+			#endif
 			float *size = self->atlas->size;
 			float invSizeX = 1 / size[0], invSizeY = 1 / size[1];
 			float *uv = self->uv;

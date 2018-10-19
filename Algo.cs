@@ -1,6 +1,7 @@
 ﻿namespace Futilef {
 	public static unsafe class Algo {
 		public delegate int Cmp(void *a, void *b);
+
 		public static void Qsort(void **arr, int len, Cmp cmp) {
 			Should.NotNull("arr", arr);
 			Should.GreaterThan("len", len, 0);
@@ -22,6 +23,13 @@
 				Qsort(arr, low, i - 1, cmp); 
 				Qsort(arr, i + 1, high, cmp);
 			}
+		}
+
+		public delegate bool Eq(void *a, void *b);
+		public static uint Hash32(uint x) {
+			x = ((x >> 16) ^ x) * 0x45d9f3b;
+			x = ((x >> 16) ^ x) * 0x45d9f3b;
+			return (x >> 16) ^ x;
 		}
 
 		#if FDB

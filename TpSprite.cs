@@ -1,7 +1,7 @@
 ﻿namespace Futilef {
-	public unsafe struct TpSpriteNode {
+	public unsafe struct TpSprite {
 		public static int DepthCmp(void *a, void *b) {
-			return ((TpSpriteNode *)a)->pos[2] - ((TpSpriteNode *)b)->pos[2] < 0 ? 1 : -1;
+			return ((TpSprite *)a)->pos[2] - ((TpSprite *)b)->pos[2] < 0 ? 1 : -1;
 		}
 
 		#if FDB
@@ -23,14 +23,14 @@
 
 		TpSpriteMeta *spriteMeta;
 
-		public static TpSpriteNode *New(TpSpriteMeta *spriteMeta) {
+		public static TpSprite *New(TpSpriteMeta *spriteMeta) {
 			#if FDB
 			Should.NotNull("spriteMeta", spriteMeta);
 			#endif
-			return Init((TpSpriteNode *)Mem.Alloc(sizeof(TpSpriteNode)), spriteMeta);
+			return Init((TpSprite *)Mem.Alloc(sizeof(TpSprite)), spriteMeta);
 		}
 
-		public static TpSpriteNode *Init(TpSpriteNode *self, TpSpriteMeta *spriteMeta) {
+		public static TpSprite *Init(TpSprite *self, TpSpriteMeta *spriteMeta) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.NotNull("spriteMeta", spriteMeta);
@@ -45,10 +45,12 @@
 			Vec4.Set(self->color, 1, 1, 1, 0);
 			self->spriteMeta = spriteMeta;
 
+			TpSpriteMeta.FillUvs(spriteMeta, self->uvs);
+
 			return self;
 		}
 
-		public static void Decon(TpSpriteNode *self) {
+		public static void Decon(TpSprite *self) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -56,7 +58,7 @@
 			#endif
 		}
 
-		public static void SetInteractable(TpSpriteNode *self, bool val) {
+		public static void SetInteractable(TpSprite *self, bool val) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -64,7 +66,7 @@
 			self->interactable = val;
 		}
 
-		public static void SetPosition(TpSpriteNode *self, float x, float y, float z) {
+		public static void SetPosition(TpSprite *self, float x, float y, float z) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -73,7 +75,7 @@
 			self->shouldRebuild = true;
 		}
 
-		public static void SetRotation(TpSpriteNode *self, float rotation) {
+		public static void SetRotation(TpSprite *self, float rotation) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -82,7 +84,7 @@
 			self->shouldRebuild = true;
 		}
 
-		public static void SetScale(TpSpriteNode *self, float x, float y) {
+		public static void SetScale(TpSprite *self, float x, float y) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -91,7 +93,7 @@
 			self->shouldRebuild = true;
 		}
 
-		public static void SetAlpha(TpSpriteNode *self, float a) {
+		public static void SetAlpha(TpSprite *self, float a) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -99,7 +101,7 @@
 			self->color[3] = a;
 		}
 
-		public static void SetTint(TpSpriteNode *self, float r, float g, float b) {
+		public static void SetTint(TpSprite *self, float r, float g, float b) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -107,14 +109,14 @@
 			Vec3.Set(self->color, r, g, b);
 		}
 
-		public static void Touch(TpSpriteNode *self) {
+		public static void Touch(TpSprite *self) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 		}
 
-		public static void Draw(TpSpriteNode *self) {
+		public static void Draw(TpSprite *self) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -127,13 +129,10 @@
 			float *verts = self->verts;
 			float *uvs = self->uvs;
 
-			// v0 - v1
-			// |  \ |
-			// v3 - v2
 			if (self->shouldRebuild) {
 				float *mat = stackalloc float[6];
 				Mat2D.FromScalingRotationTranslation(mat, self->pos, self->scl, self->rot);
-				TpSpriteMeta.FillQuad(self->spriteMeta, self->verts, self->uvs, mat);
+				TpSpriteMeta.FillQuad(self->spriteMeta, mat, self->verts);
 			}
 
 			var bVerts = bat.verts; var bUvs = bat.uvs;

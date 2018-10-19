@@ -13,6 +13,7 @@ namespace Futilef {
 
 		const string EqualFmt =                  "{0} ({1}) should equal {2}";
 		const string TypeCheckFmt =              "{0} : {1} ({2}) should be an instance of {3}";
+		const string NullFmt =                   "{0} ({1}) should be null";
 		const string NotNullFmt =                "{0} ({1}) should not be null";
 		const string NotNullOrEmptyFmt =         "{0} \"{1}\" should not be null or empty";
 
@@ -36,6 +37,7 @@ namespace Futilef {
 		public static void Equal(string o, float v1, float v2) { if (v1 != v2) Fdb.AssertionFail(EqualFmt, o, v1, v2); }
 
 		public static void TypeEqual(string o, int t1, int t2) { if (t1 != t2) Fdb.AssertionFail(TypeCheckFmt, o, Fdb.GetName(t1), t1, Fdb.GetName(t2)); }
+		public static void Null(string o, void *p) { if (p != null) Fdb.AssertionFail(NullFmt, o, new Ptr(p)); }
 		public static void NotNull(string o, void *p) { if (p == null) Fdb.AssertionFail(NotNullFmt, o, new Ptr(p)); }
 		public static void NotNull(string o, object p) { if (p == null) Fdb.AssertionFail(NotNullFmt, o, p); }
 

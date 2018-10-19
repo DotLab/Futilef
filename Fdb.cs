@@ -7,6 +7,7 @@ namespace Futilef {
 		class FdbAssertionFail : System.Exception { public FdbAssertionFail(string msg) : base(msg) {} }
 
 		public const int NullType = -1;
+		const int TypeOffset = 100;
 
 		static readonly List<string> typeList = new List<string>();
 
@@ -26,17 +27,23 @@ namespace Futilef {
 			PtrLst.Test();
 			Log("PtrLst Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Pool.Test();
-			Log("Pool Test: {0:N0}", sw.ElapsedTicks);
+			Log("Pool Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Dict.Test();
+			Log("Dict Test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {
+			int type = typeList.Count + TypeOffset;
 			typeList.Add(name);
-			return typeList.Count - 1;
+			return type;
 		}
 
 		public static string GetName(int type) {
 			if (type == NullType) return "null";
-			if (type < typeList.Count) return typeList[type];
+			type -= TypeOffset;
+			if (0 <= type && type < typeList.Count) { 
+				return typeList[type];
+			}
 			return "?";
 		}
 
@@ -56,7 +63,7 @@ namespace Futilef {
 			throw new FdbAssertionFail(string.Format(fmt, args));
 		}
 
-		public static void Dump(byte *ptr, int size, int ncol = 16) {
+		public static string Dump(byte *ptr, int size, int ncol = 16) {
 			var sb = new System.Text.StringBuilder();
 			sb.AppendFormat("{0} bytes at 0x{1:X}\n", size, (long)ptr);
 			for (int i = 0; i < size; i += 1) {
@@ -65,7 +72,9 @@ namespace Futilef {
 				if ((i + 1) % 4 == 0) sb.Append(" ");
 				if ((i + 1) % ncol == 0) sb.AppendLine();
 			}
-			Log(sb.ToString());
+			string str = sb.ToString();
+			Log(str);
+			return str;
 		}
 	}
 	#endif

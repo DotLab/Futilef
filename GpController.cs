@@ -21,12 +21,12 @@ namespace Futilef {
 		#region ESJOB
 		public static class ImgAttr { public const int Interactable = 0, Position = 1, Rotation = 2, Scale = 3, Alpha = 4, Tint = 5, ImgId = 6, End = 7; }
 
-		class EsJob { public float time, duration; public int esType; public TpSpriteNode *node; public virtual void Apply(float step) {} public virtual void Finish() {} }
-		class EsSetPositionJob : EsJob { public float x, y, z, dx, dy, dz; public override void Apply(float step) { TpSpriteNode.SetPosition(node, x + dx * step, y + dy * step, z + dz * step); } public override void Finish() { TpSpriteNode.SetPosition(node, x + dx, y + dy, z + dz); } }
-		class EsSetRotationJob : EsJob { public float r, dr;               public override void Apply(float step) { TpSpriteNode.SetRotation(node, r + dr * step); }                               public override void Finish() { TpSpriteNode.SetRotation(node, r + dr); } }
-		class EsSetScaleJob    : EsJob { public float x, dx, y, dy;        public override void Apply(float step) { TpSpriteNode.SetScale(node, x + dx * step, y + dy * step); }                   public override void Finish() { TpSpriteNode.SetScale(node, x + dx, y + dy); } }
-		class EsSetAlphaJob    : EsJob { public float a, da;               public override void Apply(float step) { TpSpriteNode.SetAlpha(node, a + da * step); }                                  public override void Finish() { TpSpriteNode.SetAlpha(node, a + da); } }
-		class EsSetTintJob     : EsJob { public float r, g, b, dr, dg, db; public override void Apply(float step) { TpSpriteNode.SetTint(node, r + dr * step, g + dg * step, b + db * step); }     public override void Finish() { TpSpriteNode.SetTint(node, r + dr, g + dg, b + db); } }
+		class EsJob { public float time, duration; public int esType; public TpSprite *node; public virtual void Apply(float step) {} public virtual void Finish() {} }
+		class EsSetPositionJob : EsJob { public float x, y, z, dx, dy, dz; public override void Apply(float step) { TpSprite.SetPosition(node, x + dx * step, y + dy * step, z + dz * step); } public override void Finish() { TpSprite.SetPosition(node, x + dx, y + dy, z + dz); } }
+		class EsSetRotationJob : EsJob { public float r, dr;               public override void Apply(float step) { TpSprite.SetRotation(node, r + dr * step); }                               public override void Finish() { TpSprite.SetRotation(node, r + dr); } }
+		class EsSetScaleJob    : EsJob { public float x, dx, y, dy;        public override void Apply(float step) { TpSprite.SetScale(node, x + dx * step, y + dy * step); }                   public override void Finish() { TpSprite.SetScale(node, x + dx, y + dy); } }
+		class EsSetAlphaJob    : EsJob { public float a, da;               public override void Apply(float step) { TpSprite.SetAlpha(node, a + da * step); }                                  public override void Finish() { TpSprite.SetAlpha(node, a + da); } }
+		class EsSetTintJob     : EsJob { public float r, g, b, dr, dg, db; public override void Apply(float step) { TpSprite.SetTint(node, r + dr * step, g + dg * step, b + db * step); }     public override void Finish() { TpSprite.SetTint(node, r + dr, g + dg, b + db); } }
 		#endregion
 
 		readonly Queue<Cmd> cmdQueue = new Queue<Cmd>();
@@ -36,8 +36,8 @@ namespace Futilef {
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
-		Pool *spriteNodePool = Pool.New(sizeof(TpSpriteNode));
-		PtrLst *spriteNodePtrLst = PtrLst.New();
+		Pool *spritePool = Pool.New(sizeof(TpSprite));
+		PtrLst *spritePtrLst = PtrLst.New();
 
 		bool needDepthSort;
 
@@ -45,8 +45,8 @@ namespace Futilef {
 			cmdQueue.Clear();
 			esJobList.Clear();
 			nodePosDict.Clear();
-			Pool.Decon(spriteNodePool);
-			PtrLst.Decon(spriteNodePtrLst);
+			Pool.Decon(spritePool);
+			PtrLst.Decon(spritePtrLst);
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
@@ -88,13 +88,13 @@ namespace Futilef {
 			// draw
 			if (needDepthSort) { 
 				needDepthSort = false; 
-				PtrLst.Qsort(spriteNodePtrLst, TpSpriteNode.DepthCmp); 
+				PtrLst.Qsort(spritePtrLst, TpSprite.DepthCmp); 
 			}
 
 			DrawCtx.Start();
-			var arr = (TpSpriteNode **)spriteNodePtrLst->arr;
-			for (int i = 0, end = spriteNodePtrLst->count; i < end; i += 1) {
-				TpSpriteNode.Draw(arr[i]);
+			var arr = (TpSprite **)spritePtrLst->arr;
+			for (int i = 0, end = spritePtrLst->count; i < end; i += 1) {
+				TpSprite.Draw(arr[i]);
 			}
 			DrawCtx.Finish();
 		}
@@ -119,16 +119,16 @@ namespace Futilef {
 			Should.False("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
 			Should.True("Res.HasSpriteMeta(cmd.imgId)", Res.HasSpriteMeta(cmd.imgId));
 			#endif
-			var needRebuildPtrLst = Pool.Push(spriteNodePool);
-			var node = (TpSpriteNode *)spriteNodePool->first;
-			TpSpriteNode.Init(node, Res.GetSpriteMeta(cmd.imgId));
+			var needRebuildPtrLst = Pool.Push(spritePool);
+			var node = (TpSprite *)spritePool->first;
+			TpSprite.Init(node, Res.GetSpriteMeta(cmd.imgId));
 
-			PtrLst.Push(spriteNodePtrLst, node);
+			PtrLst.Push(spritePtrLst, node);
 			if (needRebuildPtrLst) {
-				Pool.FillPtrLst(spriteNodePool, spriteNodePtrLst);
+				Pool.FillPtrLst(spritePool, spritePtrLst);
 				needDepthSort = true;
 			}
-			nodePosDict.Add(cmd.id, (byte *)node - spriteNodePool->arr);
+			nodePosDict.Add(cmd.id, (byte *)node - spritePool->arr);
 		}
 
 		public void RmImg(int id) {
@@ -140,13 +140,13 @@ namespace Futilef {
 			#endif
 			if (cmd.id < 0) {
 				nodePosDict.Clear();
-				PtrLst.Clear(spriteNodePtrLst);
-				Pool.Clear(spriteNodePool);
+				PtrLst.Clear(spritePtrLst);
+				Pool.Clear(spritePool);
 			} else {
 				var pos = nodePosDict[cmd.id];
 				nodePosDict.Remove(cmd.id);
-				PtrLst.Remove(spriteNodePtrLst, spriteNodePool->arr + pos);
-				Pool.RemoveAt(spriteNodePool, pos);
+				PtrLst.Remove(spritePtrLst, spritePool->arr + pos);
+				Pool.RemoveAt(spritePool, pos);
 			}
 		}
 
@@ -158,15 +158,15 @@ namespace Futilef {
 			Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			#endif
-			var img = (TpSpriteNode *)(spriteNodePool->arr + nodePosDict[cmd.id]);
+			var img = (TpSprite *)(spritePool->arr + nodePosDict[cmd.id]);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
-				case ImgAttr.Interactable: TpSpriteNode.SetInteractable(img, (bool)args[0]); break;
-				case ImgAttr.Position:     TpSpriteNode.SetPosition(img, (float)args[0], (float)args[1], (float)args[2]); needDepthSort = true; break;
-				case ImgAttr.Rotation:     TpSpriteNode.SetRotation(img, (float)args[0]); break;
-				case ImgAttr.Scale:        TpSpriteNode.SetScale(img, (float)args[0], (float)args[1]); break;
-				case ImgAttr.Alpha:        TpSpriteNode.SetAlpha(img, (float)args[0]); break;
-				case ImgAttr.Tint:         TpSpriteNode.SetTint(img, (float)args[0], (float)args[1], (float)args[2]); break;
+				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
+				case ImgAttr.Position:     TpSprite.SetPosition(img, (float)args[0], (float)args[1], (float)args[2]); needDepthSort = true; break;
+				case ImgAttr.Rotation:     TpSprite.SetRotation(img, (float)args[0]); break;
+				case ImgAttr.Scale:        TpSprite.SetScale(img, (float)args[0], (float)args[1]); break;
+				case ImgAttr.Alpha:        TpSprite.SetAlpha(img, (float)args[0]); break;
+				case ImgAttr.Tint:         TpSprite.SetTint(img, (float)args[0], (float)args[1], (float)args[2]); break;
 				// case ImgAttrType.ImgId:        TpSpriteNode.SetColor(img, ()args[0], ()args[1], ()args[2]); break;
 			}
 		}
@@ -184,7 +184,7 @@ namespace Futilef {
 			float endTime = time + cmd.duration;
 			if (endTime > lastEsEndTime) lastEsEndTime = endTime;
 
-			var img = (TpSpriteNode *)(spriteNodePool->arr + nodePosDict[cmd.id]);
+			var img = (TpSprite *)(spritePool->arr + nodePosDict[cmd.id]);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
 				case ImgAttr.Position: esJobList.AddLast(new EsSetPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;
