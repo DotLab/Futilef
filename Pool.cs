@@ -18,7 +18,7 @@
 			#if FDB
 			Should.GreaterThan("size", size, 0);
 			#endif
-			return Init((Pool *)Mem.Alloc(sizeof(Pool)), size);
+			return Init((Pool *)Mem.Malloc(sizeof(Pool)), size);
 		}
 			
 		// free -> | elmt1... | next -|> elmt2... | next -|> null
@@ -33,7 +33,7 @@
 
 			self->count = 0;
 			self->len = InitLen;
-			var arr = self->arr = (byte *)Mem.Alloc(InitLen * size);
+			var arr = self->arr = (byte *)Mem.Malloc(InitLen * size);
 
 			self->first = null;
 			self->free = Link(arr, size, elmtSize, 0, InitLen * size);

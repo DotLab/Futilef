@@ -3,7 +3,7 @@
 namespace Futilef {
 	public unsafe static class Mat2D {
 		public static float *New(int n = 1) {
-			return (float *)Mem.Alloc(n * 6 * sizeof(float));
+			return (float *)Mem.Malloc(n * 6 * sizeof(float));
 		}
 
 		/**

@@ -27,7 +27,7 @@
 			#if FDB
 			Should.NotNull("spriteMeta", spriteMeta);
 			#endif
-			return Init((TpSprite *)Mem.Alloc(sizeof(TpSprite)), spriteMeta);
+			return Init((TpSprite *)Mem.Malloc(sizeof(TpSprite)), spriteMeta);
 		}
 
 		public static TpSprite *Init(TpSprite *self, TpSpriteMeta *spriteMeta) {

@@ -1,7 +1,7 @@
 ﻿namespace Futilef {
 	public unsafe static class Vec4 {
 		public static float *Create(int n = 1) {
-			return (float *)Mem.Alloc(n * 4 * sizeof(float));
+			return (float *)Mem.Malloc(n * 4 * sizeof(float));
 		}
 		
 		public static float *Copy(float *o, float *a) {

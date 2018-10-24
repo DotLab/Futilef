@@ -14,7 +14,7 @@ namespace Futilef {
 			#if FDB
 			Should.NotNullOrEmpty("str", str);
 			#endif
-			return Init((TpAtlasMeta *)Mem.Alloc(sizeof(TpAtlasMeta)), str);
+			return Init((TpAtlasMeta *)Mem.Malloc(sizeof(TpAtlasMeta)), str);
 		}
 
 		public static TpAtlasMeta *Init(TpAtlasMeta *self, string str) {
@@ -34,7 +34,7 @@ namespace Futilef {
 			self->size[0] = nums[i++];
 			self->size[1] = nums[i++];
 			self->spriteCount = nums[i++];
-			self->sprites = (TpSpriteMeta *)Mem.Alloc(self->spriteCount * sizeof(TpSpriteMeta));
+			self->sprites = (TpSpriteMeta *)Mem.Malloc(self->spriteCount * sizeof(TpSpriteMeta));
 			for (int j = 0, end = self->spriteCount; j < end; j += 1) {
 				var sprite = self->sprites + j;
 				#if FDB

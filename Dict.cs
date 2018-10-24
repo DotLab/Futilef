@@ -36,7 +36,7 @@
 			self->prim = Prims[lv];
 			self->limit = (int)(len * LoadFactor);
 
-			var arr = self->arr = (byte *)Mem.Alloc(len * Size);
+			var arr = self->arr = (byte *)Mem.Malloc(len * Size);
 			for (int i = 0, end = len * Size; i < end; i += Size) {
 				var hashPtr = arr + i;
 				*(uint *)hashPtr = EmptyHash;
@@ -104,7 +104,7 @@
 			self->limit = (int)(self->len * LoadFactor);
 
 			var arr = self->arr;
-			var newArr = self->arr = (byte *)Mem.Alloc(newLen * Size);
+			var newArr = self->arr = (byte *)Mem.Malloc(newLen * Size);
 			for (int i = 0, end = newLen * Size; i < end; i += Size) {
 				var hashPtr = newArr + i;
 				*(uint *)hashPtr = EmptyHash;

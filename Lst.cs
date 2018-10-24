@@ -1,6 +1,6 @@
 namespace Futilef {
 	public unsafe struct Lst {
-		const int InitLen = 2;
+		const int InitLen = 4;
 
 		#if FDB
 		static readonly int Type = Fdb.NewType("Lst");
@@ -15,7 +15,7 @@ namespace Futilef {
 			#if FDB
 			Should.GreaterThan("size", size, 0);
 			#endif
-			return Init((Lst *)Mem.Alloc(sizeof(Lst)), size);
+			return Init((Lst *)Mem.Malloc(sizeof(Lst)), size);
 		}
 
 		public static Lst *Init(Lst *self, int size) {
@@ -26,7 +26,7 @@ namespace Futilef {
 			#endif
 			self->count = 0;
 			self->len = InitLen;
-			self->arr = (byte *)Mem.Alloc(InitLen * size);
+			self->arr = (byte *)Mem.Malloc(InitLen * size);
 			self->size = size;
 			return self;
 		}
@@ -72,8 +72,7 @@ namespace Futilef {
 			int oldLen = self->len;
 			#endif
 			int size = self->size;
-			var dst = self->arr + self->count * size;
-			for (int i = 0; i < size; i += 1) *dst++ = *src++;
+			Mem.Memcpy(self->arr + self->count * size, src, size);
 
 			if ((self->count += 1) >= self->len) {  // resize
 				self->len <<= 1;
@@ -107,10 +106,9 @@ namespace Futilef {
 			Should.Equal("pos % self->size", pos % self->size, 0);
 			int oldCount = self->count;
 			#endif
+			var arr = self->arr;
 			int size = self->size;
-			var dst = self->arr + pos;
-			var src = self->arr + pos + size;
-			for (long i = 0, len = (self->count -= 1) * size - pos; i < len; i += 1) *dst++ = *src++;
+			Mem.Memcpy(arr + pos, arr + pos + size, (self->count -= 1) * size - (int)pos);
 			#if FDB
 			Should.Equal("self->count", self->count, oldCount - 1);
 			#endif

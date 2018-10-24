@@ -10,7 +10,7 @@ namespace Futilef {
 		public void **arr;
 
 		public static PtrLst *New() {
-			return Init((PtrLst *)Mem.Alloc(sizeof(PtrLst)));
+			return Init((PtrLst *)Mem.Malloc(sizeof(PtrLst)));
 		}
 
 		public static PtrLst *Init(PtrLst *self) {
@@ -20,7 +20,7 @@ namespace Futilef {
 			#endif
 			self->count = 0;
 			self->len = InitLen;
-			self->arr = (void **)Mem.Alloc(InitLen * sizeof(void *));
+			self->arr = (void **)Mem.Malloc(InitLen * sizeof(void *));
 			return self;
 		}
 		public static PtrLst *Init(PtrLst *self, int len) {
@@ -31,7 +31,7 @@ namespace Futilef {
 			#endif
 			self->count = 0;
 			self->len = len;
-			self->arr = (void **)Mem.Alloc(len * sizeof(void *));
+			self->arr = (void **)Mem.Malloc(len * sizeof(void *));
 			return self;
 		}
 
