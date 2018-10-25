@@ -28,6 +28,7 @@ namespace Futilef {
 			Lst.Test(); Log("lst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Lst2.Test(); Log("lst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			PtrLst.Test(); Log("ptrLst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			PtrLst2.Test(); Log("ptrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Pool.Test(); Log("pool test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Dict.Test(); Log("dict test: {0:N0}", sw.ElapsedTicks);
 		}
