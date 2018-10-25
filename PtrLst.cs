@@ -133,7 +133,7 @@ namespace Futilef {
 			Should.NotNull("cmp", cmp);
 			Should.TypeEqual("self", self->type, Type);
 			#endif
-			Algo.Qsort(self->arr, self->count, cmp);
+			Algo.QuickSort(self->arr, self->count, cmp);
 		}
 
 		public static string Str(PtrLst *self) {
