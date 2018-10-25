@@ -219,7 +219,7 @@
 				for (uint j = 2; j <= i; j += 1) {
 					Should.Equal("Dict.Get(dict, j, (void *)j, eq)", (uint)Dict.Get(dict, j, (void *)j, eq), j);
 				}
-			}Fdb.Log("{0}", dict->len);
+			}
 		}
 
 		static void TestSetGetRemove() {
@@ -264,7 +264,7 @@
 						Should.Equal("Dict.Get(dict, j, (void *)j, eq)", (uint)Dict.Get(dict, keyList[j], (void *)keyList[j], eq), valList[j]);			
 					}
 				}
-			}Fdb.Log("{0}", dict->len);
+			}
 		}
 
 		public static void Benchmark() {

@@ -18,18 +18,19 @@ namespace Futilef {
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
 
-			var sw = new System.Diagnostics.Stopwatch();
-			sw.Reset(); sw.Start();
-			Algo.Test();
-			Log("Algo Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Lst.Test();
-			Log("Lst Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			PtrLst.Test();
-			Log("PtrLst Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Pool.Test();
-			Log("Pool Test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Dict.Test();
-			Log("Dict Test: {0:N0}", sw.ElapsedTicks);
+			Test();
+		}
+
+		public static void Test() {
+			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
+			Mem.Test(); Log("mem test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Algo.Test(); Log("algo test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Lst.Test(); Log("lst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Lst2.Test(); Log("lst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			PtrLst.Test(); Log("ptrLst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			PtrLst2.Test(); Log("ptrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Pool.Test(); Log("pool test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Dict.Test(); Log("dict test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {
