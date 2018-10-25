@@ -12,12 +12,14 @@ namespace Futilef {
 		static readonly List<string> typeList = new List<string>();
 
 		static Fdb() {
+			#if UNITY_EDITOR
 			System.Reflection.Assembly
 				.GetAssembly(typeof(UnityEditor.SceneView))
 				.GetType("UnityEditor.LogEntries")
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
-
+			#endif
+			
 			Test();
 		}
 
@@ -65,7 +67,10 @@ namespace Futilef {
 		}
 
 		public static void AssertionPass(string fmt, params object[] args) {
-			UnityEngine.Debug.LogFormat("FdbAssertionPass: " + fmt, args);
+			#if FDB_LOG_SHOULD
+//			UnityEngine.Debug.LogFormat("FdbAssertionPass: " + fmt, args);
+			Log(fmt, args);
+			#endif
 		}
 
 		public static string Dump(byte *ptr, int size, int ncol = 16) {

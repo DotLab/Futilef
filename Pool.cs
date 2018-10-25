@@ -275,8 +275,8 @@
 		static void Verify(Pool *self) {
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
-			Should.NotNull("self->free", self->free);
-			Fdb.Log(Fdb.Dump(self->arr, self->len * self->size, self->size));
+//			Should.NotNull("self->free", self->free);
+//			Fdb.Log(Fdb.Dump(self->arr, self->len * self->size, self->size));
 			int elmtSize = self->elmtSize;
 			int freeCount = 0, count = 0;
 			for (var p = self->free; p != null; p = *(byte **)(p + elmtSize + PtrSize)) {
@@ -298,7 +298,7 @@
 				Should.NotNull("(byte **)(p + elmtSize + PtrSize)", (byte **)(p + elmtSize + PtrSize));
 			}
 			Should.Equal("freeCount", freeCount, self->len - self->count);
-			Should.NotNull("self->first", self->first);
+//			Should.NotNull("self->first", self->first);
 			for (var p = self->first; p != null; p = *(byte **)(p + elmtSize + PtrSize)) {
 				var pre = *(byte **)(p + elmtSize);
 				var next = *(byte **)(p + elmtSize + PtrSize);

@@ -1,11 +1,12 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe struct PtrLst2 {
 		#if FDB
 		public static readonly int Type = Fdb.NewType("PtrLst2");
 		public int type;
 		#endif
 
-		public int len, count;
+		public int len, count, size;
 		public void **arr;
 
 		public static void Init(PtrLst2 *self) {
@@ -19,7 +20,8 @@
 			#endif
 			self->len = len;
 			self->count = 0;
-			self->arr = (void **)Mem.Malloc(len * sizeof(void *));
+			int size = self->size = sizeof(void *);
+			self->arr = (void **)Mem.Malloc(len * size);
 		}
 
 		public static void Push(PtrLst2 *self, void *ptr) {
@@ -29,7 +31,7 @@
 			int oldCount = self->count;
 			self->count = oldCount + 1;
 			if (oldCount >= self->len) {  // resize
-				self->arr = (void **)Mem.Realloc(self->arr, (self->len <<= 1) * sizeof(void *));
+				self->arr = (void **)Mem.Realloc(self->arr, (self->len <<= 1) * self->size);
 			}
 			self->arr[oldCount] = ptr;
 		}
@@ -39,9 +41,13 @@
 			Verify(self);
 			Should.InRange("idx", idx, 0, self->count - 1);
 			#endif
-			int size = sizeof(void *);
+			int size = self->size;
 			byte* src = (byte *)(self->arr + idx);
 			int count = self->count -= 1;
+//			void **arr = self->arr;
+//			for (int i = idx; i < count; i += 1) {
+//				arr[i] = arr[i + 1];
+//			}
 			Mem.Memmove(src, src + size, (count - idx) * size);
 		}
 
@@ -63,6 +69,7 @@
 			int len = Mem.Verify(self->arr) / sizeof(void *);
 			Should.Equal("self->len", self->len, len);
 			Should.InRange("self->count", self->count, 0, self->len);
+			Should.Equal("self->size", self->size, sizeof(void *));
 		}
 
 		public static void Test() {
