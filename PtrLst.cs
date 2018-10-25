@@ -1,6 +1,6 @@
 namespace Futilef {
 	public unsafe struct PtrLst {
-		const int InitLen = 2;
+		const int InitLen = 4;
 
 		#if FDB
 		static readonly int Type = Fdb.NewType("PtrLst");

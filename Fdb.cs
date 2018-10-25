@@ -63,6 +63,10 @@ namespace Futilef {
 			throw new FdbAssertionFail(string.Format(fmt, args));
 		}
 
+		public static void AssertionPass(string fmt, params object[] args) {
+			UnityEngine.Debug.LogFormat("FdbAssertionPass: " + fmt, args);
+		}
+
 		public static string Dump(byte *ptr, int size, int ncol = 16) {
 			var sb = new System.Text.StringBuilder();
 			sb.AppendFormat("{0} bytes at 0x{1:X}\n", size, (long)ptr);
