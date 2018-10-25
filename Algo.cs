@@ -11,28 +11,59 @@
 			#endif
 			QuickSort(arr, 0, len - 1, cmp);
 		}
-
 		static void QuickSort(void **arr, int low, int high, Cmp cmp) {
 			if (low >= high) return;
 
 			void *pivot = arr[low]; void *swap;
-			int i = low, j = low + 1;
-			while (j <= high) {
+			int mid = low;
+			for (int j = low + 1; j <= high; j += 1) {
 				if (cmp(swap = arr[j], pivot) < 0) {
-					i += 1;
-					arr[j] = arr[i];
-					arr[i] = swap;
+					mid += 1;
+					arr[j] = arr[mid];
+					arr[mid] = swap;
 				}
-				j += 1;
 			}
-			if (i != low) {
-				swap = arr[i];
-				arr[i] = arr[low];
+			if (mid != low) {
+				swap = arr[mid];
+				arr[mid] = arr[low];
 				arr[low] = swap;
 			}
 
-			QuickSort(arr, low, i - 1, cmp);
-			QuickSort(arr, i + 1, high, cmp);
+			QuickSort(arr, low, mid - 1, cmp);
+			QuickSort(arr, mid + 1, high, cmp);
+		}
+
+		public static void *QuickSelect(void **arr, int len, int k, Cmp cmp) {
+			void **temp = stackalloc void *[len];
+			Mem.Memcpy(temp, arr, len * sizeof(void *));
+			return QuickSelect(temp, 0, len - 1, k, cmp);
+		}
+		static void *QuickSelect(void **arr, int low, int high, int k, Cmp cmp) {
+			#if FDB
+			if (low >= high) {
+				Should.Equal("low", low, high);
+				Should.Equal("k", k, low);
+			}
+			#endif
+			if (low >= high) return arr[low];
+
+			void *pivot = arr[low]; void *swap;
+			int mid = low;
+			for (int j = low + 1; j <= high; j += 1) {
+				if (cmp(swap = arr[j], pivot) < 0) {
+					mid += 1;
+					arr[j] = arr[mid];
+					arr[mid] = swap;
+				}
+			}
+			if (mid != low) {
+				swap = arr[mid];
+				arr[mid] = arr[low];
+				arr[low] = swap;
+			}
+
+			if (mid == k) return arr[mid];
+			return k < mid ? QuickSelect(arr, low, mid - 1, k, cmp) : QuickSelect(arr, mid + 1, high, k, cmp);
 		}
 
 		public static void MergeSort(void **arr, int len, Cmp cmp) {
@@ -44,7 +75,6 @@
 			void **temp = stackalloc void *[len];
 			MergeSort(arr, temp, 0, len - 1, cmp);
 		}
-
 		static void MergeSort(void **arr, void **temp, int low, int high, Cmp cmp) {
 			if (low >= high) return;
 
@@ -75,10 +105,44 @@
 			for (k = low; k <= high; k += 1) arr[k] = temp[k];
 		}
 
+		public static int BinarySearch(void **arr, int len, void *val, Cmp cmp) {
+			#if FDB
+			Should.NotNull("arr", arr);
+			Should.GreaterThanZero("len", len);
+			Should.NotNull("cmp", cmp);
+			#endif
+			return BinarySearch(arr, 0, len - 1, val, cmp);
+		}
+		static int BinarySearch(void **arr, int low, int high, void *val, Cmp cmp) {
+			if (low > high) return -1;
+
+			int mid = (low + high) >> 1;
+			int r = cmp(val, arr[mid]);
+
+			if (r == 0) return mid;
+			if (low == high) return -1;
+
+			return r < 0 ? BinarySearch(arr, 0, mid - 1, val, cmp) : BinarySearch(arr, mid + 1, high, val, cmp);
+		}
+
 		#if FDB
 		public static void Test() {
 			TestQuickSort();
+			TestQuickSelect();
 			TestMergeSort();
+			TestBinarySearch();
+		}
+
+		static void TestBinarySearch() {
+			const int len = 100;
+			var arr = stackalloc void *[len];
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = (void *)i;
+			}
+			for (int i = 0; i < len; i += 1) {
+				int res = BinarySearch(arr, len, (void *)i, (a, b) => (int)a - (int)b);
+				Should.Equal("res", res, i);
+			}
 		}
 
 		static void TestQuickSort() {
@@ -102,6 +166,24 @@
 			MergeSort(arr, len, (a, b) => (int)a - (int)b);
 			for (int i = 1; i < len; i += 1) {
 				Should.LessThanOrEqualTo("(int)arr[i - 1]", (int)arr[i - 1], (int)arr[i]);
+			}
+		}
+
+		static void TestQuickSelect() {
+			const int len = 100;
+			var arr = stackalloc void *[len];
+			for (int i = 0; i < len; i += 1) {
+				arr[i] = (void *)i;
+			}
+			for (int i = len - 1; i >= 0; i -= 1) {
+				int k = Fdb.Random(0, i);
+				void *swap = arr[k];
+				arr[k] = arr[i];
+				arr[i] = swap;
+			}
+			for (int i = 0; i < len; i += 1) {
+				void *res = QuickSelect(arr, len, i, (a, b) => (int)a - (int)b);
+				Should.Equal("res", res, (void *)i);
 			}
 		}
 		#endif

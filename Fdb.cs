@@ -73,12 +73,13 @@ namespace Futilef {
 			#endif
 		}
 
-		public static string Dump(byte *ptr, int size, int ncol = 16) {
+		public static string Dump(void *ptr, int size, int ncol = 16) {
+			byte *chr = (byte *)ptr;
 			var sb = new System.Text.StringBuilder();
-			sb.AppendFormat("{0} bytes at 0x{1:X}\n", size, (long)ptr);
+			sb.AppendFormat("{0} bytes at 0x{1:X}\n", size, (long)chr);
 			for (int i = 0; i < size; i += 1) {
-				if (i % ncol == 0) sb.AppendFormat("{0:X8}: ", (long)ptr);
-				sb.AppendFormat("{0:X2}", *ptr++);				
+				if (i % ncol == 0) sb.AppendFormat("{0:X8}: ", (long)chr);
+				sb.AppendFormat("{0:X2}", *chr++);				
 				if ((i + 1) % 4 == 0) sb.Append(" ");
 				if ((i + 1) % ncol == 0) sb.AppendLine();
 			}
