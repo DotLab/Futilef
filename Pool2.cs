@@ -344,7 +344,7 @@
 
 				head = (int *)((byte *)head + headSize + size + tailSize);
 			}
-			Should.EqualZero("dict.Count", dict.Count);
+			Should.Zero("dict.Count", dict.Count);
 		}
 
 		public static void Test() {
