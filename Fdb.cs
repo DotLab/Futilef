@@ -10,19 +10,17 @@ namespace Futilef {
 		const int TypeOffset = 100;
 
 		static readonly List<string> typeList = new List<string>();
+		public static string LastLog;
 
-		static Fdb() {
+		public static void Test() {
 			System.Reflection.Assembly
 				.GetAssembly(typeof(UnityEditor.SceneView))
 				.GetType("UnityEditor.LogEntries")
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
-
-			Test();
-		}
-
-		public static void Test() {
+			
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
+			Pool2.Test(); Log("pool2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Mem.Test(); Log("mem test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Algo.Test(); Log("algo test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Lst.Test(); Log("lst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
@@ -53,7 +51,8 @@ namespace Futilef {
 		}
 
 		public static void Log(string fmt, params object[] args) {
-			UnityEngine.Debug.LogFormat("Fdb: " + fmt, args);
+			LastLog = string.Format("Fdb: " + fmt, args);
+			UnityEngine.Debug.LogFormat(LastLog);
 		}
 
 		public static void Error(string fmt, params object[] args) {
@@ -71,7 +70,7 @@ namespace Futilef {
 				if (i % ncol == 0) sb.AppendFormat("{0:X8}: ", (long)ptr);
 				sb.AppendFormat("{0:X2}", *ptr++);				
 				if ((i + 1) % 4 == 0) sb.Append(" ");
-				if ((i + 1) % ncol == 0) sb.AppendLine();
+				if ((i + 1) % ncol == 0) sb.AppendFormat(" +{0:X} ({0})\n", i + 1 - ncol);
 			}
 			string str = sb.ToString();
 			Log(str);

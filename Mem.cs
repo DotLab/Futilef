@@ -90,8 +90,10 @@ namespace Futilef {
 		#if FDB
 		public static void Test() {
 			void *a = Malloc(64);
+			Should.Equal("Verify(a)", Verify(a), 64);
 			*(int *)a = 100;
 			a = Realloc(a, 128);
+			Should.Equal("Verify(a)", Verify(a), 128);
 			Should.Equal("*(int *)a", *(int *)a, 100);
 			Free(a);
 		}
