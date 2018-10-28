@@ -51,6 +51,14 @@
 		}
 
 		static byte *Link(byte *arr, int size, int elmtSize, int start, int end) {  // link node at start ... (end - 1)
+			#if FDB
+			Should.NotNull("arr", arr);
+			Should.GreaterThan("size", size, 0);
+			Should.Equal("elmtSize + TwoPtrSize", elmtSize + TwoPtrSize, size);
+			Should.GreaterThanOrEqualTo("start", start, 0);
+			Should.GreaterThan("end", end, start);
+			Should.Zero("(end - start) % size", (end - start) % size);
+			#endif
 			for (int i = start; i < end; i += size) {
 				var prePtr = (byte **)(arr + i + elmtSize);
 				*prePtr = arr + i - size;
@@ -232,12 +240,13 @@
 
 		static void BasicPushRemoveTest() {
 			var pool = stackalloc Pool[1]; Init(pool, sizeof(int));
-			uint i = 0xa4a4a4a4;
-			Push(pool, (byte *)&i);
-			Push(pool, (byte *)&i);
-			Push(pool, (byte *)&i);
-			Push(pool, (byte *)&i);
-			Push(pool, (byte *)&i);
+			uint *i = stackalloc uint[1];
+			i[0] = 0xa4a4a4a4;
+			Push(pool, (byte *)i);
+			Push(pool, (byte *)i);
+			Push(pool, (byte *)i);
+			Push(pool, (byte *)i);
+			Push(pool, (byte *)i);
 			RemoveAt(pool, 0 * pool->size);
 			RemoveAt(pool, 1 * pool->size);
 			RemoveAt(pool, 4 * pool->size);
@@ -264,16 +273,32 @@
 		}
 
 		static void Verify(Pool *self) {
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+//			Should.NotNull("self->free", self->free);
+//			Fdb.Log(Fdb.Dump(self->arr, self->len * self->size, self->size));
 			int elmtSize = self->elmtSize;
 			int freeCount = 0, count = 0;
 			for (var p = self->free; p != null; p = *(byte **)(p + elmtSize + PtrSize)) {
+				Should.NotNull("(byte **)(p + elmtSize)", (byte **)(p + elmtSize));
+				Should.NotNull("(byte **)(p + elmtSize + PtrSize)", (byte **)(p + elmtSize + PtrSize));
 				var pre = *(byte **)(p + elmtSize);
 				var next = *(byte **)(p + elmtSize + PtrSize);
-				if (pre != null) Should.Equal("*(byte **)(pre + elmtSize + PtrSize)", *(byte **)(pre + elmtSize + PtrSize), p);
-				if (next != null) Should.Equal("*(byte **)(next + elmtSize)", *(byte **)(next + elmtSize), p);
+				if (pre != null) {
+					Should.NotNull("pre", pre);
+					Should.NotNull("(byte **)(pre + elmtSize + PtrSize)", (byte **)(pre + elmtSize + PtrSize));
+					Should.Equal("*(byte **)(pre + elmtSize + PtrSize)", *(byte **)(pre + elmtSize + PtrSize), p);
+				}
+				if (next != null) {
+					Should.NotNull("next", next);
+					Should.NotNull("(byte **)(next + elmtSize)", (byte **)(next + elmtSize));
+					Should.Equal("*(byte **)(next + elmtSize)", *(byte **)(next + elmtSize), p);
+				}
 				freeCount += 1;
+				Should.NotNull("(byte **)(p + elmtSize + PtrSize)", (byte **)(p + elmtSize + PtrSize));
 			}
 			Should.Equal("freeCount", freeCount, self->len - self->count);
+//			Should.NotNull("self->first", self->first);
 			for (var p = self->first; p != null; p = *(byte **)(p + elmtSize + PtrSize)) {
 				var pre = *(byte **)(p + elmtSize);
 				var next = *(byte **)(p + elmtSize + PtrSize);

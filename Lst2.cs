@@ -1,4 +1,5 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe struct Lst2 {
 		#if FDB
 		public static readonly int Type = Fdb.NewType("Lst2");

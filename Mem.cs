@@ -1,9 +1,35 @@
-using System;
 using System.Runtime.InteropServices;
-
 
 namespace Futilef {
 	public unsafe static class Mem {
+		#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+		[DllImport("msvcrt.dll", EntryPoint = "malloc", CallingConvention=CallingConvention.Cdecl)]
+		static extern void *msvcrt_malloc(int size);
+		[DllImport("msvcrt.dll", EntryPoint = "realloc", CallingConvention=CallingConvention.Cdecl)]
+		static extern void *msvcrt_realloc(void *ptr, int size);
+		[DllImport("msvcrt.dll", EntryPoint = "free", CallingConvention=CallingConvention.Cdecl)]
+		static extern void msvcrt_free(void *ptr);
+		[DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl)]
+		static extern void *msvcrt_memcpy(void *dst, void *src, int count);
+		[DllImport("msvcrt.dll", EntryPoint = "memmove", CallingConvention = CallingConvention.Cdecl)]
+		static extern void *msvcrt_memmove(void *dst, void *src, int count);
+		[DllImport("msvcrt.dll", EntryPoint = "memset", CallingConvention = CallingConvention.Cdecl)]
+		static extern void *msvcrt_memset(void *ptr, int value, int count);
+		#elif UNITY_ANDROID
+		[DllImport("native")]
+		static extern void *ndk_malloc(int size);
+		[DllImport("native")]
+		static extern void *ndk_realloc(void *ptr, int size);
+		[DllImport("native")]
+		static extern void ndk_free(void *ptr);
+		[DllImport("native")]
+		static extern void *ndk_memcpy(void *dst, void *src, int count);
+		[DllImport("native")]
+		static extern void *ndk_memmove(void *dst, void *src, int count);
+		[DllImport("native")]
+		static extern void *ndk_memset(void *ptr, int value, int count);
+		#endif
+
 		#if FDB
 		public static readonly int Type = Fdb.NewType("Mem");
 
@@ -18,74 +44,83 @@ namespace Futilef {
 		}
 		#endif
 
-		public static void *Malloc(int n) {
+		public static void *Malloc(int size) {
 			#if FDB
-			Should.GreaterThanZero("n", n);
-			byte *p = (byte *)Marshal.AllocHGlobal(n + 2 * sizeof(int));
-			*(int *)p = n;
-			*(int *)(p + sizeof(int) + n) = Type;
+			Should.GreaterThanZero("size", size);
+			size += sizeof(int) * 2;
+			byte *p = (byte *)
+			#else
+			return
+			#endif
+				#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+				msvcrt_malloc(size);
+				#elif UNITY_ANDROID
+				ndk_malloc(size);
+				#endif
+			#if FDB
+			*(int *)p = size - sizeof(int) * 2;
+			*(int *)(p + size - sizeof(int)) = Type;
 			return p + sizeof(int);
+			#endif
+		}
+
+		public static void *Realloc(void *ptr, int size) {
+			#if FDB
+			Verify(ptr);
+			Should.GreaterThan("n", size, 0);
+			ptr = ((byte *)ptr - sizeof(int));
+			size += sizeof(int) * 2;
+			byte *p = (byte *)
 			#else
-			return (void *)Marshal.AllocHGlobal(n);
+			return
 			#endif
-		}
-
-		public static void Free(void *mem) {
+				#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+				msvcrt_realloc(ptr, size);
+				#elif UNITY_ANDROID
+				ndk_realloc(ptr, size);
+				#endif
 			#if FDB
-			Verify(mem);
-			Marshal.FreeHGlobal((IntPtr)((byte *)mem - sizeof(int)));
-			#else 
-			Marshal.FreeHGlobal((IntPtr)mem);
-			#endif
-		}
-
-		public static void *Realloc(void *mem, int n) {
-			#if FDB
-			Verify(mem);
-			Should.GreaterThan("n", n, 0);
-			byte *p = (byte *)Marshal.ReAllocHGlobal((IntPtr)((byte *)mem - sizeof(int)), (IntPtr)(n + 2 * sizeof(int)));
-			*(int *)p = n;
-			*(int *)(p + sizeof(int) + n) = Type;
+			*(int *)p = size - sizeof(int) * 2;
+			*(int *)(p + size - sizeof(int)) = Type;
 			return p + sizeof(int);
-			#else
-			return (void *)Marshal.ReAllocHGlobal((IntPtr)mem, (IntPtr)n);
 			#endif
 		}
 
-		public static void Memcpy(void *dst, void *src, int n) {
+		public static void Free(void *ptr) {
 			#if FDB
-//			Should.Zero("(long)dst % sizeof(int)", (long)dst % sizeof(int), 0);
-//			Should.Zero("(long)src % sizeof(int)", (long)src % sizeof(int), 0);
+			Verify(ptr);
+			ptr = ((byte *)ptr - sizeof(int));
 			#endif
-			#if UNITY_STANDALONE_WIN
-			__memcpy((IntPtr)dst, (IntPtr)src, (UIntPtr)(long)n);
-			#else
-			if (n % sizeof(long) == 0) {
-				var d = (long *)dst; var s = (long *)src;
-				n /= sizeof(long);
-				while (n-- > 0) *d++ = *s++;
-			} else {
-				var d = (byte *)dst; var s = (byte *)src;
-				while (n-- > 0) *d++ = *s++;
-			}
+			#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+			msvcrt_free(ptr);
+			#elif UNITY_ANDROID
+			ndk_free(ptr);
 			#endif
 		}
 
-		public static void Memmove(void *dst, void *src, int n) {
-			#if UNITY_STANDALONE_WIN
-			__memmove((IntPtr)dst, (IntPtr)src, (UIntPtr)(long)n);
-			#else
-			var d = (byte *)dst; var s = (byte *)src;
-			while (n-- > 0) *d++ = *s++;
+		public static void Memcpy(void *dst, void *src, int count) {
+			#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+			msvcrt_memcpy(dst, src, count);
+			#elif UNITY_ANDROID
+			ndk_memcpy(dst, src, count);
 			#endif
 		}
 
-		#if UNITY_STANDALONE_WIN
-		[DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-		static extern IntPtr __memcpy(IntPtr dest, IntPtr src, UIntPtr count);
-		[DllImport("msvcrt.dll", EntryPoint = "memmove", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-		static extern IntPtr __memmove(IntPtr dest, IntPtr src, UIntPtr count);
-		#endif
+		public static void Memmove(void *dst, void *src, int count) {
+			#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+			msvcrt_memmove(dst, src, count);
+			#elif UNITY_ANDROID
+			ndk_memmove(dst, src, count);
+			#endif
+		}
+
+		public static void Memset(void *ptr, int value, int count) {
+			#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+			msvcrt_memset(ptr, value, count);
+			#elif UNITY_ANDROID
+			ndk_memset(ptr, value, count);
+			#endif
+		}
 
 		#if FDB
 		public static void Test() {

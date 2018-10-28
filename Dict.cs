@@ -68,11 +68,16 @@
 			
 			var hashPtr = arr + (hash % len) * Size;
 			var keyCur = *(void **)(hashPtr + HashSize);
+			byte *deletedHashPtr = null;
 
 //			var str = Fdb.Dump(arr, self->len * Size, Size);
 
 			uint i = h2;
-			while (keyCur != null && keyCur != (void *)DeletedKey) {
+			while (keyCur != null) {
+				if (deletedHashPtr == null && keyCur == (void *)DeletedKey) {
+					deletedHashPtr = (byte *)hashPtr;
+				}
+
 				if (*(uint *)hashPtr == hash && eq(keyCur, key)) {  // found key
 					*(void **)(hashPtr + HashKeySize) = val;
 					return;
@@ -82,6 +87,7 @@
 			}
 
 			// new key
+			if (deletedHashPtr != null) hashPtr = deletedHashPtr;
 			*(uint *)hashPtr = hash;
 			*(void **)(hashPtr + HashSize) = key;
 			*(void **)(hashPtr + HashKeySize) = val;
