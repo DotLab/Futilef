@@ -7,6 +7,7 @@
 
 		public int len, headSize, tailSize;
 		public byte *arr;
+		public byte *oldArr;
 
 		public static void Init(Pool2 *self) {
 			Init(self, 64);
@@ -98,8 +99,12 @@
 			Should.GreaterThanZero("size", size);
 			#endif
 			int *firstFreeHead = (int *)arr;
-			head[0] = 0; head[1] = firstFreeHead[1]; head[2] = size;
-			firstFreeHead[1] = (int)((byte *)head - arr);  // firstFreeHead.next = head
+			int firstFreeHeadNext;
+			head[0] = 0; firstFreeHeadNext = head[1] = firstFreeHead[1]; head[2] = size;
+
+			int pos = (int)((byte*)head - arr);
+			if (firstFreeHeadNext != -1) *(int *)(arr + firstFreeHeadNext) = pos;  // firstFreeHead.next.prev = head
+			firstFreeHead[1] = pos;  // firstFreeHead.next = head
 			int *tail = (int *)((byte *)(head + 3) + size);
 			tail[0] = size;
 		}
@@ -141,7 +146,7 @@
 				rightHead = (int *)((byte *)rightHead + headSize + rightSize + tailSize);
 			} while (rightHead[0] != -1);
 
-			SetFreeMeta(head, newSize);
+			SetFreeMeta(head, newSize);  // do not need to insert since head is already in free list
 		}
 
 		/**
@@ -174,7 +179,7 @@
 				leftSize = *leftTail;
 			} while (leftSize != -1);
 
-			SetFreeMeta(leftHead, newSize);
+			SetFreeMetaAndInsert(arr, leftHead, newSize);
 			return leftHead;
 		}
 
@@ -183,6 +188,9 @@
 			Verify(self);
 			Should.GreaterThanZero("size", size);
 			#endif
+			if ((size & 0x3) != 0) {  // align to 4
+				size = (((size >> 2) + 1) << 2);
+			}
 			int headSize = self->headSize, tailSize = self->tailSize;
 			byte *arr = self->arr;
 
@@ -229,6 +237,7 @@
 			self->len = len;
 //			Fdb.Log("{0:X}", (long)arr);
 //			Fdb.Log("len: {0}", Mem.Verify(arr));
+			self->oldArr = arr;
 			arr = self->arr = (byte *)Mem.Realloc(arr, len);
 //			Fdb.Log("{0:X}", (long)arr);
 //			Fdb.Log("len: {0}", Mem.Verify(self->arr));
@@ -260,6 +269,7 @@
 			#endif
 			int headSize = self->headSize, tailSize = self->tailSize;
 			byte *arr = self->arr;
+//			Fdb.Dump(arr, self->len);
 
 			int *head = (int *)ptr - 3;
 			SetFreeMetaAndInsert(arr, head, head[2]);
@@ -289,7 +299,7 @@
 			int len = Mem.Verify(self->arr);
 			Should.Equal("self->len", self->len, len);
 
-			Fdb.Dump(self->arr, len);
+//			Fdb.Dump(self->arr, len);
 
 			byte *arr = self->arr;
 			int *head;
@@ -307,7 +317,7 @@
 			var dict = new System.Collections.Generic.Dictionary<int, int>();
 			while (curFree != -1) {
 				head = (int *)(arr + curFree);
-				Should.Equal("head->prev", head[0], lastFree);
+				Should.Equal("head{0}->prev", head[0], lastFree, curFree);
 				Should.Equal("tail->size", *(int *)((byte *)head + headSize + head[2]), head[2]);
 				dict.Add(curFree, head[2]);
 				lastFree = curFree;
@@ -348,15 +358,76 @@
 		}
 
 		public static void Test() {
+			TestExpand1();
+			TestRandomExpand();
+			TestRandomAllocFree();
+		}
+
+		static void TestExpand1() {
 			var pool = stackalloc Pool2[1]; Init(pool);
 			var p = Pool2.Alloc(pool, 4);
 			*(int *)p = 0x4a4a4a4a;
 			Pool2.Free(pool, p);
 			p = Pool2.Alloc(pool, 4);
 			*(int *)p = 0x4a4a4a4a;
-			p = Pool2.Alloc(pool, 4);
-			*(int *)p = 0x4a4a4a4a;
+			var p2 = Pool2.Alloc(pool, 4);
+			*(int *)p2 = 0x4a4a4a4a;
+			Pool2.Free(pool, p2);
+			p = (void *)((byte *)p + (pool->arr - pool->oldArr));
 			Pool2.Free(pool, p);
+			// the first *real* free node should be 0x54 long (containing all space)
+			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
+		}
+
+		static void TestRandomExpand() {
+			var pool = stackalloc Pool2[1]; Init(pool);
+			const int len = 200;
+			var ptrs = stackalloc byte *[len];
+			for (int i = 0; i < len; i += 1) {
+				int size = Fdb.Random(1, 1000);
+				ptrs[i] = (byte *)Pool2.Alloc(pool, size);
+				if (pool->oldArr != null) {
+					long shift = pool->arr - pool->oldArr;
+					for (int j = 0; j < i; j += 1) {
+						ptrs[j] += shift;
+					}
+					pool->oldArr = null;
+				}
+			}
+			for (int i = 0; i < len; i += 1) {
+				Pool2.Free(pool, ptrs[i]);
+			}
+			// the first *real* free node should be 0x54 long (containing all space)
+			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
+		}
+
+
+
+		static void TestRandomAllocFree() {
+			var pool = stackalloc Pool2[1]; Init(pool);
+			const int len = 200;
+			var ptrs = new System.Collections.Generic.List<long>();
+			for (int i = 0; i < len; i += 1) {
+				int size = Fdb.Random(1, 1000);
+				ptrs.Add((long)Pool2.Alloc(pool, size));
+				if (pool->oldArr != null) {
+					long shift = pool->arr - pool->oldArr;
+					for (int j = 0; j < ptrs.Count - 1; j += 1) {
+						ptrs[j] += shift;
+					}
+					pool->oldArr = null;
+				}
+				if (Fdb.Random(0, 2) == 0) {  // 1/3 chance to free
+					int idx = Fdb.Random(0, ptrs.Count - 1);
+					Pool2.Free(pool, (void *)ptrs[idx]);
+					ptrs.RemoveAt(idx);
+				}
+			}
+			for (int i = 0; i < ptrs.Count; i += 1) {
+				Pool2.Free(pool, (void *)ptrs[i]);
+			}
+			// the first *real* free node should be 0x54 long (containing all space)
+			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
 		}
 		#endif
 	}

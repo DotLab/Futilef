@@ -20,15 +20,17 @@ namespace Futilef {
 				.Invoke(new object(), null);
 			
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
-			Pool2.Test(); Log("pool2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Mem.Test(); Log("mem test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Algo.Test(); Log("algo test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Lst.Test(); Log("lst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Lst2.Test(); Log("lst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			PtrLst.Test(); Log("ptrLst test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Mem.Test();     Log("mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
+			Algo.Test();    Log("algo test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+
+			Lst2.Test();    Log("lst2 test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
 			PtrLst2.Test(); Log("ptrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Pool.Test(); Log("pool test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Dict.Test(); Log("dict test: {0:N0}", sw.ElapsedTicks);
+			Pool2.Test();   Log("pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+
+			Lst.Test();     Log("lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
+			PtrLst.Test();  Log("ptrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
+			Pool.Test();    Log("pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+			Dict.Test();    Log("dict test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {
@@ -78,7 +80,7 @@ namespace Futilef {
 				if (i % ncol == 0) sb.AppendFormat("{0:X8}: ", (long)chr);
 				sb.AppendFormat("{0:X2}", *chr++);				
 				if ((i + 1) % 4 == 0) sb.Append(" ");
-				if ((i + 1) % ncol == 0) sb.AppendFormat(" +{0:X} ({0})\n", i + 1 - ncol);
+				if ((i + 1) % ncol == 0) sb.AppendFormat(" +{0:X} ({0})\n", i + 1);
 			}
 			string str = sb.ToString();
 			Log(str);
