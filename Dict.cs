@@ -266,61 +266,6 @@
 				}
 			}
 		}
-
-		public static void Benchmark() {
-			Algo.Eq eq = (a, b) => (uint)a == (uint)b;
-			var sw = new System.Diagnostics.Stopwatch();
-			var refDict = new System.Collections.Generic.Dictionary<uint, uint>();
-			sw.Stop();
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				refDict.Add(i, i);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
-
-			var dict = stackalloc Dict[1]; Dict.Init(dict);
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				Dict.Set(dict, i, (void *)i, (void *)i, eq);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
-
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				refDict.Remove(i);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
-
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				Dict.Remove(dict, i, (void *)i, eq);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
-
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				refDict.Add(i, i);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("refDict Test: {0:N0}", sw.ElapsedTicks);
-
-			sw.Reset();
-			sw.Start();
-			for (uint i = 2; i < 100000; i += 1) {
-				Dict.Set(dict, i, (void *)i, (void *)i, eq);
-			}
-			sw.Stop();
-			UnityEngine.Debug.LogFormat("dict Test: {0:N0}", sw.ElapsedTicks);
-		}
 		#endif
 	}
 }

@@ -19,6 +19,9 @@ namespace Futilef {
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
 			
+			Pool2.TypeInit();
+			Dict2.TypeInit();
+			
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
 			Mem.Test();     Log("mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
 			Algo.Test();    Log("algo test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
@@ -26,11 +29,12 @@ namespace Futilef {
 			Lst2.Test();    Log("lst2 test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
 			PtrLst2.Test(); Log("ptrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			Pool2.Test();   Log("pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			Dict2.Test();   Log("dict2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
 
-			Lst.Test();     Log("lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
-			PtrLst.Test();  Log("ptrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
-			Pool.Test();    Log("pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
-			Dict.Test();    Log("dict test: {0:N0}", sw.ElapsedTicks);
+//			Lst.Test();     Log("lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
+//			PtrLst.Test();  Log("ptrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
+//			Pool.Test();    Log("pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+//			Dict.Test();    Log("dict test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {

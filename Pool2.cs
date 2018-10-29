@@ -5,7 +5,16 @@
 		public int type;
 		#endif
 
-		public int len, headSize, tailSize;
+		static int HeadSize, TailSize;
+		static bool Initialized;
+
+		public static void TypeInit() {
+			HeadSize = 3 * sizeof(int);
+			TailSize = sizeof(int);
+			Initialized = true;
+		}
+
+		public int len;
 		public byte *arr;
 		public byte *oldArr;
 
@@ -13,14 +22,15 @@
 			Init(self, 64);
 		}
 		public static void Init(Pool2 *self, int len) {
+			if (!Initialized) TypeInit();
 			#if FDB
 			Should.NotNull("self", self);
 			Should.GreaterThanZero("len", len);
 			self->type = Type;
 			#endif
 			self->len = len;
-			int headSize = self->headSize = 3 * sizeof(int);
-			int tailSize = self->tailSize = sizeof(int);
+			int headSize = HeadSize;
+			int tailSize = TailSize;
 			byte *arr = self->arr = (byte *)Mem.Malloc(len);
 
 			// sentinel
@@ -126,13 +136,12 @@
 		 *           | newSize                                |
 		 * assume head is free and linked
 		 */
-		static void MergeRight(byte *arr, int *head, int headSize, int tailSize) {
+		static void MergeRight(byte *arr, int *head) {
 			#if FDB
 			Should.NotNull("arr", arr);
 			Should.NotNull("head", head);
-			Should.Equal("headSize", headSize, 3 * sizeof(int));
-			Should.Equal("tailSize", tailSize, sizeof(int));
 			#endif
+			int headSize = HeadSize, tailSize = TailSize;
 			int size = head[2];
 			int *rightHead = (int *)((byte *)head + headSize + size + tailSize);
 			if (rightHead[0] == -1) return;  // since only the left most sentinel has head.prev = -1, we can check this to see if the node is used
@@ -156,13 +165,12 @@
 		 *            | newSize                              |
 		 * assume the head is free and linked
 		 */
-		static int *MergeLeft(byte *arr, int *head, int headSize, int tailSize) {
+		static int *MergeLeft(byte *arr, int *head) {
 			#if FDB
 			Should.NotNull("arr", arr);
 			Should.NotNull("head", head);
-			Should.Equal("headSize", headSize, 3 * sizeof(int));
-			Should.Equal("tailSize", tailSize, sizeof(int));
 			#endif
+			int headSize = HeadSize, tailSize = TailSize;
 			int *leftTail = head - 1;
 			int leftSize = *leftTail;
 			if (leftSize == -1) return head;
@@ -191,7 +199,7 @@
 			if ((size & 0x3) != 0) {  // align to 4
 				size = (((size >> 2) + 1) << 2);
 			}
-			int headSize = self->headSize, tailSize = self->tailSize;
+			int headSize = HeadSize, tailSize = TailSize;
 			byte *arr = self->arr;
 
 			int *head;
@@ -211,7 +219,7 @@
 					if (freeSize > 0) {  // split
 						freeHead = (int *)((byte *)head + headSize + size + tailSize);
 						SetFreeMetaAndInsert(arr, freeHead, freeSize);
-						MergeRight(arr, freeHead, headSize, tailSize);
+						MergeRight(arr, freeHead);
 
 						RemoveFromFreeList(arr, head);
 						SetUsedMeta(head, size);
@@ -247,7 +255,7 @@
 			freeSize = len - oldLen - tailSize - headSize - size - tailSize - headSize;
 			SetFreeMetaAndInsert(arr, freeHead, freeSize);
 //			Fdb.Dump(arr, len);
-			MergeLeft(arr, freeHead, headSize, tailSize);
+			MergeLeft(arr, freeHead);
 
 			int *endHead = (int *)(arr + len - headSize);
 			endHead[0] = -1;
@@ -267,7 +275,6 @@
 			Verify(self);
 			Should.InRange("ptr", ptr, self->arr, self->arr + self->len);
 			#endif
-			int headSize = self->headSize, tailSize = self->tailSize;
 			byte *arr = self->arr;
 //			Fdb.Dump(arr, self->len);
 
@@ -276,11 +283,11 @@
 			#if FDB
 			Verify(self);
 			#endif
-			MergeRight(arr, head, headSize, tailSize);
+			MergeRight(arr, head);
 			#if FDB
 			Verify(self);
 			#endif
-			MergeLeft(arr, head, headSize, tailSize);
+			MergeLeft(arr, head);
 			#if FDB
 			Verify(self);
 			#endif
@@ -291,7 +298,7 @@
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 
-			int headSize = self->headSize, tailSize = self->tailSize;
+			int headSize = HeadSize, tailSize = TailSize;
 			Should.GreaterThanZero("self->len", self->len);
 			Should.Equal("self->headSize", headSize, 3 * sizeof(int));
 			Should.Equal("self->tailSize", tailSize, sizeof(int));
@@ -317,7 +324,7 @@
 			var dict = new System.Collections.Generic.Dictionary<int, int>();
 			while (curFree != -1) {
 				head = (int *)(arr + curFree);
-				Should.Equal("head{0}->prev", head[0], lastFree, curFree);
+				Should.Equal("head" + curFree + "->prev", head[0], lastFree);
 				Should.Equal("tail->size", *(int *)((byte *)head + headSize + head[2]), head[2]);
 				dict.Add(curFree, head[2]);
 				lastFree = curFree;
@@ -358,6 +365,7 @@
 		}
 
 		public static void Test() {
+			TypeInit();
 			TestExpand1();
 			TestRandomExpand();
 			TestRandomAllocFree();
