@@ -23,18 +23,19 @@ namespace Futilef {
 			Dict2.TypeInit();
 			
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
-			Mem.Test();     Log("mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
-			Algo.Test();    Log("algo test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+			Mem.Test();     Log("Mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
+			Algo.Test();    Log("Algo test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
 
-			Lst2.Test();    Log("lst2 test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
-			PtrLst2.Test(); Log("ptrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Pool2.Test();   Log("pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
-			Dict2.Test();   Log("dict2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			Lst2.Test();    Log("Lst2 test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+			PtrLst2.Test(); Log("PtrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Pool2.Test();   Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			Dict2.Test();   Log("Dict2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			NumDict.Test(); Log("NumDict test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 
-//			Lst.Test();     Log("lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
-//			PtrLst.Test();  Log("ptrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
-//			Pool.Test();    Log("pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
-//			Dict.Test();    Log("dict test: {0:N0}", sw.ElapsedTicks);
+			Lst.Test();     Log("Lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
+			PtrLst.Test();  Log("PtrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
+			// Pool.Test();    Log("Pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
+			Dict.Test();    Log("Dict test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {

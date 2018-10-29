@@ -214,7 +214,7 @@
 			var dict = stackalloc Dict[1]; Init(dict);
 			Algo.Eq eq = (a, b) => (uint)a == (uint)b;
 			Should.True("eq(0x100, 0x100)", eq((void *)0x100, (void *)0x100));
-			for (uint i = 2; i < 1000; i += 1) {
+			for (uint i = 2; i < 100; i += 1) {
 				Dict.Set(dict, i, (void *)i, (void *)i, eq);
 				for (uint j = 2; j <= i; j += 1) {
 					Should.Equal("Dict.Get(dict, j, (void *)j, eq)", (uint)Dict.Get(dict, j, (void *)j, eq), j);
@@ -225,12 +225,12 @@
 		static void TestSetGetRemove() {
 			var dict = stackalloc Dict[1]; Init(dict);
 			Algo.Eq eq = (a, b) => (uint)a == (uint)b;
-			for (uint i = 2; i < 1000; i += 1) {
+			for (uint i = 2; i < 100; i += 1) {
 				Dict.Set(dict, i, (void *)i, (void *)i, eq);
 			}
-			for (uint i = 2; i < 1000; i += 1) {
+			for (uint i = 2; i < 100; i += 1) {
 				Dict.Remove(dict, i, (void *)i, eq);
-				for (uint j = 2; j < 1000; j += 1) {
+				for (uint j = 2; j < 100; j += 1) {
 					if (j <= i) {
 						Should.Null("Dict.Get(dict, j, (void *)j, eq)", Dict.Get(dict, j, (void *)j, eq));
 					} else {
@@ -245,7 +245,7 @@
 			var keyList = new System.Collections.Generic.List<uint>();
 			var valList = new System.Collections.Generic.List<uint>();
 			Algo.Eq eq = (a, b) => (uint)a == (uint)b;
-			for (uint i = 2; i < 1000; i += 1) {
+			for (uint i = 2; i < 100; i += 1) {
 				uint key = (uint)Fdb.Random(-0x8000000, 0x7fffffff);
 				uint val = (uint)Fdb.Random(-0x8000000, 0x7fffffff);
 				Dict.Set(dict, key, (void *)key, (void *)val, eq);

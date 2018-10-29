@@ -1,4 +1,5 @@
-﻿namespace Futilef {
+﻿#if FDB_POOL
+namespace Futilef {
 	public unsafe struct Pool {
 		const int InitLen = 4;
 		static readonly int PtrSize = sizeof(void *), TwoPtrSize = sizeof(void *) << 1;
@@ -311,4 +312,4 @@
 		#endif
 	}
 }
-
+#endif

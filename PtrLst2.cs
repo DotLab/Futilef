@@ -9,6 +9,12 @@
 		public int len, count, size;
 		public void **arr;
 
+		public static PtrLst2 *New() {
+			var lst = (PtrLst2 *)Mem.Malloc(sizeof(PtrLst2));
+			Init(lst);
+			return lst;
+		}
+
 		public static void Init(PtrLst2 *self) {
 			Init(self, 4);
 		}
@@ -41,17 +47,45 @@
 			Verify(self);
 			Should.InRange("idx", idx, 0, self->count - 1);
 			#endif
+			byte *src = (byte *)(self->arr + idx);
 			int size = self->size;
-			byte* src = (byte *)(self->arr + idx);
 			int count = self->count -= 1;
 //			void **arr = self->arr;
-//			for (int i = idx; i < count; i += 1) {
-//				arr[i] = arr[i + 1];
-//			}
+//			for (int i = idx; i < count; i += 1) arr[i] = arr[i + 1];
 			Mem.Memmove(src, src + size, (count - idx) * size);
 		}
 
-		public static void ShiftPtr(PtrLst2 *self, long shift) {
+		public static void Remove(PtrLst2 *self, void *ptr) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			int oldCount = self->count;
+			#endif
+			void **arr = self->arr;
+			int i = 0, len = self->count;
+			while (i < len && arr[i] != ptr) i += 1;
+			if (i < len) {  // arr[i] == p
+				// for (len = self->count -= 1; i < len; i += 1) arr[i] = arr[i + 1];
+				byte* src = (byte *)(arr + i);
+				int size = self->size;
+				int count = self->count -= 1;
+				Mem.Memmove(src, src + size, (count - i) * size);
+			}
+			#if FDB
+			else Fdb.Error("{0} does not exist in PtrLst {1}", (ulong)ptr, (ulong) self);
+			Should.Equal("self->count", self->count, oldCount - 1);
+			#endif
+		}
+
+		public static void Clear(PtrLst2 *self) {
+			#if FDB
+			Should.NotNull("self", self);
+			Should.TypeEqual("self", self->type, Type);
+			#endif
+			self->count = 0;
+		}
+
+		public static void ShiftBase(PtrLst2 *self, long shift) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -147,7 +181,7 @@
 				Push(lst, (void *)arr[i]);
 			}
 			long shift = Fdb.Random(-1000, 1000);
-			ShiftPtr(lst, shift);
+			ShiftBase(lst, shift);
 			void **ptr = lst->arr;
 			for (int i = 0; i < len; i += 1) {
 				Should.Equal("(int)ptr[i]", (long)ptr[i], arr[i] + shift);

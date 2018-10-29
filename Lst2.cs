@@ -8,7 +8,7 @@
 
 		public int len, count, size;
 		public byte *arr;
-		public byte *oldArr;
+		public long shift;
 
 		public static void Init(Lst2 *self, int size) {
 			Init(self, 4, size);
@@ -24,7 +24,7 @@
 			self->count = 0;
 			self->size = size;
 			self->arr = (byte *)Mem.Malloc(len * size);
-			self->oldArr = null;
+			self->shift = 0;
 		}
 
 		public static void *Get(Lst2 *self, int idx) {
@@ -42,8 +42,9 @@
 			int oldCount = self->count;
 			self->count = oldCount + 1;
 			if (oldCount >= self->len) {  // resize
-				byte *arr = self->oldArr = self->arr;
-				self->arr = (byte *)Mem.Realloc(arr, (self->len <<= 1) * self->size);
+				byte *oldArr = self->arr;
+				byte *arr = self->arr = (byte *)Mem.Realloc(oldArr, (self->len <<= 1) * self->size);
+				self->shift = arr - oldArr;
 			}
 			return (void *)(self->arr + oldCount * self->size);
 		}

@@ -1,4 +1,5 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe struct Pool2 {
 		#if FDB
 		public static int Type = Fdb.NewType("Pool2");
@@ -16,7 +17,13 @@
 
 		public int len;
 		public byte *arr;
-		public byte *oldArr;
+		public long shift;
+
+		public static Pool2 *New() {
+			var pool = (Pool2 *)Mem.Malloc(sizeof(Pool2));
+			Init(pool);
+			return pool;
+		}
 
 		public static void Init(Pool2 *self) {
 			Init(self, 64);
@@ -32,6 +39,7 @@
 			int headSize = HeadSize;
 			int tailSize = TailSize;
 			byte *arr = self->arr = (byte *)Mem.Malloc(len);
+			self->shift = 0;
 
 			// sentinel
 			int *head = (int *)arr;
@@ -245,8 +253,9 @@
 			self->len = len;
 //			Fdb.Log("{0:X}", (long)arr);
 //			Fdb.Log("len: {0}", Mem.Verify(arr));
-			self->oldArr = arr;
+			byte *oldArr = arr;
 			arr = self->arr = (byte *)Mem.Realloc(arr, len);
+			self->shift = arr - oldArr;
 //			Fdb.Log("{0:X}", (long)arr);
 //			Fdb.Log("len: {0}", Mem.Verify(self->arr));
 
@@ -291,6 +300,30 @@
 			#if FDB
 			Verify(self);
 			#endif
+		}
+
+		public static void Clear(Pool2 *self) {
+			int len = self->len;
+			int headSize = HeadSize;
+			int tailSize = TailSize;
+			byte *arr = self->arr;
+
+			// sentinel
+			int *head = (int *)arr;
+			head[0] = -1;  // sentinelHead.prev = -1;
+			head[1] = headSize + tailSize;  // sentinelhead.next = headSize + tailSize;
+			head[2] = 0;  // sentinelHead.size = 0;
+			head[3] = -1;  // sentinelTail.size = -1;  // to prevent merging
+			//			Fdb.Dump(arr, len);
+			//               sentinel              firstFree             sentinel
+			int size = len - headSize - tailSize - headSize - tailSize - headSize;
+			SetFreeMeta((int *)(arr + headSize + tailSize), 0, -1, size);
+
+			// sentinel
+			head = (int *)(arr + len - headSize);
+			head[0] = -1;  // prev = -1 will prevent merging
+			head[1] = -1;
+			head[2] = 0;
 		}
 
 		#if FDB
@@ -381,7 +414,7 @@
 			var p2 = Pool2.Alloc(pool, 4);
 			*(int *)p2 = 0x4a4a4a4a;
 			Pool2.Free(pool, p2);
-			p = (void *)((byte *)p + (pool->arr - pool->oldArr));
+			p = (void *)((byte *)p + pool->shift);
 			Pool2.Free(pool, p);
 			// the first *real* free node should be 0x54 long (containing all space)
 			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
@@ -394,12 +427,12 @@
 			for (int i = 0; i < len; i += 1) {
 				int size = Fdb.Random(1, 1000);
 				ptrs[i] = (byte *)Pool2.Alloc(pool, size);
-				if (pool->oldArr != null) {
-					long shift = pool->arr - pool->oldArr;
+				if (pool->shift != 0) {
+					long shift = pool->shift;
 					for (int j = 0; j < i; j += 1) {
 						ptrs[j] += shift;
 					}
-					pool->oldArr = null;
+					pool->shift = 0;
 				}
 			}
 			for (int i = 0; i < len; i += 1) {
@@ -418,12 +451,12 @@
 			for (int i = 0; i < len; i += 1) {
 				int size = Fdb.Random(1, 1000);
 				ptrs.Add((long)Pool2.Alloc(pool, size));
-				if (pool->oldArr != null) {
-					long shift = pool->arr - pool->oldArr;
+				if (pool->shift != 0) {
+					long shift = pool->shift;
 					for (int j = 0; j < ptrs.Count - 1; j += 1) {
 						ptrs[j] += shift;
 					}
-					pool->oldArr = null;
+					pool->shift = 0;
 				}
 				if (Fdb.Random(0, 2) == 0) {  // 1/3 chance to free
 					int idx = Fdb.Random(0, ptrs.Count - 1);

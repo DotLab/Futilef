@@ -31,22 +31,22 @@ namespace Futilef {
 
 		readonly Queue<Cmd> cmdQueue = new Queue<Cmd>();
 		readonly LinkedList<EsJob> esJobList = new LinkedList<EsJob>();
-		readonly Dictionary<int, long> nodePosDict = new Dictionary<int, long>();
 
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
-		Pool *spritePool = Pool.New(sizeof(TpSprite));
-		PtrLst *spritePtrLst = PtrLst.New();
+		NumDict *nodeDict = NumDict.New();
+		Pool2 *spritePool = Pool2.New();
+		PtrLst2 *spritePtrLst = PtrLst2.New();
 
 		bool needDepthSort;
 
 		public void Dispose() {
 			cmdQueue.Clear();
 			esJobList.Clear();
-			nodePosDict.Clear();
-			Pool.Decon(spritePool);
-			PtrLst.Decon(spritePtrLst);
+//			nodeDict.Clear();
+//			Pool.Decon(spritePool);
+//			PtrLst.Decon(spritePtrLst);
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
@@ -88,7 +88,8 @@ namespace Futilef {
 			// draw
 			if (needDepthSort) { 
 				needDepthSort = false; 
-				PtrLst.Qsort(spritePtrLst, TpSprite.DepthCmp); 
+//				PtrLst.Qsort(spritePtrLst, TpSprite.DepthCmp); 
+				Algo.MergeSort(spritePtrLst->arr, spritePtrLst->count, TpSprite.DepthCmp);
 			}
 
 			DrawCtx.Start();
@@ -116,19 +117,29 @@ namespace Futilef {
 		}
 		void AddImg(AddImgCmd cmd) {
 			#if FDB
-			Should.False("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
+			Should.False("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			Should.True("Res.HasSpriteMeta(cmd.imgId)", Res.HasSpriteMeta(cmd.imgId));
 			#endif
-			var needRebuildPtrLst = Pool.Push(spritePool);
-			var node = (TpSprite *)spritePool->first;
+//			var needRebuildPtrLst = Pool.Push(spritePool);
+//			var node = (TpSprite *)spritePool->first;
+			var node = (TpSprite *)Pool2.Alloc(spritePool, sizeof(TpSprite));
 			TpSprite.Init(node, Res.GetSpriteMeta(cmd.imgId));
 
-			PtrLst.Push(spritePtrLst, node);
-			if (needRebuildPtrLst) {
-				Pool.FillPtrLst(spritePool, spritePtrLst);
+//			PtrLst.Push(spritePtrLst, node);
+//			if (needRebuildPtrLst) {
+//				Pool.FillPtrLst(spritePool, spritePtrLst);
+//				needDepthSort = true;
+//			}
+			if (spritePool->shift != 0) {
+				PtrLst2.ShiftBase(spritePtrLst, spritePool->shift);
+				NumDict.ShiftBase(nodeDict, spritePool->shift);
+				foreach (var esJob in esJobList) esJob.node = (TpSprite *)((byte *)esJob.node + spritePool->shift);
 				needDepthSort = true;
+				spritePool->shift = 0;
 			}
-			nodePosDict.Add(cmd.id, (byte *)node - spritePool->arr);
+			PtrLst2.Push(spritePtrLst, node);
+//			nodeDict.Add(cmd.id, (byte *)node - spritePool->arr);
+			NumDict.Add(nodeDict, cmd.id, node);
 		}
 
 		public void RmImg(int id) {
@@ -136,17 +147,17 @@ namespace Futilef {
 		}
 		void RmImg(RmImgCmd cmd) {
 			#if FDB
-			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
+			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			#endif
 			if (cmd.id < 0) {
-				nodePosDict.Clear();
-				PtrLst.Clear(spritePtrLst);
-				Pool.Clear(spritePool);
+				NumDict.Clear(nodeDict);
+				PtrLst2.Clear(spritePtrLst);
+				Pool2.Clear(spritePool);
 			} else {
-				var pos = nodePosDict[cmd.id];
-				nodePosDict.Remove(cmd.id);
-				PtrLst.Remove(spritePtrLst, spritePool->arr + pos);
-				Pool.RemoveAt(spritePool, pos);
+				void *node = NumDict.Remove(nodeDict, cmd.id);
+//				nodeDict.Remove(cmd.id);
+				PtrLst2.Remove(spritePtrLst, node);
+				Pool2.Free(spritePool, node);
 			}
 		}
 
@@ -155,10 +166,10 @@ namespace Futilef {
 		}
 		void SetImgAttr(SetImgAttrCmd cmd) {
 			#if FDB
-			Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			#endif
-			var img = (TpSprite *)(spritePool->arr + nodePosDict[cmd.id]);
+			var img = (TpSprite *)NumDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
 				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
@@ -176,7 +187,7 @@ namespace Futilef {
 		}
 		void SetImgAttrEased(SetImgAttrEasedCmd cmd) {
 			#if FDB
-			Should.True("nodeIdxDict.ContainsKey(cmd.id)", nodePosDict.ContainsKey(cmd.id));
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			Should.GreaterThan("cmd.duration", cmd.duration, 0);
 			Should.InRange("cmd.esType", cmd.esType, 0, EsType.End - 1);
@@ -184,14 +195,14 @@ namespace Futilef {
 			float endTime = time + cmd.duration;
 			if (endTime > lastEsEndTime) lastEsEndTime = endTime;
 
-			var img = (TpSprite *)(spritePool->arr + nodePosDict[cmd.id]);
+			var img = (TpSprite *)NumDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
-				case ImgAttr.Position: esJobList.AddLast(new EsSetPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;
-				case ImgAttr.Rotation: esJobList.AddLast(new EsSetRotationJob{ node = img, duration = cmd.duration, esType = cmd.esType, r = img->rot,      dr = (float)args[0] - img->rot }); break;
-				case ImgAttr.Scale:    esJobList.AddLast(new EsSetScaleJob{    node = img, duration = cmd.duration, esType = cmd.esType, x = img->scl[0],   dx = (float)args[0] - img->scl[0], y = img->scl[1], dy = (float)args[1] - img->scl[1] }); break;
-				case ImgAttr.Alpha:    esJobList.AddLast(new EsSetAlphaJob{    node = img, duration = cmd.duration, esType = cmd.esType, a = img->color[3], da = (float)args[0] - img->color[3] }); break;
-				case ImgAttr.Tint:     esJobList.AddLast(new EsSetTintJob{     node = img, duration = cmd.duration, esType = cmd.esType, r = img->color[0], dr = (float)args[0] - img->color[0], g = img->color[1], dg = (float)args[1] - img->color[1], b = img->color[2], db = (float)args[2] - img->color[2] }); break;
+			case ImgAttr.Position: esJobList.AddLast(new EsSetPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;
+			case ImgAttr.Rotation: esJobList.AddLast(new EsSetRotationJob{ node = img, duration = cmd.duration, esType = cmd.esType, r = img->rot,      dr = (float)args[0] - img->rot }); break;
+			case ImgAttr.Scale:    esJobList.AddLast(new EsSetScaleJob{    node = img, duration = cmd.duration, esType = cmd.esType, x = img->scl[0],   dx = (float)args[0] - img->scl[0], y = img->scl[1], dy = (float)args[1] - img->scl[1] }); break;
+			case ImgAttr.Alpha:    esJobList.AddLast(new EsSetAlphaJob{    node = img, duration = cmd.duration, esType = cmd.esType, a = img->color[3], da = (float)args[0] - img->color[3] }); break;
+			case ImgAttr.Tint:     esJobList.AddLast(new EsSetTintJob{     node = img, duration = cmd.duration, esType = cmd.esType, r = img->color[0], dr = (float)args[0] - img->color[0], g = img->color[1], dg = (float)args[1] - img->color[1], b = img->color[2], db = (float)args[2] - img->color[2] }); break;
 			}
 		}
 
