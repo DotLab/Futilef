@@ -1,4 +1,5 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public static unsafe class Bit {
 		public static byte ReadUInt8(byte[] buf, ref int i) {
 			return buf[i++];

@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 
 namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe static class Mem {
 		#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 		[DllImport("msvcrt.dll", EntryPoint = "malloc", CallingConvention=CallingConvention.Cdecl)]

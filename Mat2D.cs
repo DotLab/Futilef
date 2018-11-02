@@ -1,11 +1,8 @@
 ﻿using Math = System.Math;
 
 namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe static class Mat2D {
-		public static float *New(int n = 1) {
-			return (float *)Mem.Malloc(n * 6 * sizeof(float));
-		}
-
 		/**
 		 * 1 0 x   cos -sin 0   sx 0 0   1 0 0   (sx * cos) (sy * -sin) x
 		 * 0 1 y . sin cos  0 . 0 sy 0 . 0 1 0 = (sx * sin) (sy * cos)  y

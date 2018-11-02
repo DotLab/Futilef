@@ -1,9 +1,6 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe static class Vec3 {
-		public static float *Create(int n = 1) {
-			return (float *)Mem.Malloc(n * 3 * sizeof(float));
-		}
-
 		public static float *Copy(float *o, float *a) {
 			o[0] = a[0];
 			o[1] = a[1];

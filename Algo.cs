@@ -1,4 +1,5 @@
 ﻿namespace Futilef {
+	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public static unsafe class Algo {
 		public delegate int Cmp(void *a, void *b);
 		public delegate bool Eq(void *a, void *b);

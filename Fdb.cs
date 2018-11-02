@@ -31,11 +31,6 @@ namespace Futilef {
 			Pool2.Test();   Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
 			Dict2.Test();   Log("Dict2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
 			NumDict.Test(); Log("NumDict test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-
-			Lst.Test();     Log("Lst test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
-			PtrLst.Test();  Log("PtrLst test: {0:N0}", sw.ElapsedTicks);  sw.Reset(); sw.Start();
-			// Pool.Test();    Log("Pool test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
-			Dict.Test();    Log("Dict test: {0:N0}", sw.ElapsedTicks);
 		}
 
 		public static int NewType(string name) {
