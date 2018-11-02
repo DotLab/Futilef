@@ -25,6 +25,13 @@
 			return pool;
 		}
 
+		public static void Decon(Pool2 *self) {
+			#if FDB
+			Verify(self);
+			#endif
+			Mem.Free(self->arr);
+		}
+
 		public static void Init(Pool2 *self) {
 			Init(self, 64);
 		}

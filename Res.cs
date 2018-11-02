@@ -16,7 +16,7 @@ namespace Futilef {
 //			texture.wrapMode = TextureWrapMode.Clamp;
 //			Debug.Log("Load " + id + "i");
 			texture.LoadImage(Resources.Load<TextAsset>(id + "i").bytes);
-			textureDict.Add(id, texture);
+			textureDict[id] = texture;
 			return texture;
 		}
 
@@ -27,7 +27,7 @@ namespace Futilef {
 				PtrLst.Push(atlasMetaLst, atlasMeta);
 				for (int j = 0, jlen = atlasMeta->spriteCount; j < jlen; j += 1) {
 					var spriteMeta = atlasMeta->sprites + j;
-					spriteMetaLstIdxDict.Add(spriteMeta->name, spriteMetaLst->count);
+					spriteMetaLstIdxDict[spriteMeta->name] = spriteMetaLst->count;
 					PtrLst.Push(spriteMetaLst, spriteMeta);
 				}
 			}	

@@ -25,12 +25,19 @@
 
 		public int level, len, count, free;
 		public Entry *entries;
-		public int *arr;
+		public int *arr;  // at the end of entries, not allocated
 
 		public static NumDict *New() {
 			var self = (NumDict *)Mem.Malloc(sizeof(NumDict));
 			Init(self);
 			return self;
+		}
+
+		public static void Decon(NumDict *self) {
+			#if FDB
+			Verify(self);
+			#endif
+			Mem.Free(self->entries);
 		}
 
 		public static void Init(NumDict *self) {

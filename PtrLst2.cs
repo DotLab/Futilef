@@ -15,6 +15,13 @@
 			return lst;
 		}
 
+		public static void Decon(PtrLst2 *self) {
+			#if FDB
+			Verify(self);
+			#endif
+			Mem.Free(self->arr);
+		}
+
 		public static void Init(PtrLst2 *self) {
 			Init(self, 4);
 		}

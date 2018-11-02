@@ -44,9 +44,9 @@ namespace Futilef {
 		public void Dispose() {
 			cmdQueue.Clear();
 			esJobList.Clear();
-//			nodeDict.Clear();
-//			Pool.Decon(spritePool);
-//			PtrLst.Decon(spritePtrLst);
+			NumDict.Decon(nodeDict); Mem.Free(nodeDict); nodeDict = null;
+			Pool2.Decon(spritePool); Mem.Free(spritePool); spritePool = null;
+			PtrLst2.Decon(spritePtrLst); Mem.Free(spritePtrLst); spritePtrLst = null;
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
