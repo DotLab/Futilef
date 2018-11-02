@@ -42,20 +42,20 @@
 				float2 texcoord : TEXCOORD0;
 			};
 
-			v2f SpriteVert(appdata_t IN) {
-				v2f OUT;
+			v2f SpriteVert(appdata_t i) {
+				v2f o;
 
-				OUT.vertex = UnityObjectToClipPos(IN.vertex);
-				OUT.texcoord = IN.texcoord;
-				OUT.color = IN.color * _Color;
+				o.vertex = UnityObjectToClipPos(i.vertex);
+				o.texcoord = i.texcoord;
+				o.color = i.color * _Color;
 
-				return OUT;
+				return o;
 			}
 
 			sampler2D _MainTex;
 
-			fixed4 SpriteFrag(v2f IN) : SV_Target {
-				return tex2D(_MainTex, IN.texcoord) * IN.color;
+			fixed4 SpriteFrag(v2f i) : SV_Target {
+				return tex2D(_MainTex, i.texcoord) * i.color * 2.0;  // alpha should not have the double-brightness, but whatever
 			}
 		ENDCG
 		}
