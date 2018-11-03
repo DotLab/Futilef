@@ -10,9 +10,9 @@
 		public void **arr;
 
 		public static PtrLst2 *New() {
-			var lst = (PtrLst2 *)Mem.Malloc(sizeof(PtrLst2));
-			Init(lst);
-			return lst;
+			var self = (PtrLst2 *)Mem.Malloc(sizeof(PtrLst2));
+			Init(self);
+			return self;
 		}
 
 		public static void Decon(PtrLst2 *self) {
@@ -79,7 +79,7 @@
 				Mem.Memmove(src, src + size, (count - i) * size);
 			}
 			#if FDB
-			else Fdb.Error("{0} does not exist in PtrLst {1}", (ulong)ptr, (ulong) self);
+			else Fdb.Error("{0:X} does not exist in PtrLst {1:X}", (ulong)ptr, (ulong) self);
 			Should.Equal("self->count", self->count, oldCount - 1);
 			#endif
 		}

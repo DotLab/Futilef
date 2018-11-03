@@ -139,7 +139,7 @@ namespace Futilef {
 			}
 			PtrLst2.Push(spritePtrLst, node);
 //			nodeDict.Add(cmd.id, (byte *)node - spritePool->arr);
-			NumDict.Add(nodeDict, cmd.id, node);
+			NumDict.Set(nodeDict, cmd.id, node);
 		}
 
 		public void RmImg(int id) {

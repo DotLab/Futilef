@@ -51,15 +51,13 @@
 			self->count = 0;
 			self->free = 0;
 			// | (Entry)entries... | (int)arr... |
-			// used entry: next: next entry in chain with the collided hash
-			//             hash >= 0
+			// used entry: next: next entry in the bucket
 			// free entry: next: next free entry
-			//             hash == -1
 			var entries = self->entries = (Entry *)Mem.Malloc(len * (EntrySize + IntSize));
 			Entry *entry = null;
 			for (int i = 0; i < len; i += 1) {
 				entry = entries + i;
-				entry->hash = -1;
+				entry->val = null;
 				entry->next = i + 1;
 			}
 			entry->next = -1;  // the last free entry
@@ -71,8 +69,7 @@
 			#if FDB
 			Verify(self);
 			#endif
-            if (hash < 0) hash = -hash;
-			int cur = self->arr[hash % self->len];
+			int cur = self->arr[(uint)hash % self->len];
 			var entries = self->entries;
 			while (cur != -1) {
 				var entry = entries + cur;
@@ -88,8 +85,7 @@
 			#if FDB
 			Verify(self);
 			#endif
-            if (hash < 0) hash = -hash;
-			int cur = self->arr[hash % self->len];
+			int cur = self->arr[(uint)hash % self->len];
 			var entries = self->entries;
 			while (cur != -1) {
 				var entry = entries + cur;
@@ -101,16 +97,16 @@
 			return false;
 		}
 
-		public static void Add(NumDict *self, int hash, void *val) {
+		public static void Set(NumDict *self, int hash, void *val) {
 			#if FDB
 			Verify(self);
+			Should.NotNull("val", val);
 			#endif
-            if (hash < 0) hash = -hash;
-			Entry *entry = null; 
 			int *arr = self->arr;
-			long mod = hash % self->len;
+			long mod = (uint)hash % self->len;
 			int idx = arr[mod], cur = idx;
 			var entries = self->entries;
+			Entry *entry = null; 
 			while (cur != -1) {
 				entry = entries + cur;
 				if (entry->hash == hash) {  // found the key
@@ -133,26 +129,26 @@
 				// rehash
 				entries = self->entries = (Entry *)Mem.Realloc(entries, len * (EntrySize + IntSize));
 				arr = self->arr = (int *)((byte *)entries + len * EntrySize);
-				for (int i = 0; i < len; i += 1) arr[i] = -1;
-				for (int i = 0; i < oldLen; i += 1) entries[i].next = -1;
+				for (int i = 0; i < len; i += 1) arr[i] = -1;  // clear the buckets
+				for (int i = 0; i < oldLen; i += 1) entries[i].next = -1;  // clear old links
 				for (int i = 0; i < oldLen; i += 1) {  // insert all old entries
 					entry = entries + i;
-					mod = entry->hash % len;
+					mod = (uint)entry->hash % len;
 					entry->next = arr[mod];
 					arr[mod] = i;
 				}
 
 				// link all new entries
 				self->free = oldLen + 1;  // point to new allocated entries
-				for (int i = oldLen + 1; i < len; i += 1)  {
+				for (int i = oldLen + 1; i < len; i += 1) {
 					entry = entries + i;
-					entry->hash = -1;
+					entry->val = null;
 					entry->next = i + 1;
 				}
 				entry->next = -1;  // the last free entry
 
 				entry = entries + oldLen;
-				idx = arr[mod = hash % len];  // different idx after expand
+				idx = arr[mod = (uint)hash % len];  // different idx after expand
 				free = oldLen;
 			} else {
 				entry = entries + free;
@@ -174,33 +170,36 @@
 			#if FDB
 			Verify(self);
 			#endif
-            if (hash < 0) hash = -hash;
 			int *arr = self->arr;
-			long mod = hash % self->len;
-			int cur = arr[mod], last = -1;
+			long mod = (uint)hash % self->len;
+			int cur = arr[mod], prev = -1;
 			var entries = self->entries;
 			while (cur != -1) {
 				var entry = entries + cur;
 				if (entry->hash == hash) {  // found the key
-					if (last != -1) {
-						entries[last].next = entry->next;
-					} else {  // the first entry
+					if (prev != -1) {
+						entries[prev].next = entry->next;
+					} else {  // the first entry in the bucket
 						arr[mod] = entry->next;
 					}
 					// insert into the front of free list
-					entry->hash = -1;
+					void *val = entry->val;
+					entry->val = null;
 					entry->next = self->free;
 					self->free = cur;
 					self->count -= 1;
 					#if FDB
 					Verify(self);
 					#endif
-					return entry->val;
+					return val;
 				}
-				last = cur;
+				prev = cur;
 				cur = entry->next;
 			}
 			// do nothing if no key is found
+			#if FDB
+			Fdb.Error("hash {0:X} does not exist in NumDict {1:X}", hash, (long)self);
+			#endif
 			return null;
 		}
 
@@ -213,7 +212,7 @@
 			Entry *entry = null;
 			for (int i = 0; i < len; i += 1) {
 				entry = entries + i;
-				entry->hash = -1;
+				entry->val = null;
 				entry->next = i + 1;
 			}
 			entry->next = -1;  // the last free entry
@@ -229,7 +228,8 @@
 			var entries = self->entries;
 			for (int i = 0, len = self->len; i < len; i += 1) {
 				var entry = entries + i;
-				if (entry->hash >= 0) entry->val = (byte *)entry->val + shift;
+				void *val = entry->val;
+				if (val != null) entry->val = (byte *)val + shift;
 			}
 		}
 
@@ -248,7 +248,7 @@
 			int j = 0;
 			for (int i = 0; i < len; i += 1) {
 				var entry = self->entries + i;
-				if (entry->hash >= 0) {  // a real key
+				if (entry->val != null) {  // a real key
 					j += 1;
 				}
 			}
@@ -267,7 +267,7 @@
 				int idx = self->arr[i];
 				while (idx != -1) {
 					var entry = self->entries + idx;
-					Should.Equal("entry->hash % len", ((int)entry->hash) % len, i);
+					Should.Equal("entry->hash % len", (uint)entry->hash % len, i);
 					j += 1;
 					idx = entry->next;
 				}
@@ -278,15 +278,15 @@
 		}
 
 		public static void Test() {
-			TestBasic();
-			TestSetGet();
-			TestSetGetRemove();
+//			TestBasic();
+//			TestSetGet();
+//			TestSetGetRemove();
 			TestRandomSetGetRemove();
 		}
 
 		static void TestBasic() {
 			var dict = stackalloc NumDict[1]; Init(dict);
-			Add(dict, 1, (void *)1);
+			Set(dict, 1, (void *)1);
 			Should.Equal("(int)Get(dict, 1)", (int)Get(dict, 1), 1);
 			Remove(dict, 1);
 			Should.Null("Get(dict, 1)", Get(dict, 1));
@@ -295,7 +295,7 @@
 		static void TestSetGet() {
 			var dict = stackalloc NumDict[1]; Init(dict);
 			for (int i = 2; i < 100; i += 1) {
-				Add(dict, i, (void *)i);
+				Set(dict, i, (void *)i);
 				for (int j = 2; j <= i; j += 1) {
 					Should.Equal("Get(dict, j)", (int)Get(dict, j), j);
 				}
@@ -305,7 +305,7 @@
 		static void TestSetGetRemove() {
 			var dict = stackalloc NumDict[1]; Init(dict);
 			for (int i = 2; i < 100; i += 1) {
-				Add(dict, i, (void *)i);
+				Set(dict, i, (void *)i);
 			}
 			for (int i = 2; i < 100; i += 1) {
 				Remove(dict, i);
@@ -324,9 +324,10 @@
 			var keyList = new System.Collections.Generic.List<int>();
 			var valList = new System.Collections.Generic.List<int>();
 			for (int i = 2; i < 100; i += 1) {
-				int key = (int)Fdb.Random(-0x8000000, 0x7fffffff);
-				int val = (int)Fdb.Random(-0x8000000, 0x7fffffff);
-				Add(dict, key, (void *)val);
+				int key = Fdb.Random(-0x8000000, 0x7fffffff);
+				int val = Fdb.Random(-0x8000000, 0x7fffffff);
+				if (val == 0) val = 1;
+				Set(dict, key, (void *)val);
 				keyList.Add(key);
 				valList.Add(val);
 				for (int j = 0; j < keyList.Count; j += 1) {
@@ -343,10 +344,6 @@
 					}
 				}
 			}
-		}
-
-		static bool Eq(void *a, void *b) {
-			return a == b;
 		}
 		#endif
 	}

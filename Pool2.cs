@@ -20,9 +20,9 @@
 		public long shift;
 
 		public static Pool2 *New() {
-			var pool = (Pool2 *)Mem.Malloc(sizeof(Pool2));
-			Init(pool);
-			return pool;
+			var self = (Pool2 *)Mem.Malloc(sizeof(Pool2));
+			Init(self);
+			return self;
 		}
 
 		public static void Decon(Pool2 *self) {
