@@ -161,16 +161,8 @@
 			int *rightHead = (int *)((byte *)head + headSize + size + tailSize);
 			if (rightHead[0] == -1) return;  // since only the left most sentinel has head.prev = -1, we can check this to see if the node is used
 
-			int newSize = size;
-			do {
-				int rightSize = rightHead[2];
-				newSize = newSize + tailSize + headSize + rightSize;
-				RemoveFromFreeList(arr, rightHead);
-
-				rightHead = (int *)((byte *)rightHead + headSize + rightSize + tailSize);
-			} while (rightHead[0] != -1);
-
-			SetFreeMeta(head, newSize);  // do not need to insert since head is already in free list
+			RemoveFromFreeList(arr, rightHead);
+			SetFreeMeta(head, size + tailSize + headSize + rightHead[2]);  // do not need to insert since head is already in free list
 		}
 
 		/**
@@ -191,18 +183,8 @@
 			if (leftSize == -1) return head;
 
 			RemoveFromFreeList(arr, head);
-			int *leftHead;
-			int newSize = head[2];
-			do {
-				leftHead = (int *)((byte *)leftTail - leftSize - headSize);
-				RemoveFromFreeList(arr, leftHead);
-				newSize = leftSize + tailSize + headSize + newSize;
-
-				leftTail = leftHead - 1;
-				leftSize = *leftTail;
-			} while (leftSize != -1);
-
-			SetFreeMetaAndInsert(arr, leftHead, newSize);
+			int *leftHead = (int *)((byte *)leftTail - leftSize - headSize);
+			SetFreeMeta(leftHead, leftSize + tailSize + headSize + head[2]);
 			return leftHead;
 		}
 
