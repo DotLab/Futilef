@@ -5,8 +5,8 @@ namespace Futilef {
 	public static unsafe class Res {
 		static readonly Dictionary<int, Texture2D> textureDict = new Dictionary<int, Texture2D>();
 
-		static readonly PtrLst2 *atlasMetaLst = PtrLst2.New();
-		static readonly PtrLst2 *spriteMetaLst = PtrLst2.New();
+		static readonly PtrLst *atlasMetaLst = PtrLst.New();
+		static readonly PtrLst *spriteMetaLst = PtrLst.New();
 		static readonly Dictionary<int, int> spriteMetaLstIdxDict = new Dictionary<int, int>();
 
 		public static Texture2D GetTexture(int id) {
@@ -22,11 +22,11 @@ namespace Futilef {
 			for (int i = 0, len = ids.Length; i < len; i += 1) {
 				int id = ids[i];
 				var atlasMeta = TpAtlasMeta.New(Resources.Load<TextAsset>(id.ToString()).text);
-				PtrLst2.Push(atlasMetaLst, atlasMeta);
+				PtrLst.Push(atlasMetaLst, atlasMeta);
 				for (int j = 0, jlen = atlasMeta->spriteCount; j < jlen; j += 1) {
 					var spriteMeta = atlasMeta->sprites + j;
 					spriteMetaLstIdxDict[spriteMeta->name] = spriteMetaLst->count;
-					PtrLst2.Push(spriteMetaLst, spriteMeta);
+					PtrLst.Push(spriteMetaLst, spriteMeta);
 				}
 			}	
 		}

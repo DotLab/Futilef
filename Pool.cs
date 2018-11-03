@@ -1,6 +1,6 @@
 ﻿namespace Futilef {
 	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
-	public unsafe struct Pool2 {
+	public unsafe struct Pool {
 		#if FDB
 		public static int Type = Fdb.NewType("Pool2");
 		public int type;
@@ -19,23 +19,23 @@
 		public byte *arr;
 		public long shift;
 
-		public static Pool2 *New() {
-			var self = (Pool2 *)Mem.Malloc(sizeof(Pool2));
+		public static Pool *New() {
+			var self = (Pool *)Mem.Malloc(sizeof(Pool));
 			Init(self);
 			return self;
 		}
 
-		public static void Decon(Pool2 *self) {
+		public static void Decon(Pool *self) {
 			#if FDB
 			Verify(self);
 			#endif
 			Mem.Free(self->arr);
 		}
 
-		public static void Init(Pool2 *self) {
+		public static void Init(Pool *self) {
 			Init(self, 64);
 		}
-		public static void Init(Pool2 *self, int len) {
+		public static void Init(Pool *self, int len) {
 			if (!Initialized) TypeInit();
 			#if FDB
 			Should.NotNull("self", self);
@@ -188,7 +188,7 @@
 			return leftHead;
 		}
 
-		public static void *Alloc(Pool2 *self, int size) {
+		public static void *Alloc(Pool *self, int size) {
 			#if FDB
 			Verify(self);
 			Should.GreaterThanZero("size", size);
@@ -268,7 +268,7 @@
 			return head + 3;
 		}
 
-		public static void Free(Pool2 *self, void *ptr) {
+		public static void Free(Pool *self, void *ptr) {
 			#if FDB
 			Verify(self);
 			Should.InRange("ptr", ptr, self->arr, self->arr + self->len);
@@ -291,7 +291,7 @@
 			#endif
 		}
 
-		public static void Clear(Pool2 *self) {
+		public static void Clear(Pool *self) {
 			int len = self->len;
 			int headSize = HeadSize;
 			int tailSize = TailSize;
@@ -316,7 +316,7 @@
 		}
 
 		#if FDB
-		public static void Verify(Pool2 *self) {
+		public static void Verify(Pool *self) {
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 
@@ -394,28 +394,28 @@
 		}
 
 		static void TestExpand1() {
-			var pool = stackalloc Pool2[1]; Init(pool);
-			var p = Pool2.Alloc(pool, 4);
+			var pool = stackalloc Pool[1]; Init(pool);
+			var p = Pool.Alloc(pool, 4);
 			*(int *)p = 0x4a4a4a4a;
-			Pool2.Free(pool, p);
-			p = Pool2.Alloc(pool, 4);
+			Pool.Free(pool, p);
+			p = Pool.Alloc(pool, 4);
 			*(int *)p = 0x4a4a4a4a;
-			var p2 = Pool2.Alloc(pool, 4);
+			var p2 = Pool.Alloc(pool, 4);
 			*(int *)p2 = 0x4a4a4a4a;
-			Pool2.Free(pool, p2);
+			Pool.Free(pool, p2);
 			p = (void *)((byte *)p + pool->shift);
-			Pool2.Free(pool, p);
+			Pool.Free(pool, p);
 			// the first *real* free node should be 0x54 long (containing all space)
 			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
 		}
 
 		static void TestRandomExpand() {
-			var pool = stackalloc Pool2[1]; Init(pool);
+			var pool = stackalloc Pool[1]; Init(pool);
 			const int len = 200;
 			var ptrs = stackalloc byte *[len];
 			for (int i = 0; i < len; i += 1) {
 				int size = Fdb.Random(1, 1000);
-				ptrs[i] = (byte *)Pool2.Alloc(pool, size);
+				ptrs[i] = (byte *)Pool.Alloc(pool, size);
 				if (pool->shift != 0) {
 					long shift = pool->shift;
 					for (int j = 0; j < i; j += 1) {
@@ -425,7 +425,7 @@
 				}
 			}
 			for (int i = 0; i < len; i += 1) {
-				Pool2.Free(pool, ptrs[i]);
+				Pool.Free(pool, ptrs[i]);
 			}
 			// the first *real* free node should be 0x54 long (containing all space)
 			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);
@@ -434,12 +434,12 @@
 
 
 		static void TestRandomAllocFree() {
-			var pool = stackalloc Pool2[1]; Init(pool);
+			var pool = stackalloc Pool[1]; Init(pool);
 			const int len = 200;
 			var ptrs = new System.Collections.Generic.List<long>();
 			for (int i = 0; i < len; i += 1) {
 				int size = Fdb.Random(1, 1000);
-				ptrs.Add((long)Pool2.Alloc(pool, size));
+				ptrs.Add((long)Pool.Alloc(pool, size));
 				if (pool->shift != 0) {
 					long shift = pool->shift;
 					for (int j = 0; j < ptrs.Count - 1; j += 1) {
@@ -449,12 +449,12 @@
 				}
 				if (Fdb.Random(0, 2) == 0) {  // 1/3 chance to free
 					int idx = Fdb.Random(0, ptrs.Count - 1);
-					Pool2.Free(pool, (void *)ptrs[idx]);
+					Pool.Free(pool, (void *)ptrs[idx]);
 					ptrs.RemoveAt(idx);
 				}
 			}
 			for (int i = 0; i < ptrs.Count; i += 1) {
-				Pool2.Free(pool, (void *)ptrs[i]);
+				Pool.Free(pool, (void *)ptrs[i]);
 			}
 			// the first *real* free node should be 0x54 long (containing all space)
 			Should.Equal("*(int *)(pool->arr + 0x28)", *(int *)(pool->arr + 0x18), pool->len - 11 * 4);

@@ -36,8 +36,8 @@ namespace Futilef {
 		float waitEndTime = -1, lastEsEndTime;
 
 		NumDict *nodeDict = NumDict.New();
-		Pool2 *spritePool = Pool2.New();
-		PtrLst2 *spritePtrLst = PtrLst2.New();
+		Pool *spritePool = Pool.New();
+		PtrLst *spritePtrLst = PtrLst.New();
 
 		bool needDepthSort;
 
@@ -45,8 +45,8 @@ namespace Futilef {
 			cmdQueue.Clear();
 			esJobList.Clear();
 			NumDict.Decon(nodeDict); Mem.Free(nodeDict); nodeDict = null;
-			Pool2.Decon(spritePool); Mem.Free(spritePool); spritePool = null;
-			PtrLst2.Decon(spritePtrLst); Mem.Free(spritePtrLst); spritePtrLst = null;
+			Pool.Decon(spritePool); Mem.Free(spritePool); spritePool = null;
+			PtrLst.Decon(spritePtrLst); Mem.Free(spritePtrLst); spritePtrLst = null;
 			DrawCtx.Dispose();
 
 			Debug.Log("Clean up GPC");
@@ -122,7 +122,7 @@ namespace Futilef {
 			#endif
 //			var needRebuildPtrLst = Pool.Push(spritePool);
 //			var node = (TpSprite *)spritePool->first;
-			var node = (TpSprite *)Pool2.Alloc(spritePool, sizeof(TpSprite));
+			var node = (TpSprite *)Pool.Alloc(spritePool, sizeof(TpSprite));
 			TpSprite.Init(node, Res.GetSpriteMeta(cmd.imgId));
 
 //			PtrLst.Push(spritePtrLst, node);
@@ -131,13 +131,13 @@ namespace Futilef {
 //				needDepthSort = true;
 //			}
 			if (spritePool->shift != 0) {
-				PtrLst2.ShiftBase(spritePtrLst, spritePool->shift);
+				PtrLst.ShiftBase(spritePtrLst, spritePool->shift);
 				NumDict.ShiftBase(nodeDict, spritePool->shift);
 				foreach (var esJob in esJobList) esJob.node = (TpSprite *)((byte *)esJob.node + spritePool->shift);
 				needDepthSort = true;
 				spritePool->shift = 0;
 			}
-			PtrLst2.Push(spritePtrLst, node);
+			PtrLst.Push(spritePtrLst, node);
 //			nodeDict.Add(cmd.id, (byte *)node - spritePool->arr);
 			NumDict.Set(nodeDict, cmd.id, node);
 		}
@@ -151,13 +151,13 @@ namespace Futilef {
 			#endif
 			if (cmd.id < 0) {
 				NumDict.Clear(nodeDict);
-				PtrLst2.Clear(spritePtrLst);
-				Pool2.Clear(spritePool);
+				PtrLst.Clear(spritePtrLst);
+				Pool.Clear(spritePool);
 			} else {
 				void *node = NumDict.Remove(nodeDict, cmd.id);
 //				nodeDict.Remove(cmd.id);
-				PtrLst2.Remove(spritePtrLst, node);
-				Pool2.Free(spritePool, node);
+				PtrLst.Remove(spritePtrLst, node);
+				Pool.Free(spritePool, node);
 			}
 		}
 

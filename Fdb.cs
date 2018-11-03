@@ -19,7 +19,7 @@ namespace Futilef {
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
 			
-			Pool2.TypeInit();
+			Pool.TypeInit();
 			Dict2.TypeInit();
 			
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
@@ -28,7 +28,7 @@ namespace Futilef {
 
 			Lst2.Test();    Log("Lst2 test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
 			PtrLst2.Test(); Log("PtrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
-			Pool2.Test();   Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			Pool.Test();   Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
 			Dict2.Test();   Log("Dict2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
 			NumDict.Test(); Log("NumDict test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 		}

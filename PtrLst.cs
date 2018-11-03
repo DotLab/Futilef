@@ -1,6 +1,6 @@
 ﻿namespace Futilef {
 	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
-	public unsafe struct PtrLst2 {
+	public unsafe struct PtrLst {
 		#if FDB
 		public static readonly int Type = Fdb.NewType("PtrLst2");
 		public int type;
@@ -9,23 +9,23 @@
 		public int len, count, size;
 		public void **arr;
 
-		public static PtrLst2 *New() {
-			var self = (PtrLst2 *)Mem.Malloc(sizeof(PtrLst2));
+		public static PtrLst *New() {
+			var self = (PtrLst *)Mem.Malloc(sizeof(PtrLst));
 			Init(self);
 			return self;
 		}
 
-		public static void Decon(PtrLst2 *self) {
+		public static void Decon(PtrLst *self) {
 			#if FDB
 			Verify(self);
 			#endif
 			Mem.Free(self->arr);
 		}
 
-		public static void Init(PtrLst2 *self) {
+		public static void Init(PtrLst *self) {
 			Init(self, 4);
 		}
-		public static void Init(PtrLst2 *self, int len) {
+		public static void Init(PtrLst *self, int len) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.GreaterThanZero("len", len);
@@ -37,7 +37,7 @@
 			self->arr = (void **)Mem.Malloc(len * size);
 		}
 
-		public static void Push(PtrLst2 *self, void *ptr) {
+		public static void Push(PtrLst *self, void *ptr) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -49,7 +49,7 @@
 			self->arr[oldCount] = ptr;
 		}
 
-		public static void RemoveAt(PtrLst2 *self, int idx) {
+		public static void RemoveAt(PtrLst *self, int idx) {
 			#if FDB
 			Verify(self);
 			Should.InRange("idx", idx, 0, self->count - 1);
@@ -62,7 +62,7 @@
 			Mem.Memmove(src, src + size, (count - idx) * size);
 		}
 
-		public static void Remove(PtrLst2 *self, void *ptr) {
+		public static void Remove(PtrLst *self, void *ptr) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -84,7 +84,7 @@
 			#endif
 		}
 
-		public static void Clear(PtrLst2 *self) {
+		public static void Clear(PtrLst *self) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -92,7 +92,7 @@
 			self->count = 0;
 		}
 
-		public static void ShiftBase(PtrLst2 *self, long shift) {
+		public static void ShiftBase(PtrLst *self, long shift) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -104,7 +104,7 @@
 
 
 		#if FDB
-		public static void Verify(PtrLst2 *self) {
+		public static void Verify(PtrLst *self) {
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 			int len = Mem.Verify(self->arr) / sizeof(void *);
@@ -123,7 +123,7 @@
 		static void TestPush() {
 			const int len = 1000;
 			var arr = stackalloc int[len];
-			var lst = stackalloc PtrLst2[1]; Init(lst);
+			var lst = stackalloc PtrLst[1]; Init(lst);
 			for (int i = 0; i < len; i += 1) {
 				arr[i] = Fdb.Random(0, len);
 				Push(lst, (void *)arr[i]);
@@ -137,7 +137,7 @@
 		static void TestRemoveAt() {
 			const int len = 1000;
 			var arr = new System.Collections.Generic.List<int>();
-			var lst = stackalloc PtrLst2[1]; Init(lst);
+			var lst = stackalloc PtrLst[1]; Init(lst);
 			for (int i = 0; i < len; i += 1) {
 				int v = Fdb.Random(0, len);
 				arr.Add(v);
@@ -157,7 +157,7 @@
 		static void TestPushRemovePush() {
 			const int len = 1000;
 			var arr = new System.Collections.Generic.List<int>();
-			var lst = stackalloc PtrLst2[1]; Init(lst);
+			var lst = stackalloc PtrLst[1]; Init(lst);
 			for (int i = 0; i < len; i += 1) {
 				int v = Fdb.Random(0, len);
 				arr.Add(v);
@@ -182,7 +182,7 @@
 		static void TestShiftPtr() {
 			const int len = 1000;
 			var arr = stackalloc int[len];
-			var lst = stackalloc PtrLst2[1]; Init(lst);
+			var lst = stackalloc PtrLst[1]; Init(lst);
 			for (int i = 0; i < len; i += 1) {
 				arr[i] = Fdb.Random(0, len);
 				Push(lst, (void *)arr[i]);
