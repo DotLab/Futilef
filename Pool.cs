@@ -6,14 +6,7 @@
 		public int type;
 		#endif
 
-		static int HeadSize, TailSize;
-		static bool Initialized;
-
-		public static void TypeInit() {
-			HeadSize = 3 * sizeof(int);
-			TailSize = sizeof(int);
-			Initialized = true;
-		}
+		const int HeadSize = 3 * sizeof(int), TailSize = sizeof(int);
 
 		public int len;
 		public byte *arr;
@@ -36,31 +29,28 @@
 			Init(self, 64);
 		}
 		public static void Init(Pool *self, int len) {
-			if (!Initialized) TypeInit();
 			#if FDB
 			Should.NotNull("self", self);
 			Should.GreaterThanZero("len", len);
 			self->type = Type;
 			#endif
 			self->len = len;
-			int headSize = HeadSize;
-			int tailSize = TailSize;
 			byte *arr = self->arr = (byte *)Mem.Malloc(len);
 			self->shift = 0;
 
 			// sentinel
 			int *head = (int *)arr;
 			head[0] = -1;  // sentinelHead.prev = -1;
-			head[1] = headSize + tailSize;  // sentinelhead.next = headSize + tailSize;
+			head[1] = HeadSize + TailSize;  // sentinelhead.next = HeadSize + TailSize;
 			head[2] = 0;  // sentinelHead.size = 0;
 			head[3] = -1;  // sentinelTail.size = -1;  // to prevent merging
 //			Fdb.Dump(arr, len);
 			//               sentinel              firstFree             sentinel
-			int size = len - headSize - tailSize - headSize - tailSize - headSize;
-			SetFreeMeta((int *)(arr + headSize + tailSize), 0, -1, size);
+			int size = len - HeadSize - TailSize - HeadSize - TailSize - HeadSize;
+			SetFreeMeta((int *)(arr + HeadSize + TailSize), 0, -1, size);
 
 			// sentinel
-			head = (int *)(arr + len - headSize);
+			head = (int *)(arr + len - HeadSize);
 			head[0] = -1;  // prev = -1 will prevent merging
 			head[1] = -1;
 			head[2] = 0;
@@ -156,13 +146,12 @@
 			Should.NotNull("arr", arr);
 			Should.NotNull("head", head);
 			#endif
-			int headSize = HeadSize, tailSize = TailSize;
 			int size = head[2];
-			int *rightHead = (int *)((byte *)head + headSize + size + tailSize);
+			int *rightHead = (int *)((byte *)head + HeadSize + size + TailSize);
 			if (rightHead[0] == -1) return;  // since only the left most sentinel has head.prev = -1, we can check this to see if the node is used
 
 			RemoveFromFreeList(arr, rightHead);
-			SetFreeMeta(head, size + tailSize + headSize + rightHead[2]);  // do not need to insert since head is already in free list
+			SetFreeMeta(head, size + TailSize + HeadSize + rightHead[2]);  // do not need to insert since head is already in free list
 		}
 
 		/**
@@ -177,14 +166,13 @@
 			Should.NotNull("arr", arr);
 			Should.NotNull("head", head);
 			#endif
-			int headSize = HeadSize, tailSize = TailSize;
 			int *leftTail = head - 1;
 			int leftSize = *leftTail;
 			if (leftSize == -1) return head;
 
 			RemoveFromFreeList(arr, head);
-			int *leftHead = (int *)((byte *)leftTail - leftSize - headSize);
-			SetFreeMeta(leftHead, leftSize + tailSize + headSize + head[2]);
+			int *leftHead = (int *)((byte *)leftTail - leftSize - HeadSize);
+			SetFreeMeta(leftHead, leftSize + TailSize + HeadSize + head[2]);
 			return leftHead;
 		}
 
@@ -196,7 +184,6 @@
 			if ((size & 0x3) != 0) {  // align to 4
 				size = (((size >> 2) + 1) << 2);
 			}
-			int headSize = HeadSize, tailSize = TailSize;
 			byte *arr = self->arr;
 
 			int *head;
@@ -212,9 +199,9 @@
 					//        | blockSize                            |
 					// | head | data... | tail | freeHead | data...  | tail |
 					//        | size    |                 | freeSize |
-					freeSize = blockSize - size - tailSize - headSize;
+					freeSize = blockSize - size - TailSize - HeadSize;
 					if (freeSize > 0) {  // split
-						freeHead = (int *)((byte *)head + headSize + size + tailSize);
+						freeHead = (int *)((byte *)head + HeadSize + size + TailSize);
 						SetFreeMetaAndInsert(arr, freeHead, freeSize);
 						MergeRight(arr, freeHead);
 
@@ -237,7 +224,7 @@
 			// | data... | freeHead | data...  | freeTail | head | data... | tail | endHead |
 			// | len                                                                        |
 			// | oldLen             | freeSize |                 | size    |
-			int oldLen = self->len, len = oldLen, minLen = oldLen + headSize + size + tailSize + headSize + tailSize;
+			int oldLen = self->len, len = oldLen, minLen = oldLen + HeadSize + size + TailSize + HeadSize + TailSize;
 			while (len < minLen) len <<= 1;
 			self->len = len;
 //			Fdb.Log("{0:X}", (long)arr);
@@ -249,18 +236,18 @@
 //			Fdb.Log("len: {0}", Mem.Verify(self->arr));
 
 
-			freeHead = (int *)(arr + oldLen - headSize);
-			freeSize = len - oldLen - tailSize - headSize - size - tailSize - headSize;
+			freeHead = (int *)(arr + oldLen - HeadSize);
+			freeSize = len - oldLen - TailSize - HeadSize - size - TailSize - HeadSize;
 			SetFreeMetaAndInsert(arr, freeHead, freeSize);
 //			Fdb.Dump(arr, len);
 			MergeLeft(arr, freeHead);
 
-			int *endHead = (int *)(arr + len - headSize);
+			int *endHead = (int *)(arr + len - HeadSize);
 			endHead[0] = -1;
 			endHead[1] = -1;
 			endHead[2] = 0;
 
-			head = (int *)((byte *)freeHead + headSize + freeSize + tailSize);
+			head = (int *)((byte *)freeHead + HeadSize + freeSize + TailSize);
 			SetUsedMeta(head, size);
 			#if FDB
 			Verify(self);
@@ -293,23 +280,21 @@
 
 		public static void Clear(Pool *self) {
 			int len = self->len;
-			int headSize = HeadSize;
-			int tailSize = TailSize;
 			byte *arr = self->arr;
 
 			// sentinel
 			int *head = (int *)arr;
 			head[0] = -1;  // sentinelHead.prev = -1;
-			head[1] = headSize + tailSize;  // sentinelhead.next = headSize + tailSize;
+			head[1] = HeadSize + TailSize;  // sentinelhead.next = HeadSize + TailSize;
 			head[2] = 0;  // sentinelHead.size = 0;
 			head[3] = -1;  // sentinelTail.size = -1;  // to prevent merging
 			//			Fdb.Dump(arr, len);
 			//               sentinel              firstFree             sentinel
-			int size = len - headSize - tailSize - headSize - tailSize - headSize;
-			SetFreeMeta((int *)(arr + headSize + tailSize), 0, -1, size);
+			int size = len - HeadSize - TailSize - HeadSize - TailSize - HeadSize;
+			SetFreeMeta((int *)(arr + HeadSize + TailSize), 0, -1, size);
 
 			// sentinel
-			head = (int *)(arr + len - headSize);
+			head = (int *)(arr + len - HeadSize);
 			head[0] = -1;  // prev = -1 will prevent merging
 			head[1] = -1;
 			head[2] = 0;
@@ -320,10 +305,10 @@
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 
-			int headSize = HeadSize, tailSize = TailSize;
+			int HeadSize = HeadSize, TailSize = TailSize;
 			Should.GreaterThanZero("self->len", self->len);
-			Should.Equal("self->headSize", headSize, 3 * sizeof(int));
-			Should.Equal("self->tailSize", tailSize, sizeof(int));
+			Should.Equal("self->HeadSize", HeadSize, 3 * sizeof(int));
+			Should.Equal("self->TailSize", TailSize, sizeof(int));
 
 			int len = Mem.Verify(self->arr);
 			Should.Equal("self->len", self->len, len);
@@ -332,7 +317,7 @@
 
 			byte *arr = self->arr;
 			int *head;
-			head = (int *)(arr + self->len - headSize);
+			head = (int *)(arr + self->len - HeadSize);
 			Should.Equal("endHead->prev", head[0], -1);  // head.prev = -1
 			Should.Equal("endHead->next", head[1], -1);  // head.next = -1
 			Should.Equal("endHead->size", head[2], 0);  // head.size = 0
@@ -347,18 +332,18 @@
 			while (curFree != -1) {
 				head = (int *)(arr + curFree);
 				Should.Equal("head" + curFree + "->prev", head[0], lastFree);
-				Should.Equal("tail->size", *(int *)((byte *)head + headSize + head[2]), head[2]);
+				Should.Equal("tail->size", *(int *)((byte *)head + HeadSize + head[2]), head[2]);
 				dict.Add(curFree, head[2]);
 				lastFree = curFree;
 				curFree = head[1];
 			}
 
-			head = (int *)(arr + headSize + tailSize);
+			head = (int *)(arr + HeadSize + TailSize);
 			int *end = (int *)(arr + self->len);
 			while (head < end) {
 				int pos = (int)((byte *)head - self->arr);
 				int prev = head[0], next = head[1], size = head[2];
-				int *tail = (int *)((byte *)head + headSize + size);
+				int *tail = (int *)((byte *)head + HeadSize + size);
 
 				if (tail < end) {
 					int tailVal = tail[0];
@@ -375,13 +360,13 @@
 						dict.Remove(pos);
 					}
 				} else {  // head is end sentinel, no tail
-					Should.Equal("head", head, (int *)(arr + len - headSize));
+					Should.Equal("head", head, (int *)(arr + len - HeadSize));
 					Should.Equal("endHead->prev", head[0], -1);  // head.prev = -1
 					Should.Equal("endHead->next", head[1], -1);  // head.next = -1
 					Should.Equal("endHead->size", head[2], 0);  // head.size = 0
 				}
 
-				head = (int *)((byte *)head + headSize + size + tailSize);
+				head = (int *)((byte *)head + HeadSize + size + TailSize);
 			}
 			Should.Zero("dict.Count", dict.Count);
 		}

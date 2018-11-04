@@ -13,11 +13,13 @@ namespace Futilef {
 		public static string LastLog;
 
 		public static void Test() {
+			#if UNITY_EDITOR
 			System.Reflection.Assembly
 				.GetAssembly(typeof(UnityEditor.SceneView))
 				.GetType("UnityEditor.LogEntries")
 				.GetMethod("Clear")
 				.Invoke(new object(), null);
+			#endif
 		
 			var sw = new System.Diagnostics.Stopwatch(); sw.Stop(); sw.Reset(); sw.Start();
 			Mem.Test();     Log("Mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();

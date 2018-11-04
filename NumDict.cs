@@ -6,16 +6,12 @@
 		public int type;
 		#endif
 
-		static int[] Lens;
-		static int EntrySize, IntSize;
-		static bool Initialized;
-
-		public static void TypeInit() {
-			Lens = new [] { 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039, 4093, 8191, 16381, 32749, 65521, 131071, 262139, 524287, 1048573, 2097143, 4194301, 8388593, 16777213, 33554393, 67108859, 134217689, 268435399, 536870909, 1073741789, 2147483647 };
-			EntrySize = sizeof(Entry);
-			IntSize = sizeof(int);
-			Initialized = true;
+		static class Const {
+			public static readonly int[] Lens = { 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039, 4093, 8191, 16381, 32749, 65521, 131071, 262139, 524287, 1048573, 2097143, 4194301, 8388593, 16777213, 33554393, 67108859, 134217689, 268435399, 536870909, 1073741789, 2147483647 };
+			public static readonly int EntrySize = sizeof(Entry);
 		}
+
+		const int IntSize = sizeof(int);
 
 		public unsafe struct Entry {
 			public int hash;
@@ -41,18 +37,18 @@
 		}
 
 		public static void Init(NumDict *self) {
-			if (!Initialized) TypeInit();
 			#if FDB
 			Should.NotNull("self", self);
 			self->type = Type;
 			#endif
 			int level = self->level = 0;
-			int len = self->len = Lens[level];
+			int len = self->len = Const.Lens[level];
 			self->count = 0;
 			self->free = 0;
 			// | (Entry)entries... | (int)arr... |
 			// used entry: next: next entry in the bucket
 			// free entry: next: next free entry
+			int EntrySize = Const.EntrySize;
 			var entries = self->entries = (Entry *)Mem.Malloc(len * (EntrySize + IntSize));
 			Entry *entry = null;
 			for (int i = 0; i < len; i += 1) {
@@ -124,9 +120,10 @@
 			if (free == -1) {  // expand
 				int level = self->level += 1;
 				int oldLen = self->len;
-				int len = self->len = Lens[level];
+				int len = self->len = Const.Lens[level];
 
 				// rehash
+				int EntrySize = Const.EntrySize;
 				entries = self->entries = (Entry *)Mem.Realloc(entries, len * (EntrySize + IntSize));
 				arr = self->arr = (int *)((byte *)entries + len * EntrySize);
 				for (int i = 0; i < len; i += 1) arr[i] = -1;  // clear the buckets
