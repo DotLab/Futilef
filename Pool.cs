@@ -305,7 +305,6 @@
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
 
-			int HeadSize = HeadSize, TailSize = TailSize;
 			Should.GreaterThanZero("self->len", self->len);
 			Should.Equal("self->HeadSize", HeadSize, 3 * sizeof(int));
 			Should.Equal("self->TailSize", TailSize, sizeof(int));
@@ -372,7 +371,6 @@
 		}
 
 		public static void Test() {
-			TypeInit();
 			TestExpand1();
 			TestRandomExpand();
 			TestRandomAllocFree();

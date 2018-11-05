@@ -117,7 +117,7 @@ namespace Futilef {
 		}
 		void AddImg(AddImgCmd cmd) {
 			#if FDB
-			Should.False("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
+			Should.False("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			Should.True("Res.HasSpriteMeta(cmd.imgId)", Res.HasSpriteMeta(cmd.imgId));
 			#endif
 //			var needRebuildPtrLst = Pool.Push(spritePool);
@@ -147,7 +147,7 @@ namespace Futilef {
 		}
 		void RmImg(RmImgCmd cmd) {
 			#if FDB
-			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
+			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			#endif
 			if (cmd.id < 0) {
 				PtrIntDict.Clear(nodeDict);
@@ -166,7 +166,7 @@ namespace Futilef {
 		}
 		void SetImgAttr(SetImgAttrCmd cmd) {
 			#if FDB
-			Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			#endif
 			var img = (TpSprite *)PtrIntDict.Get(nodeDict, cmd.id);
@@ -187,7 +187,7 @@ namespace Futilef {
 		}
 		void SetImgAttrEased(SetImgAttrEasedCmd cmd) {
 			#if FDB
-			Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
+			Should.True("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			Should.GreaterThan("cmd.duration", cmd.duration, 0);
 			Should.InRange("cmd.esType", cmd.esType, 0, EsType.End - 1);

@@ -233,8 +233,8 @@
 		#if FDB
 		public static void Verify(PtrIntDict *self) {
 			Should.NotNull("self", self);
-			Should.InRange("self->level", self->level, 0, Lens.Length - 1);
-			Should.Equal("self->len", self->len, Lens[self->level]);
+			Should.InRange("self->level", self->level, 0, Const.Lens.Length - 1);
+			Should.Equal("self->len", self->len, Const.Lens[self->level]);
 			Should.InRange("self->count", self->count, 0, self->len);
 			Should.InRange("self->free", self->free, -1, self->len - 1);
 			Mem.Verify(self->entries);
