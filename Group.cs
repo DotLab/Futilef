@@ -17,7 +17,7 @@
 		public fixed float concatMat[6];
 		public float *parentMat;
 
-		public PtrLst elemtLst;
+		public PtrLst childLst;
 
 		public static void Init(Group *self) {
 			self->tag = Tag.Group;
@@ -32,7 +32,7 @@
 			Mat2D.Identity(self->concatMat);
 			self->parentMat = null;
 
-			PtrLst.Init(&self->elemtLst);
+			PtrLst.Init(&self->childLst);
 		}
 
 		/**
@@ -41,14 +41,14 @@
 		 *            diff pointer -> parent changed
 		 */
 		public static void Draw(Group *self, float *parentMat, bool isParentTransformDirty) {
-			var elemtLst = &self->elemtLst;
-			int count = elemtLst->count;
-			void **arr = elemtLst->arr;
+			var childLst = &self->childLst;
+			int childCount = childLst->count;
+			void **childArr = childLst->arr;
 
 			// sort by depth if any child depth is changed
-			for (int i = 0; i < count; i += 1) {
-				if (Elemt.IsDepthDirty(arr[i])) {
-					Algo.MergeSort(arr, count, Elemt.DepthCmp);
+			for (int i = 0; i < childCount; i += 1) {
+				if (Node.IsDepthDirty(childArr[i])) {
+					Algo.MergeSort(childArr, childCount, Node.DepthCmp);
 					break;
 				}
 			}
@@ -75,8 +75,8 @@
 				}
 			}
 
-			for (int i = 0; i < count; i += 1) {
-				Elemt.Draw(arr[i], concatMat, isParentTransformDirty);
+			for (int i = 0; i < childCount; i += 1) {
+				Node.Draw(childArr[i], concatMat, isParentTransformDirty);
 			}
 		}
 	}

@@ -95,7 +95,7 @@ namespace Futilef {
 			DrawCtx.Start();
 			var arr = (TpSprite **)spritePtrLst->arr;
 			for (int i = 0, end = spritePtrLst->count; i < end; i += 1) {
-				Elemt.Draw(arr[i], null, false);
+				Node.Draw(arr[i], null, false);
 			}
 			DrawCtx.Finish();
 		}
