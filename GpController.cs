@@ -35,7 +35,7 @@ namespace Futilef {
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
-		NumDict *nodeDict = NumDict.New();
+		PtrIntDict *nodeDict = PtrIntDict.New();
 		Pool *spritePool = Pool.New();
 		PtrLst *spritePtrLst = PtrLst.New();
 
@@ -44,7 +44,7 @@ namespace Futilef {
 		public void Dispose() {
 			cmdQueue.Clear();
 			esJobList.Clear();
-			NumDict.Decon(nodeDict); Mem.Free(nodeDict); nodeDict = null;
+			PtrIntDict.Decon(nodeDict); Mem.Free(nodeDict); nodeDict = null;
 			Pool.Decon(spritePool); Mem.Free(spritePool); spritePool = null;
 			PtrLst.Decon(spritePtrLst); Mem.Free(spritePtrLst); spritePtrLst = null;
 			DrawCtx.Dispose();
@@ -132,14 +132,14 @@ namespace Futilef {
 //			}
 			if (spritePool->shift != 0) {
 				PtrLst.ShiftBase(spritePtrLst, spritePool->shift);
-				NumDict.ShiftBase(nodeDict, spritePool->shift);
+				PtrIntDict.ShiftBase(nodeDict, spritePool->shift);
 				foreach (var esJob in esJobList) esJob.node = (TpSprite *)((byte *)esJob.node + spritePool->shift);
 				needDepthSort = true;
 				spritePool->shift = 0;
 			}
 			PtrLst.Push(spritePtrLst, node);
 //			nodeDict.Add(cmd.id, (byte *)node - spritePool->arr);
-			NumDict.Set(nodeDict, cmd.id, node);
+			PtrIntDict.Set(nodeDict, cmd.id, node);
 		}
 
 		public void RmImg(int id) {
@@ -150,11 +150,11 @@ namespace Futilef {
 			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			#endif
 			if (cmd.id < 0) {
-				NumDict.Clear(nodeDict);
+				PtrIntDict.Clear(nodeDict);
 				PtrLst.Clear(spritePtrLst);
 				Pool.Clear(spritePool);
 			} else {
-				void *node = NumDict.Remove(nodeDict, cmd.id);
+				void *node = PtrIntDict.Remove(nodeDict, cmd.id);
 //				nodeDict.Remove(cmd.id);
 				PtrLst.Remove(spritePtrLst, node);
 				Pool.Free(spritePool, node);
@@ -169,7 +169,7 @@ namespace Futilef {
 			Should.True("nodeIdxDict.ContainsKey(cmd.id)", NumDict.Contains(nodeDict, cmd.id));
 			Should.InRange("cmd.imgAttrId", cmd.imgAttrId, 0, ImgAttr.End - 1);
 			#endif
-			var img = (TpSprite *)NumDict.Get(nodeDict, cmd.id);
+			var img = (TpSprite *)PtrIntDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
 //				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
@@ -195,7 +195,7 @@ namespace Futilef {
 			float endTime = time + cmd.duration;
 			if (endTime > lastEsEndTime) lastEsEndTime = endTime;
 
-			var img = (TpSprite *)NumDict.Get(nodeDict, cmd.id);
+			var img = (TpSprite *)PtrIntDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
 			case ImgAttr.Position: esJobList.AddLast(new EsSetPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;

@@ -1,6 +1,6 @@
 ﻿namespace Futilef {
 	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
-	public unsafe struct NumDict {
+	public unsafe struct PtrIntDict {
 		#if FDB
 		public static int Type = Fdb.NewType("NumDict");
 		public int type;
@@ -23,20 +23,20 @@
 		public Entry *entries;
 		public int *arr;  // at the end of entries, not allocated
 
-		public static NumDict *New() {
-			var self = (NumDict *)Mem.Malloc(sizeof(NumDict));
+		public static PtrIntDict *New() {
+			var self = (PtrIntDict *)Mem.Malloc(sizeof(PtrIntDict));
 			Init(self);
 			return self;
 		}
 
-		public static void Decon(NumDict *self) {
+		public static void Decon(PtrIntDict *self) {
 			#if FDB
 			Verify(self);
 			#endif
 			Mem.Free(self->entries);
 		}
 
-		public static void Init(NumDict *self) {
+		public static void Init(PtrIntDict *self) {
 			#if FDB
 			Should.NotNull("self", self);
 			self->type = Type;
@@ -61,7 +61,7 @@
 			for (int i = 0; i < len; i += 1) arr[i] = -1;
 		}
 
-		public static void *Get(NumDict *self, int hash) {
+		public static void *Get(PtrIntDict *self, int hash) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -77,7 +77,7 @@
 			return null;
 		}
 
-		public static bool Contains(NumDict *self, int hash) {
+		public static bool Contains(PtrIntDict *self, int hash) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -93,7 +93,7 @@
 			return false;
 		}
 
-		public static void Set(NumDict *self, int hash, void *val) {
+		public static void Set(PtrIntDict *self, int hash, void *val) {
 			#if FDB
 			Verify(self);
 			Should.NotNull("val", val);
@@ -163,7 +163,7 @@
 			#endif
 		}
 
-		public static void *Remove(NumDict *self, int hash) {
+		public static void *Remove(PtrIntDict *self, int hash) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -200,7 +200,7 @@
 			return null;
 		}
 
-		public static void Clear(NumDict *self) {
+		public static void Clear(PtrIntDict *self) {
 			int len = self->len;
 			self->count = 0;
 			self->free = 0;
@@ -218,7 +218,7 @@
 			for (int i = 0; i < len; i += 1) arr[i] = -1;
 		}
 
-		public static void ShiftBase(NumDict *self, long shift) {
+		public static void ShiftBase(PtrIntDict *self, long shift) {
 			#if FDB
 			Verify(self);
 			#endif
@@ -231,7 +231,7 @@
 		}
 
 		#if FDB
-		public static void Verify(NumDict *self) {
+		public static void Verify(PtrIntDict *self) {
 			Should.NotNull("self", self);
 			Should.InRange("self->level", self->level, 0, Lens.Length - 1);
 			Should.Equal("self->len", self->len, Lens[self->level]);
@@ -282,7 +282,7 @@
 		}
 
 		static void TestBasic() {
-			var dict = stackalloc NumDict[1]; Init(dict);
+			var dict = stackalloc PtrIntDict[1]; Init(dict);
 			Set(dict, 1, (void *)1);
 			Should.Equal("(int)Get(dict, 1)", (int)Get(dict, 1), 1);
 			Remove(dict, 1);
@@ -290,7 +290,7 @@
 		}
 
 		static void TestSetGet() {
-			var dict = stackalloc NumDict[1]; Init(dict);
+			var dict = stackalloc PtrIntDict[1]; Init(dict);
 			for (int i = 2; i < 100; i += 1) {
 				Set(dict, i, (void *)i);
 				for (int j = 2; j <= i; j += 1) {
@@ -300,7 +300,7 @@
 		}
 
 		static void TestSetGetRemove() {
-			var dict = stackalloc NumDict[1]; Init(dict);
+			var dict = stackalloc PtrIntDict[1]; Init(dict);
 			for (int i = 2; i < 100; i += 1) {
 				Set(dict, i, (void *)i);
 			}
@@ -317,7 +317,7 @@
 		}
 
 		static void TestRandomSetGetRemove() {
-			var dict = stackalloc NumDict[1]; Init(dict);
+			var dict = stackalloc PtrIntDict[1]; Init(dict);
 			var keyList = new System.Collections.Generic.List<int>();
 			var valList = new System.Collections.Generic.List<int>();
 			for (int i = 2; i < 100; i += 1) {
