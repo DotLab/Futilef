@@ -1,69 +1,41 @@
 ﻿namespace Futilef {
 	public unsafe struct TpSprite {
-		public static int DepthCmp(void *a, void *b) {
-			return ((TpSprite *)a)->pos[2] - ((TpSprite *)b)->pos[2] < 0 ? 1 : -1;
-		}
-
+		public int tag;
 		#if FDB
 		public static readonly int Type = Fdb.NewType("TpSpriteNode");
 		public int type;
 		#endif
 
-		public bool interactable;
-		bool shouldRebuild;
-
 		public fixed float pos[3];
 		public fixed float scl[2];
 		public float rot;
 
+		public bool isTransformDirty;
+		public bool isDepthDirty;
+
 		public fixed float color[4];
+		public fixed float verts[4 * 2];
+		public fixed float uvs[4 * 2];
 
-		fixed float verts[4 * 2];
-		fixed float uvs[4 * 2];
+		public TpSpriteMeta *spriteMeta;
 
-		TpSpriteMeta *spriteMeta;
-
-		public static TpSprite *New(TpSpriteMeta *spriteMeta) {
-			#if FDB
-			Should.NotNull("spriteMeta", spriteMeta);
-			#endif
-			return Init((TpSprite *)Mem.Malloc(sizeof(TpSprite)), spriteMeta);
-		}
-
-		public static TpSprite *Init(TpSprite *self, TpSpriteMeta *spriteMeta) {
+		public static void Init(TpSprite *self, TpSpriteMeta *spriteMeta) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.NotNull("spriteMeta", spriteMeta);
 			self->type = Type;
 			#endif
-			self->interactable = false;
-			self->shouldRebuild = true;
+			self->tag = Tag.TpSprite;
 
 			Vec3.Zero(self->pos);
+			Vec2.One(self->scl);
 			self->rot = 0;
-			Vec2.Set(self->scl, 1, 1);
-			Vec4.Set(self->color, 1, 1, 1, 0);
-			self->spriteMeta = spriteMeta;
+			self->isTransformDirty = true;  // delay regen verts to first Draw
 
+			Vec4.Set(self->color, 1, 1, 1, 0);
 			TpSpriteMeta.FillUvs(spriteMeta, self->uvs);
 
-			return self;
-		}
-
-		public static void Decon(TpSprite *self) {
-			#if FDB
-			Should.NotNull("self", self);
-			Should.TypeEqual("self", self->type, Type);
-			self->type = Fdb.NullType;
-			#endif
-		}
-
-		public static void SetInteractable(TpSprite *self, bool val) {
-			#if FDB
-			Should.NotNull("self", self);
-			Should.TypeEqual("self", self->type, Type);
-			#endif
-			self->interactable = val;
+			self->spriteMeta = spriteMeta;
 		}
 
 		public static void SetPosition(TpSprite *self, float x, float y, float z) {
@@ -72,7 +44,7 @@
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 			Vec3.Set(self->pos, x, y, z);
-			self->shouldRebuild = true;
+			self->isTransformDirty = true;
 		}
 
 		public static void SetRotation(TpSprite *self, float rotation) {
@@ -81,7 +53,7 @@
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 			self->rot = rotation;
-			self->shouldRebuild = true;
+			self->isTransformDirty = true;
 		}
 
 		public static void SetScale(TpSprite *self, float x, float y) {
@@ -90,7 +62,7 @@
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 			Vec2.Set(self->scl, x, y);
-			self->shouldRebuild = true;
+			self->isTransformDirty = true;
 		}
 
 		public static void SetAlpha(TpSprite *self, float a) {
@@ -109,14 +81,7 @@
 			Vec3.Set(self->color, r, g, b);
 		}
 
-		public static void Touch(TpSprite *self) {
-			#if FDB
-			Should.NotNull("self", self);
-			Should.TypeEqual("self", self->type, Type);
-			#endif
-		}
-
-		public static void Draw(TpSprite *self) {
+		public static void Draw(TpSprite *self, float *parentMat, bool isParentTransformDirty) {
 			#if FDB
 			Should.NotNull("self", self);
 			Should.TypeEqual("self", self->type, Type);
@@ -129,7 +94,7 @@
 			float *verts = self->verts;
 			float *uvs = self->uvs;
 
-			if (self->shouldRebuild) {
+			if (self->isTransformDirty) {
 				float *mat = stackalloc float[6];
 				Mat2D.FromScalingRotationTranslation(mat, self->pos, self->scl, self->rot);
 				TpSpriteMeta.FillQuad(self->spriteMeta, mat, self->verts);
@@ -162,6 +127,10 @@
 			bTris[triIdx + 3] = vertIdx;
 			bTris[triIdx + 4] = vertIdx + 2;
 			bTris[triIdx + 5] = vertIdx + 3;
+		}
+
+		public static int DepthCmp(void *a, void *b) {
+			return ((TpSprite *)a)->pos[2] - ((TpSprite *)b)->pos[2] < 0 ? 1 : -1;
 		}
 	}
 }

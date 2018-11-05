@@ -95,7 +95,7 @@ namespace Futilef {
 			DrawCtx.Start();
 			var arr = (TpSprite **)spritePtrLst->arr;
 			for (int i = 0, end = spritePtrLst->count; i < end; i += 1) {
-				TpSprite.Draw(arr[i]);
+				Elemt.Draw(arr[i], null, false);
 			}
 			DrawCtx.Finish();
 		}
@@ -172,7 +172,7 @@ namespace Futilef {
 			var img = (TpSprite *)NumDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
-				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
+//				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
 				case ImgAttr.Position:     TpSprite.SetPosition(img, (float)args[0], (float)args[1], (float)args[2]); needDepthSort = true; break;
 				case ImgAttr.Rotation:     TpSprite.SetRotation(img, (float)args[0]); break;
 				case ImgAttr.Scale:        TpSprite.SetScale(img, (float)args[0], (float)args[1]); break;

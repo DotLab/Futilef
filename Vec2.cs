@@ -13,6 +13,12 @@
 			return o;
 		}
 
+		public static float *One(float *o) {
+			o[0] = 1;
+			o[1] = 1;
+			return o;
+		}
+
 		public static float *Set(float *o, float x, float y) {
 			o[0] = x;
 			o[1] = y;
