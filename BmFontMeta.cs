@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 
 namespace Futilef {
-	public unsafe struct BmGlyph {
+	public unsafe struct BmGlyphMeta {
 		// id			4	uint	0+c*20	These fields are repeated until all characters have been described
 		public UInt32 id;
 		// x			2	uint	4+c*20
@@ -23,7 +23,7 @@ namespace Futilef {
 		public UInt32 page;
 		// chnl			1	uint	19+c*20
 
-		public static BmGlyph *Init(BmGlyph *self, byte[] buf, ref int i) {
+		public static BmGlyphMeta *Init(BmGlyphMeta *self, byte[] buf, ref int i) {
 			// id			4	uint	0+c*20	These fields are repeated until all characters have been described
 			self->id = Bit.ReadUInt32(buf, ref i);
 			// x			2	uint	4+c*20
@@ -54,7 +54,7 @@ namespace Futilef {
 		}
 	}
 
-	public class BmFont {
+	public class BmFontMeta {
 		// fontSize		2	int		0
 		public Int16 fontSize;
 		// bitField		1	bits	2	bit 0: smooth, bit 1: unicode, bit 2: italic, bit 3: bold, bit 4: fixedHeigth, bits 5-7: reserved
@@ -90,10 +90,10 @@ namespace Futilef {
 		// pageNames	p*(n+1)	strings	0	p null terminated strings, each with length n
 		public string[] pageNames;
 
-		public Dictionary<UInt32, BmGlyph> glyphDict = new Dictionary<UInt32, BmGlyph>();
+		public Dictionary<UInt32, BmGlyphMeta> glyphDict = new Dictionary<UInt32, BmGlyphMeta>();
 		public Dictionary<UInt64, Int16> kerningDict = new Dictionary<UInt64, Int16>();
 
-		public BmFont(byte[] buf) {
+		public BmFontMeta(byte[] buf) {
 			int i = 0;
 
 //			Should.Equal("Bit.ReadUInt8(buf, ref i)", Bit.ReadUInt8(buf, ref i), 'B');
@@ -190,7 +190,7 @@ namespace Futilef {
 			}
 		}
 
-		public bool TryGetGlyph(UInt32 id, out BmGlyph glyph) {
+		public bool TryGetGlyph(UInt32 id, out BmGlyphMeta glyph) {
 			return glyphDict.TryGetValue(id, out glyph);
 		}
 
@@ -198,7 +198,7 @@ namespace Futilef {
 			return glyphDict.ContainsKey(id);
 		}
 
-		public BmGlyph GetGlyph(UInt32 id) {
+		public BmGlyphMeta GetGlyph(UInt32 id) {
 			return glyphDict[id];
 		}
 
