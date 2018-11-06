@@ -1,6 +1,7 @@
 ﻿namespace Futilef {
 	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe struct PtrIntDict {
+		public int tag;
 		#if FDB
 		public static int Type = Fdb.NewType("NumDict");
 		public int type;
@@ -41,6 +42,7 @@
 			Should.NotNull("self", self);
 			self->type = Type;
 			#endif
+			self->tag = Tag.PtrIntDict;
 			int level = self->level = 0;
 			int len = self->len = Const.Lens[level];
 			self->count = 0;

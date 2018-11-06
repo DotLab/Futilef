@@ -25,8 +25,8 @@ namespace Futilef {
 			Mem.Test();     Log("Mem test: {0:N0}", sw.ElapsedTicks);     sw.Reset(); sw.Start();
 			Algo.Test();    Log("Algo test: {0:N0}", sw.ElapsedTicks);    sw.Reset(); sw.Start();
 
-			Pool.Test();   Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
-			PtrLst.Test(); Log("PtrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
+			Pool.Test();       Log("Pool2 test: {0:N0}", sw.ElapsedTicks);   sw.Reset(); sw.Start();
+			PtrLst.Test();     Log("PtrLst2 test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 			PtrIntDict.Test(); Log("NumDict test: {0:N0}", sw.ElapsedTicks); sw.Reset(); sw.Start();
 		}
 

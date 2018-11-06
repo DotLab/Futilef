@@ -12,6 +12,8 @@
 		public byte *arr;
 		public long shift;
 
+		public PtrLst dependentLst;
+
 		public static Pool *New() {
 			var self = (Pool *)Mem.Malloc(sizeof(Pool));
 			Init(self);
@@ -54,6 +56,8 @@
 			head[0] = -1;  // prev = -1 will prevent merging
 			head[1] = -1;
 			head[2] = 0;
+
+			PtrLst.Init(&self->dependentLst);
 			#if FDB
 			Verify(self);
 			#endif
@@ -231,10 +235,16 @@
 //			Fdb.Log("len: {0}", Mem.Verify(arr));
 			byte *oldArr = arr;
 			arr = self->arr = (byte *)Mem.Realloc(arr, len);
-			self->shift = arr - oldArr;
+			long shift = self->shift = arr - oldArr;
+			if (shift != 0) {
+				var dependentLst = &self->dependentLst;
+				void **dependentArr = dependentLst->arr;
+				for (int i = 0, dependentLen = dependentLst->count; i < dependentLen; i += 1) {
+					PtrCollection.ShiftBase(dependentArr[i], shift);
+				}
+			}
 //			Fdb.Log("{0:X}", (long)arr);
 //			Fdb.Log("len: {0}", Mem.Verify(self->arr));
-
 
 			freeHead = (int *)(arr + oldLen - HeadSize);
 			freeSize = len - oldLen - TailSize - HeadSize - size - TailSize - HeadSize;

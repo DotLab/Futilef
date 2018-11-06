@@ -17,6 +17,9 @@
 		}
 
 		public static void Draw(void *node, float *parentMat, bool isParentTransformDirty) {
+			#if FDB
+			Should.NotNull("node", node);
+			#endif
 			switch (*(int *)node) {
 			case Tag.TpSprite: TpSprite.Draw((TpSprite *)node, parentMat, isParentTransformDirty); return;
 			case Tag.Group: Group.Draw((Group *)node, parentMat, isParentTransformDirty); return;

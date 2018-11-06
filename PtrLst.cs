@@ -1,6 +1,7 @@
 ﻿namespace Futilef {
 	[Unity.IL2CPP.CompilerServices.Il2CppSetOption(Unity.IL2CPP.CompilerServices.Option.NullChecks, false)]
 	public unsafe struct PtrLst {
+		public int tag;
 		#if FDB
 		public static readonly int Type = Fdb.NewType("PtrLst2");
 		public int type;
@@ -31,6 +32,7 @@
 			Should.GreaterThanZero("len", len);
 			self->type = Type;
 			#endif
+			self->tag = Tag.PtrLst;
 			self->len = len;
 			self->count = 0;
 			int size = self->size = sizeof(void *);
