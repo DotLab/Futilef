@@ -181,13 +181,13 @@
 		}
 
 		public static void *Alloc(Pool *self, int size) {
+			if ((size & 0x3) != 0) {  // align to 4
+				size = (((size >> 2) + 1) << 2);
+			}
 			#if FDB
 			Verify(self);
 			Should.GreaterThanZero("size", size);
 			#endif
-			if ((size & 0x3) != 0) {  // align to 4
-				size = (((size >> 2) + 1) << 2);
-			}
 			byte *arr = self->arr;
 
 			int *head;
