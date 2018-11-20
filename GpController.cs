@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
+using Cam = UnityEngine.Camera;
 
 namespace Futilef {
 	public unsafe class GpController {
+		public static class ImgAttr { public const int Interactable = 0, Position = 1, Rotation = 2, Scale = 3, Alpha = 4, Tint = 5, ImgId = 6, End = 7; }
+		public static class CamAttr { public const int Position = 0, Zoom = 1; }
+
 		#region CMD
 		class Cmd { }
 
@@ -19,14 +23,18 @@ namespace Futilef {
 		#endregion
 
 		#region ESJOB
-		public static class ImgAttr { public const int Interactable = 0, Position = 1, Rotation = 2, Scale = 3, Alpha = 4, Tint = 5, ImgId = 6, End = 7; }
+		class EsJob { public float time, duration; public int esType; public virtual void Apply(float step) {} public virtual void Finish() {} }
 
-		class EsJob { public float time, duration; public int esType; public TpSprite *node; public virtual void Apply(float step) {} public virtual void Finish() {} }
-		class EsSetPositionJob : EsJob { public float x, y, z, dx, dy, dz; public override void Apply(float step) { TpSprite.SetPosition(node, x + dx * step, y + dy * step, z + dz * step); } public override void Finish() { TpSprite.SetPosition(node, x + dx, y + dy, z + dz); } }
-		class EsSetRotationJob : EsJob { public float r, dr;               public override void Apply(float step) { TpSprite.SetRotation(node, r + dr * step); }                               public override void Finish() { TpSprite.SetRotation(node, r + dr); } }
-		class EsSetScaleJob    : EsJob { public float x, dx, y, dy;        public override void Apply(float step) { TpSprite.SetScale(node, x + dx * step, y + dy * step); }                   public override void Finish() { TpSprite.SetScale(node, x + dx, y + dy); } }
-		class EsSetAlphaJob    : EsJob { public float a, da;               public override void Apply(float step) { TpSprite.SetAlpha(node, a + da * step); }                                  public override void Finish() { TpSprite.SetAlpha(node, a + da); } }
-		class EsSetTintJob     : EsJob { public float r, g, b, dr, dg, db; public override void Apply(float step) { TpSprite.SetTint(node, r + dr * step, g + dg * step, b + db * step); }     public override void Finish() { TpSprite.SetTint(node, r + dr, g + dg, b + db); } }
+		class EsImgJob            : EsJob    { public TpSprite *node; }
+		class EsSetImgPositionJob : EsImgJob { public float x, y, z, dx, dy, dz; public override void Apply(float step) { TpSprite.SetPosition(node, x + dx * step, y + dy * step, z + dz * step); } public override void Finish() { TpSprite.SetPosition(node, x + dx, y + dy, z + dz); } }
+		class EsSetImgRotationJob : EsImgJob { public float r, dr;               public override void Apply(float step) { TpSprite.SetRotation(node, r + dr * step); }                               public override void Finish() { TpSprite.SetRotation(node, r + dr); } }
+		class EsSetImgScaleJob    : EsImgJob { public float x, dx, y, dy;        public override void Apply(float step) { TpSprite.SetScale(node, x + dx * step, y + dy * step); }                   public override void Finish() { TpSprite.SetScale(node, x + dx, y + dy); } }
+		class EsSetImgAlphaJob    : EsImgJob { public float a, da;               public override void Apply(float step) { TpSprite.SetAlpha(node, a + da * step); }                                  public override void Finish() { TpSprite.SetAlpha(node, a + da); } }
+		class EsSetImgTintJob     : EsImgJob { public float r, g, b, dr, dg, db; public override void Apply(float step) { TpSprite.SetTint(node, r + dr * step, g + dg * step, b + db * step); }     public override void Finish() { TpSprite.SetTint(node, r + dr, g + dg, b + db); } }
+
+		class EsCamJob            : EsJob    { public Cam cam; }
+		class EsSetCamPositionJob : EsCamJob { public float x, y, dx, dy; public override void Apply(float step) { cam.transform.position = new UnityEngine.Vector3(x + dx * step, y + dy * step, -10); } public override void Finish() { cam.transform.position = new UnityEngine.Vector3(x + dx, y + dy, -10); } }
+		class EsSetCamZoomJob     : EsCamJob { public float s, ds;        public override void Apply(float step) { cam.orthographicSize = s + ds * step; }                                                public override void Finish() { cam.orthographicSize = s + ds; } }
 		#endregion
 
 		readonly Queue<Cmd> cmdQueue = new Queue<Cmd>();
@@ -35,11 +43,19 @@ namespace Futilef {
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
+		readonly Dictionary<int, System.Action> nodeTouchHandlerDict = new Dictionary<int, System.Action>();
+
 		PtrIntDict *nodeDict = PtrIntDict.New();
 		Pool *spritePool = Pool.New();
 		PtrLst *spritePtrLst = PtrLst.New();
 
 		bool needDepthSort;
+
+		Cam cam;
+
+		public GpController(Cam cam) {
+			this.cam = cam;
+		}
 
 		public void Dispose() {
 			cmdQueue.Clear();
@@ -88,7 +104,6 @@ namespace Futilef {
 			// draw
 			if (needDepthSort) { 
 				needDepthSort = false; 
-//				PtrLst.Qsort(spritePtrLst, TpSprite.DepthCmp); 
 				Algo.MergeSort(spritePtrLst->arr, spritePtrLst->count, TpSprite.DepthCmp);
 			}
 
@@ -120,25 +135,22 @@ namespace Futilef {
 			Should.False("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			Should.True("Res.HasSpriteMeta(cmd.imgId)", Res.HasSpriteMeta(cmd.imgId));
 			#endif
-//			var needRebuildPtrLst = Pool.Push(spritePool);
-//			var node = (TpSprite *)spritePool->first;
 			var node = (TpSprite *)Pool.Alloc(spritePool, sizeof(TpSprite));
 			TpSprite.Init(node, Res.GetSpriteMeta(cmd.imgId));
 
-//			PtrLst.Push(spritePtrLst, node);
-//			if (needRebuildPtrLst) {
-//				Pool.FillPtrLst(spritePool, spritePtrLst);
-//				needDepthSort = true;
-//			}
 			if (spritePool->shift != 0) {
 				PtrLst.ShiftBase(spritePtrLst, spritePool->shift);
 				PtrIntDict.ShiftBase(nodeDict, spritePool->shift);
-				foreach (var esJob in esJobList) esJob.node = (TpSprite *)((byte *)esJob.node + spritePool->shift);
+				foreach (var esJob in esJobList) {
+					if (esJob is EsImgJob) {
+						var esTpSpriteJob = (EsImgJob)esJob;
+						esTpSpriteJob.node = (TpSprite *)((byte *)esTpSpriteJob.node + spritePool->shift);
+					}
+				}
 				needDepthSort = true;
 				spritePool->shift = 0;
 			}
 			PtrLst.Push(spritePtrLst, node);
-//			nodeDict.Add(cmd.id, (byte *)node - spritePool->arr);
 			PtrIntDict.Set(nodeDict, cmd.id, node);
 		}
 
@@ -155,7 +167,6 @@ namespace Futilef {
 				Pool.Clear(spritePool);
 			} else {
 				void *node = PtrIntDict.Remove(nodeDict, cmd.id);
-//				nodeDict.Remove(cmd.id);
 				PtrLst.Remove(spritePtrLst, node);
 				Pool.Free(spritePool, node);
 			}
@@ -198,11 +209,11 @@ namespace Futilef {
 			var img = (TpSprite *)PtrIntDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
-			case ImgAttr.Position: esJobList.AddLast(new EsSetPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;
-			case ImgAttr.Rotation: esJobList.AddLast(new EsSetRotationJob{ node = img, duration = cmd.duration, esType = cmd.esType, r = img->rot,      dr = (float)args[0] - img->rot }); break;
-			case ImgAttr.Scale:    esJobList.AddLast(new EsSetScaleJob{    node = img, duration = cmd.duration, esType = cmd.esType, x = img->scl[0],   dx = (float)args[0] - img->scl[0], y = img->scl[1], dy = (float)args[1] - img->scl[1] }); break;
-			case ImgAttr.Alpha:    esJobList.AddLast(new EsSetAlphaJob{    node = img, duration = cmd.duration, esType = cmd.esType, a = img->color[3], da = (float)args[0] - img->color[3] }); break;
-			case ImgAttr.Tint:     esJobList.AddLast(new EsSetTintJob{     node = img, duration = cmd.duration, esType = cmd.esType, r = img->color[0], dr = (float)args[0] - img->color[0], g = img->color[1], dg = (float)args[1] - img->color[1], b = img->color[2], db = (float)args[2] - img->color[2] }); break;
+			case ImgAttr.Position: esJobList.AddLast(new EsSetImgPositionJob{ node = img, duration = cmd.duration, esType = cmd.esType, x = img->pos[0],   dx = (float)args[0] - img->pos[0], y = img->pos[1], dy = (float)args[1] - img->pos[1], z = img->pos[2], dz = 0 }); break;// (float)args[2] - img->pos[2] }); break;
+			case ImgAttr.Rotation: esJobList.AddLast(new EsSetImgRotationJob{ node = img, duration = cmd.duration, esType = cmd.esType, r = img->rot,      dr = (float)args[0] - img->rot }); break;
+			case ImgAttr.Scale:    esJobList.AddLast(new EsSetImgScaleJob{    node = img, duration = cmd.duration, esType = cmd.esType, x = img->scl[0],   dx = (float)args[0] - img->scl[0], y = img->scl[1], dy = (float)args[1] - img->scl[1] }); break;
+			case ImgAttr.Alpha:    esJobList.AddLast(new EsSetImgAlphaJob{    node = img, duration = cmd.duration, esType = cmd.esType, a = img->color[3], da = (float)args[0] - img->color[3] }); break;
+			case ImgAttr.Tint:     esJobList.AddLast(new EsSetImgTintJob{     node = img, duration = cmd.duration, esType = cmd.esType, r = img->color[0], dr = (float)args[0] - img->color[0], g = img->color[1], dg = (float)args[1] - img->color[1], b = img->color[2], db = (float)args[2] - img->color[2] }); break;
 			}
 		}
 
@@ -210,12 +221,25 @@ namespace Futilef {
 			cmdQueue.Enqueue(new SetCamAttrCmd{ camAttrId = camAttrId, args = args });
 		}
 		void SetCamAttr(SetCamAttrCmd cmd) {
+			var args = cmd.args;
+			switch (cmd.camAttrId) {
+			case CamAttr.Position: cam.transform.position = new UnityEngine.Vector3((float)args[0], (float)args[1], -10); break;
+			case CamAttr.Zoom:     cam.orthographicSize = (float)args[0]; break;
+			}
 		}
 
 		public void SetCamAttrEased(int camAttrId, float duration, int esType, params object[] args) {
 			cmdQueue.Enqueue(new SetCamAttrEasedCmd{ camAttrId = camAttrId, duration = duration, esType = esType, args = args });
 		}
 		void SetCamAttrEased(SetCamAttrEasedCmd cmd) {
+			float endTime = time + cmd.duration;
+			if (endTime > lastEsEndTime) lastEsEndTime = endTime;
+
+			var args = cmd.args;
+			switch (cmd.camAttrId) {
+			case CamAttr.Position: esJobList.AddLast(new EsSetCamPositionJob{ cam = cam, duration = cmd.duration, esType = cmd.esType, x = cam.transform.position.x, y = cam.transform.position.y, dx = (float)args[0] - cam.transform.position.x, dy = (float)args[1] - cam.transform.position.y }); break;
+			case CamAttr.Zoom:     esJobList.AddLast(new EsSetCamZoomJob{     cam = cam, duration = cmd.duration, esType = cmd.esType, s = cam.orthographicSize, ds = (float)args[0] - cam.orthographicSize }); break;
+			}
 		}
 	}
 }
