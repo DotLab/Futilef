@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
 using Cam = UnityEngine.Camera;
+using OnTouchDelegate = System.Action<int, float, float>;
 
 namespace Futilef {
 	public unsafe class GpController {
@@ -43,7 +44,7 @@ namespace Futilef {
 		float time;
 		float waitEndTime = -1, lastEsEndTime;
 
-		readonly Dictionary<int, System.Action> nodeTouchHandlerDict = new Dictionary<int, System.Action>();
+		readonly Dictionary<int, OnTouchDelegate> nodeTouchHandlerDict = new Dictionary<int, OnTouchDelegate>();
 
 		PtrIntDict *nodeDict = PtrIntDict.New();
 		Pool *spritePool = Pool.New();
@@ -51,7 +52,7 @@ namespace Futilef {
 
 		bool needDepthSort;
 
-		Cam cam;
+		readonly Cam cam;
 
 		public GpController(Cam cam) {
 			this.cam = cam;
@@ -101,14 +102,45 @@ namespace Futilef {
 				node = next;
 			}
 
-			// draw
+			// sort
 			if (needDepthSort) { 
 				needDepthSort = false; 
 				Algo.MergeSort(spritePtrLst->arr, spritePtrLst->count, TpSprite.DepthCmp);
 			}
 
-			DrawCtx.Start();
 			var arr = (TpSprite **)spritePtrLst->arr;
+
+			// mouse (0 for left button, 1 for right button, 2 for the middle button)
+			for (int m = 0; m <= 2; m += 1) {
+				int phase = TchPhase.FromUnityMouse(m);
+				if (phase == TchPhase.None) continue;
+				var pos = cam.ScreenToWorldPoint(UnityEngine.Input.mousePosition);
+				float x = pos.x, y = pos.y;
+				for (int i = spritePtrLst->count - 1; i >= 0; i -= 1) {
+					int id = arr[i]->id;
+					if (nodeTouchHandlerDict.ContainsKey(id) && TpSprite.Raycast(arr[i], x, y)) {  // has a handler && pos in sprite
+						nodeTouchHandlerDict[id].Invoke(TchPhase.FromUnityMouse(m), x, y);
+						break;
+					}
+				}
+			}
+
+			// touch
+			var touches = UnityEngine.Input.touches;
+			foreach (var touch in touches) {
+				var pos = cam.ScreenToWorldPoint(touch.position);
+				float x = pos.x, y = pos.y;
+				for (int i = spritePtrLst->count - 1; i >= 0; i -= 1) {
+					int id = arr[i]->id;
+					if (nodeTouchHandlerDict.ContainsKey(id) && TpSprite.Raycast(arr[i], x, y)) {  // has a handler && pos in sprite
+						nodeTouchHandlerDict[id].Invoke(TchPhase.FromUnityTouch(touch.phase), x, y);
+						break;
+					}
+				}
+			}
+
+			// draw
+			DrawCtx.Start();
 			for (int i = 0, end = spritePtrLst->count; i < end; i += 1) {
 				Node.Draw(arr[i], null, false);
 			}
@@ -137,6 +169,7 @@ namespace Futilef {
 			#endif
 			var node = (TpSprite *)Pool.Alloc(spritePool, sizeof(TpSprite));
 			TpSprite.Init(node, Res.GetSpriteMeta(cmd.imgId));
+			node->id = cmd.id;
 
 			if (spritePool->shift != 0) {
 				PtrLst.ShiftBase(spritePtrLst, spritePool->shift);
@@ -174,12 +207,12 @@ namespace Futilef {
 			}
 		}
 
-		public void SetImgInteractable(int id, System.Action onTouch) {
+		public void SetImgInteractable(int id, OnTouchDelegate onTouch) {
 			cmdQueue.Enqueue(new SetImgAttrCmd{ id = id, imgAttrId = ImgAttr.Interactable, args = new object[] { onTouch } });
 		}
 		void SetImgInteractable(SetImgAttrCmd cmd) {
 			int id = cmd.id;
-			var onTouch = (System.Action)cmd.args[0];
+			var onTouch = (OnTouchDelegate)cmd.args[0];
 
 			if (onTouch == null) {
 				if (nodeTouchHandlerDict.ContainsKey(id)) nodeTouchHandlerDict.Remove(id);

@@ -5,6 +5,7 @@
 		public static readonly int Type = Fdb.NewType("TpSpriteNode");
 		public int type;
 		#endif
+		public int id;
 
 		public fixed float pos[3];
 		public fixed float scl[2];
@@ -85,6 +86,35 @@
 			Should.TypeEqual("self", self->type, Type);
 			#endif
 			Vec3.Set(self->color, r, g, b);
+		}
+
+		// v0 - v1
+		// |  \ |
+		// v3 - v2
+		public static bool Raycast(TpSprite *self, float x, float y) {
+			float *verts = self->verts;
+			float v0x = verts[0], v0y = verts[1], v1x = verts[2], v1y = verts[3];
+			float v2x = verts[4], v2y = verts[5], v3x = verts[6], v3y = verts[7];
+			float area = Area(v0x, v0y, v1x, v1y, v2x, v2y) + Area(v0x, v0y, v2x, v2y, v3x, v3y);
+			float sum = Area(x, y, v0x, v0y, v1x, v1y);
+//			UnityEngine.Debug.LogFormat("{2} cast {0} {1}, area {3} sum1 {4}", x, y, self->id, area, sum);
+			if (sum > area) return false;
+			sum += Area(x, y, v1x, v1y, v2x, v2y);
+//			UnityEngine.Debug.LogFormat("\t{2} area {3} sum2 {4}", x, y, self->id, area, sum);
+			if (sum > area) return false;
+			sum += Area(x, y, v2x, v2y, v3x, v3y);
+//			UnityEngine.Debug.LogFormat("\t{2} area {3} sum3 {4}", x, y, self->id, area, sum);
+			if (sum > area) return false;
+			sum += Area(x, y, v3x, v3y, v0x, v0y);
+//			UnityEngine.Debug.LogFormat("\t{2} area {3} sum4 {4}", x, y, self->id, area, sum);
+			if (sum > area) return false;
+//			UnityEngine.Debug.LogFormat("{2} hit", x, y, self->id);
+			return true;
+		}
+		static float Area(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y) {
+			p0x = (p0x * (p1y - p2y) + p1x * (p2y - p0y) + p2x * (p0y - p1y)) * .5f;
+			if (p0x < 0) return -p0x;
+			return p0x;
 		}
 
 		public static void Draw(TpSprite *self, float *parentMat, bool isParentTransformDirty) {
