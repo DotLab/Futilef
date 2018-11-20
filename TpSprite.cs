@@ -38,6 +38,12 @@
 			self->spriteMeta = spriteMeta;
 		}
 
+		public static void SetMeta(TpSprite *self, TpSpriteMeta *meta) {
+			self->isTransformDirty = true;
+			TpSpriteMeta.FillUvs(meta, self->uvs);
+			self->spriteMeta = meta;
+		}
+
 		public static void SetPosition(TpSprite *self, float x, float y, float z) {
 			#if FDB
 			Should.NotNull("self", self);

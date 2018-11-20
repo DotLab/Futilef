@@ -162,16 +162,33 @@ namespace Futilef {
 			if (cmd.id >= 0) Should.True("nodeIdxDict.ContainsKey(cmd.id)", PtrIntDict.Contains(nodeDict, cmd.id));
 			#endif
 			if (cmd.id < 0) {
+				nodeTouchHandlerDict.Clear();
 				PtrIntDict.Clear(nodeDict);
 				PtrLst.Clear(spritePtrLst);
 				Pool.Clear(spritePool);
 			} else {
+				if (nodeTouchHandlerDict.ContainsKey(cmd.id)) nodeTouchHandlerDict.Remove(cmd.id);
 				void *node = PtrIntDict.Remove(nodeDict, cmd.id);
 				PtrLst.Remove(spritePtrLst, node);
 				Pool.Free(spritePool, node);
 			}
 		}
 
+		public void SetImgInteractable(int id, System.Action onTouch) {
+			cmdQueue.Enqueue(new SetImgAttrCmd{ id = id, imgAttrId = ImgAttr.Interactable, args = new object[] { onTouch } });
+		}
+		void SetImgInteractable(SetImgAttrCmd cmd) {
+			int id = cmd.id;
+			var onTouch = (System.Action)cmd.args[0];
+
+			if (onTouch == null) {
+				if (nodeTouchHandlerDict.ContainsKey(id)) nodeTouchHandlerDict.Remove(id);
+			} else nodeTouchHandlerDict[id] = onTouch;
+		}
+
+		public void SetImgId(int id, int imgId) {
+			cmdQueue.Enqueue(new SetImgAttrCmd{ id = id, imgAttrId = ImgAttr.ImgId, args = new object[] { imgId } });
+		}
 		public void SetImgAttr(int id, int imgAttrId, params object[] args) {
 			cmdQueue.Enqueue(new SetImgAttrCmd{ id = id, imgAttrId = imgAttrId, args = args });
 		}
@@ -183,13 +200,13 @@ namespace Futilef {
 			var img = (TpSprite *)PtrIntDict.Get(nodeDict, cmd.id);
 			var args = cmd.args;
 			switch (cmd.imgAttrId) {
-//				case ImgAttr.Interactable: TpSprite.SetInteractable(img, (bool)args[0]); break;
-				case ImgAttr.Position:     TpSprite.SetPosition(img, (float)args[0], (float)args[1], (float)args[2]); needDepthSort = true; break;
-				case ImgAttr.Rotation:     TpSprite.SetRotation(img, (float)args[0]); break;
-				case ImgAttr.Scale:        TpSprite.SetScale(img, (float)args[0], (float)args[1]); break;
-				case ImgAttr.Alpha:        TpSprite.SetAlpha(img, (float)args[0]); break;
-				case ImgAttr.Tint:         TpSprite.SetTint(img, (float)args[0], (float)args[1], (float)args[2]); break;
-				// case ImgAttrType.ImgId:        TpSpriteNode.SetColor(img, ()args[0], ()args[1], ()args[2]); break;
+			case ImgAttr.Interactable: SetImgInteractable(cmd); break;
+			case ImgAttr.Position:     TpSprite.SetPosition(img, (float)args[0], (float)args[1], (float)args[2]); needDepthSort = true; break;
+			case ImgAttr.Rotation:     TpSprite.SetRotation(img, (float)args[0]); break;
+			case ImgAttr.Scale:        TpSprite.SetScale(img, (float)args[0], (float)args[1]); break;
+			case ImgAttr.Alpha:        TpSprite.SetAlpha(img, (float)args[0]); break;
+			case ImgAttr.Tint:         TpSprite.SetTint(img, (float)args[0], (float)args[1], (float)args[2]); break;
+			case ImgAttr.ImgId:        TpSprite.SetMeta(img, Res.GetSpriteMeta((int)args[0])); break;
 			}
 		}
 
