@@ -94,6 +94,12 @@
 				buf[i++] = bytes[0];
 			}
 		}
+
+		public static string TrimNull(string str) {
+			int end = str.IndexOf('\0');
+			if (end != -1) return str.Substring(0, end).Trim();
+			return str.Trim();
+		}
 	}
 }
 
