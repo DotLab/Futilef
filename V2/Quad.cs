@@ -10,6 +10,13 @@
 		public Vec2 bl;
 		public Vec2 br;
 
+		public Quad(Vec2 tl, Vec2 tr, Vec2 bl, Vec2 br) {
+			this.tl = tl;
+			this.tr = tr;
+			this.bl = bl;
+			this.br = br;
+		}
+
 		public void FromRect(Rect rect) {
 			tl.Set(rect.x, rect.y + rect.h);
 			tr.Set(rect.x + rect.w, rect.y + rect.h);
@@ -22,6 +29,10 @@
 			tr.Set(right, top);
 			bl.Set(left, bottom);
 			br.Set(right, bottom);
+		}
+
+		public static Quad operator +(Quad q, Vec2 v) {
+			return new Quad(q.tl + v, q.tr + v, q.bl + v, q.br + v);
 		}
 	}
 }

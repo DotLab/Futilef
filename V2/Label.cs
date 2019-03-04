@@ -21,11 +21,23 @@ namespace Futilef.V2 {
 				this.owner = owner;
 			}
 
-			public override void Draw(DrawCtx ctx) {
-				int g = ctx.NewGroup();
-				for (int i = 0; i < charCount; i += 1) {
-					var b = ctx.GetBatch(owner.shader, chars[i].texture, g);
-					b.DrawQuad(chars[i].quad, chars[i].uvQuad);
+			public override void Draw(DrawCtx ctx, int g) {
+				if (g < 0) g = ctx.NewGroup();
+
+				var color = owner.color;
+				if (!owner.hasShadow) {
+					for (int i = 0; i < charCount; i += 1) {
+						var b = ctx.GetBatch(owner.shader, chars[i].texture, g);
+						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
+					}
+				} else {
+					var shadowPos = owner.shadowPos;
+					var shadowColor = owner.shadowColor;
+					for (int i = 0; i < charCount; i += 1) {
+						var b = ctx.GetBatch(owner.shader, chars[i].texture, g);
+						b.DrawQuad(chars[i].quad + shadowPos, chars[i].uvQuad, shadowColor);
+						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
+					}
 				}
 			}
 		}
@@ -33,6 +45,13 @@ namespace Futilef.V2 {
 		public readonly BmFontFile file;
 		public readonly Shader shader;
 		public readonly IStore<Texture> textureStore;
+
+		public bool hasShadow;
+
+		public Vec4 color;
+
+		public Vec2 shadowPos;
+		public Vec4 shadowColor;
 
 		public int textLen;
 		public string text;
@@ -43,6 +62,8 @@ namespace Futilef.V2 {
 			this.file = file;
 			this.shader = shader;
 			this.textureStore = textureStore;
+
+			color.One();
 		}
 
 		public void SetText(string text) {
@@ -78,8 +99,14 @@ namespace Futilef.V2 {
 			uint lastChar = 0;
 			for (int i = 0; i < textLen; i += 1) {
 				BmFontFile.Glyph g;
-				uint c = text[i];
+
+				char c = text[i];
 				if (!file.glyphDict.TryGetValue(c, out g)) continue;
+
+				if (Char.IsWhiteSpace(c)) {
+					curX += g.xAdvance;
+					continue;
+				}
 
 				n.chars[j].uvQuad.FromRect(g.uvRect);
 				n.chars[j].texture = textureStore.Get(file.pageNames[g.page]);

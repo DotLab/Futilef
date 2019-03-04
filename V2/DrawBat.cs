@@ -104,7 +104,7 @@ namespace Futilef.V2 {
 	}
 
 	public static class DrawBatExtension {
-		public static void DrawQuad(this DrawBat bat, Quad q, Quad uvQ) {
+		public static void DrawQuad(this DrawBat bat, Quad q, Quad uvQ, Vec4 c) {
 			int vi = bat.vertCount;
 			int ti = bat.triCount;
 			bat.RequestQuota(4, 2);
@@ -121,12 +121,12 @@ namespace Futilef.V2 {
 			uvs[vi + 2].Set(uvQ.br.x, uvQ.br.y);
 			uvs[vi + 3].Set(uvQ.bl.x, uvQ.bl.y);
 
-			var c = Color.white;
+			var color = new Color(c.x, c.y, c.z, c.w);
 			var colors = bat.colors;
-			colors[vi + 0] = c;
-			colors[vi + 1] = c;
-			colors[vi + 2] = c;
-			colors[vi + 3] = c;
+			colors[vi + 0] = color;
+			colors[vi + 1] = color;
+			colors[vi + 2] = color;
+			colors[vi + 3] = color;
 
 			var tris = bat.tris;
 			tris[ti + 0] = vi;
