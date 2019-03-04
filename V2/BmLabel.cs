@@ -2,7 +2,7 @@
 using Futilef.V2.Store;
 
 namespace Futilef.V2 {
-	public sealed class Label : Drawable {
+	public sealed class BmLabel : Drawable {
 		public sealed class LabelDrawNode : DrawNode {
 			public struct CharDrawInfo {
 				public Quad uvQuad;
@@ -15,9 +15,9 @@ namespace Futilef.V2 {
 			public int charCount;
 			public CharDrawInfo[] chars;
 
-			public readonly Label owner;
+			public readonly BmLabel owner;
 
-			public LabelDrawNode(Label owner) {
+			public LabelDrawNode(BmLabel owner) {
 				this.owner = owner;
 			}
 
@@ -58,7 +58,7 @@ namespace Futilef.V2 {
 
 		public float fontSize;
 
-		public Label(BmFontFile file, Shader shader, IStore<Texture> textureStore) {
+		public BmLabel(BmFontFile file, Shader shader, IStore<Texture> textureStore) {
 			this.file = file;
 			this.shader = shader;
 			this.textureStore = textureStore;
