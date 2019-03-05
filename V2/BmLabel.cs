@@ -3,7 +3,7 @@ using Futilef.V2.Store;
 
 namespace Futilef.V2 {
 	public sealed class BmLabel : Drawable {
-		public sealed class LabelDrawNode : DrawNode {
+		public sealed class Node : DrawNode {
 			public struct CharDrawInfo {
 				public Quad uvQuad;
 				public Quad quad;
@@ -11,30 +11,28 @@ namespace Futilef.V2 {
 				public Texture texture;
 			}
 
+			public Shader shader;
+			public Vec4 color;
+
 			public int charLen;
 			public int charCount;
 			public CharDrawInfo[] chars;
 
-			public readonly BmLabel owner;
-
-			public LabelDrawNode(BmLabel owner) {
-				this.owner = owner;
-			}
+			public bool hasShadow;
+			public Vec2 shadowPos;
+			public Vec4 shadowColor;
 
 			public override void Draw(DrawCtx ctx, int g) {
 				if (g < 0) g = ctx.NewGroup();
 
-				var color = owner.color;
-				if (!owner.hasShadow) {
+				if (!hasShadow) {
 					for (int i = 0; i < charCount; i += 1) {
-						var b = ctx.GetBatch(owner.shader, chars[i].texture, g);
+						var b = ctx.GetBatch(shader, chars[i].texture, g);
 						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
 					}
 				} else {
-					var shadowPos = owner.shadowPos;
-					var shadowColor = owner.shadowColor;
 					for (int i = 0; i < charCount; i += 1) {
-						var b = ctx.GetBatch(owner.shader, chars[i].texture, g);
+						var b = ctx.GetBatch(shader, chars[i].texture, g);
 						b.DrawQuad(chars[i].quad + shadowPos, chars[i].uvQuad, shadowColor);
 						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
 					}
@@ -63,6 +61,10 @@ namespace Futilef.V2 {
 			this.shader = shader;
 			this.textureStore = textureStore;
 
+			for (int i = 0; i < file.pages; i += 1) {
+				textureStore.Get(file.pageNames[i]);
+			}
+
 			color.One();
 		}
 
@@ -79,22 +81,29 @@ namespace Futilef.V2 {
 			age += 1;
 		}
 
-		protected override DrawNode CreateDrawNode() {
-			return new LabelDrawNode(this);
+		protected override DrawNode CreateDrawNode() { 
+			return new Node{shader = shader}; 
 		}
 
-		protected override void ApplyDrawNode(DrawNode node) {
-			var n = (LabelDrawNode)node;
+		protected override void UpdateDrawNode(DrawNode node) {
+			var n = (Node)node;
 			n.age = age;
+			n.color = color;
+
+			n.hasShadow = hasShadow;
+			if (hasShadow) {
+				n.shadowPos = shadowPos;
+				n.shadowColor = shadowColor;
+			}
 
 			if (n.chars == null || n.charLen < textLen) {
-				n.chars = new LabelDrawNode.CharDrawInfo[textLen];
+				n.chars = new Node.CharDrawInfo[textLen];
 				n.charLen = textLen;
 			}
 
 			int j = 0;
 			int curX = 0;
-			int curY = 0;
+			const int curY = 0;
 			float fontScaling = fontSize / (float)file.fontSize;
 			uint lastChar = 0;
 			for (int i = 0; i < textLen; i += 1) {

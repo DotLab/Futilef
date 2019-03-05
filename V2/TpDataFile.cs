@@ -1,7 +1,8 @@
-﻿namespace Futilef.V2 {
+﻿using System.Collections.Generic;
+
+namespace Futilef.V2 {
 	[System.Serializable]
 	public class TpDataFile {
-
 		[System.Serializable]
 		public struct Sprite {
 			public string name;
@@ -38,7 +39,8 @@
 		public int height;
 
 		public int spriteCount;
-		public Sprite[] sprites;
+//		public Sprite[] sprites;
+		public readonly Dictionary<string, Sprite> spriteDict = new Dictionary<string, Sprite>();
 
 		public TpDataFile(string str) {
 			int i = 0;
@@ -50,10 +52,11 @@
 			height = int.Parse(segs[i++]);
 
 			spriteCount = int.Parse(segs[i++]);
-			sprites = new Sprite[spriteCount];
+//			sprites = new Sprite[spriteCount];
 
 			for (int j = 0; j < spriteCount; j += 1) {
-				sprites[j] = new Sprite(segs, ref i, width, height);
+				var sprite = new Sprite(segs, ref i, width, height);
+				spriteDict.Add(sprite.name, sprite);
 			}
 		}
 	}
