@@ -31,7 +31,6 @@
 
 		public void ChooseSprite(string spriteName) {
 			this.spriteName = spriteName;
-			age += 1;
 		}
 
 		protected override DrawNode CreateDrawNode() {
@@ -40,7 +39,6 @@
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			var n = (Node)node;
-			n.age = age;
 			n.color = color;
 
 			var sprite = file.spriteDict[spriteName];

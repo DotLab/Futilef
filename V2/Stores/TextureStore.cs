@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Futilef.V2.Store {
+﻿namespace Futilef.V2 {
 	public class TextureStore : CachedStore<Texture> {
 		public bool shouldTransform8BitPng;
 		public IStore<byte[]> provider;

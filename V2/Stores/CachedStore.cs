@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Futilef.V2.Store {
+namespace Futilef.V2 {
 	public abstract class CachedStore<T> : IStore<T> {
 		readonly Dictionary<string, T> dict = new Dictionary<string, T>();
 

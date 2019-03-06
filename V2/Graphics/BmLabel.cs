@@ -1,5 +1,4 @@
 ﻿using System;
-using Futilef.V2.Store;
 
 namespace Futilef.V2 {
 	public sealed class BmLabel : Drawable {
@@ -72,13 +71,11 @@ namespace Futilef.V2 {
 			if (this.text == text) return;
 			this.text = text;
 			textLen = text.Length;
-			age += 1;
 		}
 
 		public void SetFontSize(float fontSize) {
 			if (this.fontSize == fontSize) return;
 			this.fontSize = fontSize;
-			age += 1;
 		}
 
 		protected override DrawNode CreateDrawNode() { 
@@ -87,7 +84,6 @@ namespace Futilef.V2 {
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			var n = (Node)node;
-			n.age = age;
 			n.color = color;
 
 			n.hasShadow = hasShadow;

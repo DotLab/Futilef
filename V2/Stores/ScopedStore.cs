@@ -1,4 +1,4 @@
-﻿namespace Futilef.V2.Store {
+﻿namespace Futilef.V2 {
 	public sealed class ScopedStore <T> : IStore<T> {
 		public readonly IStore<T> store;
 		public readonly string scope;

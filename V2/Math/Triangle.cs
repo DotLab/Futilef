@@ -1,5 +1,5 @@
 ﻿namespace Futilef.V2 {
-	public struct Tri {
+	public struct Triangle {
 		public Vec2 p0;
 		public Vec2 p1;
 		public Vec2 p2;
