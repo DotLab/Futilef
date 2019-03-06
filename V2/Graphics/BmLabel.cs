@@ -83,6 +83,8 @@ namespace Futilef.V2 {
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
+			UpdateMatIfDirty();
+
 			var n = (Node)node;
 			n.color = color;
 
@@ -126,7 +128,7 @@ namespace Futilef.V2 {
 				 * posY
 				 * curX - posX
 				 */
-				n.chars[j].quad.Set(
+				n.chars[j].quad = mat * new Quad(
 					(top)* fontScaling,
 					(left + g.width) * fontScaling,
 					(top - g.height) * fontScaling,

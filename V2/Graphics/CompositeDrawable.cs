@@ -4,6 +4,10 @@ namespace Futilef.V2 {
 	public class CompositeDrawable : Drawable {
 		public class Node : DrawNode {
 			public readonly List<DrawNode> children = new List<DrawNode>();
+
+			public override void Draw(DrawCtx ctx, int g) {
+				
+			}
 		}
 
 		public readonly List<Drawable> children = new List<Drawable>();

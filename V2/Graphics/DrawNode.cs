@@ -1,6 +1,5 @@
 ﻿namespace Futilef.V2 {
 	public abstract class DrawNode {
-		public virtual void Draw(DrawCtx ctx, int g) { }
+		public abstract void Draw(DrawCtx ctx, int g);
 	}
 }
-

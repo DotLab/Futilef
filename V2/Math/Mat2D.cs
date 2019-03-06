@@ -18,7 +18,7 @@ namespace Futilef.V2 {
 			this.m5 = m5;
 		}
 
-		public void Identity() {
+		public void FromIdentity() {
 			m0 = 1;
 			m1 = 0;
 			m2 = 0;
@@ -27,7 +27,7 @@ namespace Futilef.V2 {
 			m5 = 0;
 		}
 
-		public void Invert(Mat2D a) {
+		public void FromInverting(Mat2D a) {
 			float aa = a.m0, ab = a.m1, ac = a.m2, ad = a.m3;
 			float atx = a.m4, aty = a.m5;
 			float det = aa * ad - ab * ac;
@@ -39,6 +39,23 @@ namespace Futilef.V2 {
 			m3 = aa * det;
 			m4 = (ac * aty - ad * atx) * det;
 			m5 = (ab * atx - aa * aty) * det;
+		}
+
+		/**
+		 * 1 0 x   cos -sin 0   sx 0 0   (sx * cos) (sy * -sin) x
+		 * 0 1 y . sin cos  0 . 0 sy 0 = (sx * sin) (sy * cos)  y
+		 * 0 0 1   0   0    1   0 0  1   0          0           1
+		 */
+		public void FromScalingRotationTranslation(Vec2 t, float r, Vec2 s) {
+			float sx = s.x, sy = s.y;
+			float x = t.x, y = t.y;
+			float sin = (float)Math.Sin(r), cos = (float)Math.Cos(r);
+			m0 = sx * cos;
+			m1 = sy * -sin;
+			m2 = x;
+			m3 = sx * sin;
+			m4 = sy * cos;
+			m5 = y;
 		}
 
 		/**
@@ -54,23 +71,6 @@ namespace Futilef.V2 {
 				a1 * b2 + a3 * b3,
 				a0 * b4 + a2 * b5 + a4,
 				a1 * b4 + a3 * b5 + a5);
-		}
-
-		/**
-		 * 1 0 x   cos -sin 0   sx 0 0   1 0 0   (sx * cos) (sy * -sin) x
-		 * 0 1 y . sin cos  0 . 0 sy 0 . 0 1 0 = (sx * sin) (sy * cos)  y
-		 * 0 0 1   0   0    1   0 0  1   0 0 1   0          0           1
-		 */
-		public void ScaleRotateTranslate(Vec2 t, Vec2 s, float r) {
-			float sx = s.x, sy = s.y;
-			float x = t.x, y = t.y;
-			float sin = (float)Math.Sin(r), cos = (float)Math.Cos(r);
-			m0 = sx * cos;
-			m1 = sy * -sin;
-			m2 = x;
-			m3 = sx * sin;
-			m4 = sy * cos;
-			m5 = y;
 		}
 	}
 }
