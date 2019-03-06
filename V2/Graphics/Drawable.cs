@@ -44,7 +44,7 @@
 		protected abstract DrawNode CreateDrawNode();
 		protected virtual void UpdateDrawNode(DrawNode node) {}
 
-		protected virtual void UpdateMat() {
+		public virtual void UpdateMat() {
 			isMatDirty = false;
 
 			bool useParentSize = parent != null && parent.useLayout;

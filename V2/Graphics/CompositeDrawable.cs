@@ -6,7 +6,9 @@ namespace Futilef.V2 {
 			public readonly List<DrawNode> children = new List<DrawNode>();
 
 			public override void Draw(DrawCtx ctx, int g) {
-				
+				for (int i = 0, end = children.Count; i < end; i++) {
+					children[i].Draw(ctx, g);
+				}
 			}
 		}
 
@@ -14,8 +16,8 @@ namespace Futilef.V2 {
 
 		public override DrawNode GenerateDrawNodeSubtree(int index) {
 			var n = (Node)base.GenerateDrawNodeSubtree(index);
-			n.children.Clear();
 
+			n.children.Clear();
 			for (int i = 0, end = children.Count; i < end; i++) {
 				n.children.Add(children[i].GenerateDrawNodeSubtree(index));
 			}
@@ -27,7 +29,16 @@ namespace Futilef.V2 {
 			return new Node();
 		}
 
-		protected override void UpdateDrawNode(DrawNode node) {}
+		protected override void UpdateDrawNode(DrawNode node) {
+			if (isMatDirty) {
+				UpdateMat();
+				for (int i = 0, end = children.Count; i < end; i++) {
+					var child = children[i];
+					child.parent = this;
+					child.UpdateMat();
+				}
+			}
+		}
 	}
 }
 
