@@ -20,6 +20,8 @@
 
 		public Vec4 color;
 		public string spriteName;
+		public float originalAspectRatio;
+		TpDataFile.Sprite spriteData;
 
 		public TpSprite(TpDataFile file, Shader shader, Texture texture) {
 			this.file = file;
@@ -29,8 +31,10 @@
 			color.One();
 		}
 
-		public void ChooseSprite(string spriteName) {
+		public void SetSprite(string spriteName) {
 			this.spriteName = spriteName;
+			spriteData = file.spriteDict[spriteName];
+			originalAspectRatio = spriteData.size.x / spriteData.size.y;
 		}
 
 		protected override DrawNode CreateDrawNode() {
@@ -38,12 +42,18 @@
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
+			if (isMatDirty) UpdateMat();
+
 			var n = (Node)node;
 			n.color = color;
 
-			var sprite = file.spriteDict[spriteName];
-			n.quad.FromRect(sprite.rect);
-			n.uvQuad = sprite.uvQuad;
+			n.uvQuad = spriteData.uvQuad;
+
+			if (useLayout) {
+				n.quad = matConcat * new Quad(0, 0, absSize.x, absSize.y);
+			} else {
+				n.quad = matConcat * new Quad(spriteData.rect);
+			}
 		}
 	}
 }

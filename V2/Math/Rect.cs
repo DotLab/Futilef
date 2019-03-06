@@ -10,6 +10,13 @@
 		public float w;
 		public float h;
 
+		public Rect(float w, float h) {
+			this.x = 0;
+			this.y = 0;
+			this.w = w;
+			this.h = h;
+		}
+
 		public Rect(float x, float y, float w, float h) {
 			this.x = x;
 			this.y = y;

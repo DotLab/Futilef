@@ -83,7 +83,7 @@ namespace Futilef.V2 {
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			UpdateMatIfDirty();
+			if (isMatDirty) UpdateMat();
 
 			var n = (Node)node;
 			n.color = color;
@@ -120,19 +120,19 @@ namespace Futilef.V2 {
 
 				if (j > 0) curX += file.GetKerning(lastChar, c);
 
-				int top = curY - g.yOffset;
+				int bottom = curY - g.yOffset - g.height;
 				int left = curX + g.xOffset;
 				/**
-				 * curY
-				 * |
-				 * posY
+				 *        curY
+				 *        |
+				 *        posY
 				 * curX - posX
 				 */
-				n.chars[j].quad = mat * new Quad(
-					(top)* fontScaling,
-					(left + g.width) * fontScaling,
-					(top - g.height) * fontScaling,
-					(left) * fontScaling);
+				n.chars[j].quad = matConcat * new Quad(
+					left * fontScaling,
+					bottom * fontScaling,
+					g.width * fontScaling,
+					g.height * fontScaling);
 
 				curX += g.xAdvance;
 

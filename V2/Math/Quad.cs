@@ -17,6 +17,13 @@
 			this.br = br;
 		}
 
+		public Quad(float x, float y, float w, float h) {
+			tl = new Vec2(x, y + h);
+			tr = new Vec2(x + w, y + h);
+			bl = new Vec2(x, y);
+			br = new Vec2(x + w, y);
+		}
+
 		public Quad(Rect rect) {
 			float x = rect.x, y = rect.y, w = rect.w, h = rect.h;
 			tl = new Vec2(x, y + h);
@@ -25,25 +32,18 @@
 			br = new Vec2(x + w, y);
 		}
 
-		public Quad(float top, float right, float bottom, float left) {
-			tl = new Vec2(left, top);
-			tr = new Vec2(right, top);
-			bl = new Vec2(left, bottom);
-			br = new Vec2(right, bottom);
-		}
-
-		public void Set(float top, float right, float bottom, float left) {
-			tl.Set(left, top);
-			tr.Set(right, top);
-			bl.Set(left, bottom);
-			br.Set(right, bottom);
-		}
-
 		public void FromRect(Rect rect) {
 			tl.Set(rect.x, rect.y + rect.h);
 			tr.Set(rect.x + rect.w, rect.y + rect.h);
 			bl.Set(rect.x, rect.y);
 			br.Set(rect.x + rect.w, rect.y);
+		}
+
+		public void FromRect(float x, float y, float w, float h) {
+			tl.Set(x, y + h);
+			tr.Set(x + w, y + h);
+			bl.Set(x, y);
+			br.Set(x + w, y);
 		}
 
 		public static Quad operator +(Quad q, Vec2 v) {
