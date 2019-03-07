@@ -9,6 +9,7 @@ namespace Futilef.V2 {
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
 				b.DrawQuad(quad, new Quad(), new Vec4(.5f));
+
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
 				}
@@ -33,18 +34,18 @@ namespace Futilef.V2 {
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (isMatDirty) {
-				UpdateMat();
+			if (hasTransformChanged) {
+				UpdateTransform();
 				for (int i = 0, end = children.Count; i < end; i++) {
 					var child = children[i];
 					child.parent = this;
-					child.UpdateMat();
+					child.UpdateTransform();
 				}
 			}
 
 			var n = (Node)node;
 			if (useLayout) {
-				n.quad = matConcat * new Quad(0, 0, absSize.x, absSize.y);
+				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
 			}
 		}
 	}

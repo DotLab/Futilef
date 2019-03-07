@@ -42,7 +42,7 @@
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (isMatDirty) UpdateMat();
+			if (hasTransformChanged) UpdateTransform();
 
 			var n = (Node)node;
 			n.color = color;
@@ -50,9 +50,9 @@
 			n.uvQuad = spriteData.uvQuad;
 
 			if (useLayout) {
-				n.quad = matConcat * new Quad(0, 0, absSize.x, absSize.y);
+				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
 			} else {
-				n.quad = matConcat * new Quad(spriteData.rect);
+				n.quad = cachedMatConcat * new Quad(spriteData.rect);
 			}
 		}
 	}

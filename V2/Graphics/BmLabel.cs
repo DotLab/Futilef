@@ -89,7 +89,7 @@
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (isMatDirty) UpdateMat();
+			if (hasTransformChanged) UpdateTransform();
 
 			var n = (Node)node;
 			n.color = color;
@@ -109,8 +109,8 @@
 			var lineDrawInfo = file.GenerateDrawInfo(text);
 
 			Vec2 textPivotPos;
-			var textPivot = Alignment.Calc(textAlign);
-			if (textAlign != Alignment.none) {
+			var textPivot = Align.Calc(textAlign);
+			if (textAlign != Align.none) {
 				if (alignMode == AlignMode.alignBase) {
 					textPivotPos = new Vec2(
 						(lineDrawInfo.size.w + lineDrawInfo.size.x) * textPivot.x, 
@@ -130,12 +130,12 @@
 			}
 
 			if (useLayout) {
-				textPivotPos.Sub(textPivot * absSize);
+				textPivotPos.Sub(textPivot * cachedRealSize);
 			}
 
 			for (int i = 0, end = lineDrawInfo.charDrawInfos.Length; i < end; i++) {
 				var info = lineDrawInfo.charDrawInfos[i];
-				n.chars[i].quad = matConcat * (new Quad(info.rect * fontScaling) - textPivotPos);
+				n.chars[i].quad = cachedMatConcat * (new Quad(info.rect * fontScaling) - textPivotPos);
 				n.chars[i].uvQuad.FromRect(info.uvRect);
 				n.chars[i].texture = textureStore.Get(file.pageNames[info.page]);
 			}

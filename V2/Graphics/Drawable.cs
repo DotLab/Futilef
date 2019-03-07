@@ -1,36 +1,37 @@
 ﻿namespace Futilef.V2 {
 	public abstract class Drawable {
-		public int anchor;
-		public Vec2 customAnchor;
-		public int pivot;
-		public Vec2 customPivot;
-		public Vec2 pivotPos;
 		public bool useLayout;
 
+		public int anchorAlign;
+		public Vec2 customAnchorAlign;
+		public int pivotAlign;
+		public Vec2 customPivotAlign;
+
 		public Vec2 pos;
-		public Vec2 absPos;
-		public int relPosAxes;
+		public int relativePosAxes;
 
 		public Vec2 size;
-		public Vec2 absSize;
-		public int relSizeAxes;
+		public int relativeSizeAxes;
 
 		public Drawable parent;
 
 		public Vec2 scl;
 		public float rotZ;
-		public bool isMatDirty;
+		public bool hasTransformChanged;
 
-		public Mat2D mat;
-		public Mat2D matConcat;
-		public Mat2D matConcatInverse;
-		public bool needMatConcatInverse;
+		public Vec2 cachedAnchor;
+		public Vec2 cachedPivot;
+		public Vec2 cachedReadPos;
+		public Vec2 cachedRealSize;
+
+		public Mat2D cachedMat;
+		public Mat2D cachedMatConcat;
 
 		public readonly DrawNode[] drawNodes = new DrawNode[3];
 
 		protected Drawable() {
 			scl = new Vec2(1);
-			isMatDirty = true;
+			hasTransformChanged = true;
 		}
 
 		public virtual DrawNode GenerateDrawNodeSubtree(int index) {
@@ -45,31 +46,32 @@
 		protected abstract DrawNode CreateDrawNode();
 		protected virtual void UpdateDrawNode(DrawNode node) {}
 
-		public virtual void UpdateMat() {
-			isMatDirty = false;
+		public virtual void UpdateTransform() {
+			hasTransformChanged = false;
 
 			bool useParentSize = parent != null && parent.useLayout;
 			if (useParentSize) {
-				absPos = CalcAbsoluteVal(relPosAxes, pos, parent.absSize);
-				absSize = CalcAbsoluteVal(relSizeAxes, size, parent.absSize);
+				cachedReadPos = CalcAbsoluteVal(relativePosAxes, pos, parent.cachedRealSize);
+				cachedRealSize = CalcAbsoluteVal(relativeSizeAxes, size, parent.cachedRealSize);
 			} else {
-				absPos = CalcAbsoluteVal(relPosAxes, pos);
-				absSize = CalcAbsoluteVal(relSizeAxes, size);
+				cachedReadPos = CalcAbsoluteVal(relativePosAxes, pos);
+				cachedRealSize = CalcAbsoluteVal(relativeSizeAxes, size);
 			}
 
 			if (useLayout) {
-				pivotPos = absSize * Alignment.Calc(pivot, customPivot);
-				mat.FromTranslation(-pivotPos);
-				mat.ScaleRotateTranslate(scl, rotZ, absPos);
+				cachedPivot = cachedRealSize * Align.Calc(pivotAlign, customPivotAlign);
+				cachedMat.FromTranslation(-cachedPivot);
+				cachedMat.ScaleRotateTranslate(scl, rotZ, cachedReadPos);
 			} else {
-				mat.FromScalingRotationTranslation(scl, rotZ, absPos);
+				cachedMat.FromScalingRotationTranslation(scl, rotZ, cachedReadPos);
 			}
 
 			if (useParentSize) {
-				mat.Translate(parent.absSize * Alignment.Calc(anchor, customAnchor));
+				cachedAnchor = parent.cachedRealSize * Align.Calc(anchorAlign, customAnchorAlign);
+				cachedMat.Translate(cachedAnchor);
 			}
 				
-			matConcat = parent == null ? mat : parent.matConcat * mat;
+			cachedMatConcat = parent == null ? cachedMat : parent.cachedMatConcat * cachedMat;
 //			if (needMatConcatInverse) matConcatInverse.FromInverting(matConcat);
 		}
 
@@ -86,7 +88,7 @@
 		}
 	}
 
-	public static class Alignment {
+	public static class Align {
 		public const int none = 0;
 
 		public const int topLeft = top | left;
@@ -112,15 +114,15 @@
 		public const int custom = 1 << 6;
 
 		public static Vec2 Calc(int alignment, Vec2 value) {
-			if (alignment == Alignment.custom) return value;
+			if (alignment == Align.custom) return value;
 
-			if ((alignment & Alignment.left) != 0) value.x = 0;
-			else if ((alignment & Alignment.centerH) != 0) value.x = .5f;
-			else if ((alignment & Alignment.right) != 0) value.x = 1;
+			if ((alignment & Align.left) != 0) value.x = 0;
+			else if ((alignment & Align.centerH) != 0) value.x = .5f;
+			else if ((alignment & Align.right) != 0) value.x = 1;
 
-			if ((alignment & Alignment.top) != 0) value.y = 1;
-			else if ((alignment & Alignment.centerV) != 0) value.y = .5f;
-			else if ((alignment & Alignment.bottom) != 0) value.y = 0;
+			if ((alignment & Align.top) != 0) value.y = 1;
+			else if ((alignment & Align.centerV) != 0) value.y = .5f;
+			else if ((alignment & Align.bottom) != 0) value.y = 0;
 			return value;
 		}
 
