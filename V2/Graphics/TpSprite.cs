@@ -18,7 +18,6 @@
 		public readonly Shader shader;
 		public readonly Texture texture;
 
-		public Vec4 color;
 		public string spriteName;
 		public float originalAspectRatio;
 		TpDataFile.Sprite spriteData;
@@ -27,8 +26,6 @@
 			this.file = file;
 			this.shader = shader;
 			this.texture = texture;
-
-			color.One();
 		}
 
 		public void SetSprite(string spriteName) {
@@ -43,12 +40,11 @@
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			if (hasTransformChanged) UpdateTransform();
+			if (hasColorChanged) UpdateColor();
 
 			var n = (Node)node;
-			n.color = color;
-
+			n.color = cachedColor;
 			n.uvQuad = spriteData.uvQuad;
-
 			if (useLayout) {
 				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
 			} else {

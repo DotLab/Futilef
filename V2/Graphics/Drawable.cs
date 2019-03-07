@@ -16,8 +16,12 @@
 		public Drawable parent;
 
 		public Vec2 scl;
-		public float rotZ;
+		public float rot;
 		public bool hasTransformChanged;
+
+		public Vec4 color;
+		public float alpha;
+		public bool hasColorChanged;
 
 		public Vec2 cachedAnchor;
 		public Vec2 cachedPivot;
@@ -27,11 +31,17 @@
 		public Mat2D cachedMat;
 		public Mat2D cachedMatConcat;
 
+		public Vec4 cachedColor;
+
 		public readonly DrawNode[] drawNodes = new DrawNode[3];
 
 		protected Drawable() {
 			scl = new Vec2(1);
 			hasTransformChanged = true;
+
+			alpha = 1;
+			color.One();
+			hasColorChanged = true;
 		}
 
 		public virtual DrawNode GenerateDrawNodeSubtree(int index) {
@@ -61,9 +71,9 @@
 			if (useLayout) {
 				cachedPivot = cachedRealSize * Align.Calc(pivotAlign, customPivotAlign);
 				cachedMat.FromTranslation(-cachedPivot);
-				cachedMat.ScaleRotateTranslate(scl, rotZ, cachedReadPos);
+				cachedMat.ScaleRotateTranslate(scl, rot, cachedReadPos);
 			} else {
-				cachedMat.FromScalingRotationTranslation(scl, rotZ, cachedReadPos);
+				cachedMat.FromScalingRotationTranslation(scl, rot, cachedReadPos);
 			}
 
 			if (useParentSize) {
@@ -73,6 +83,17 @@
 				
 			cachedMatConcat = parent == null ? cachedMat : parent.cachedMatConcat * cachedMat;
 //			if (needMatConcatInverse) matConcatInverse.FromInverting(matConcat);
+		}
+
+		public virtual void UpdateColor() {
+			hasColorChanged = false;
+
+			cachedColor = color;
+			cachedColor.w *= alpha;
+		}
+
+		public AnimationConfig Animate() {
+			return new AnimationConfig(this);
 		}
 
 		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val, Vec2 parentSize) {
@@ -85,6 +106,34 @@
 			if ((axes & Axes.x) != 0) val.x = 0;
 			if ((axes & Axes.y) != 0) val.y = 0;
 			return val;
+		}
+	}
+
+	public sealed class AnimationConfig {
+		public Drawable target;
+
+		public AnimationConfig(Drawable target) {
+			this.target = target;
+		}
+
+		public AnimationConfig Delay(double delay) {
+			return this;
+		}
+
+		public AnimationConfig Then() {
+			return this;
+		}
+
+		public AnimationConfig Loop(double pause, int count) {
+			return this;
+		}
+
+		public AnimationConfig Loop(double pause) {
+			return this;
+		}
+
+		public void Finally(System.Action<Drawable> callback) {
+
 		}
 	}
 

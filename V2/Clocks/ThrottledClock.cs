@@ -16,14 +16,14 @@
 			bool shoudlYield = true;
 
 			double targetDelta = 1.0 / maxFrameRate;
-			if (delta < targetDelta) {
-				int sleepMs = (int)((targetDelta - delta) * 1000.0);
+			if (deltaTime < targetDelta) {
+				int sleepMs = (int)((targetDelta - deltaTime) * 1000.0);
 				if (sleepMs > 0) {
 					System.Threading.Thread.Sleep(sleepMs);
 					shoudlYield = false;
 
-					curTime = source.GetTime();
-					delta = curTime - lastTime;
+					time = source.GetTime();
+					deltaTime = time - lastTime;
 				}
 			}
 

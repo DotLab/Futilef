@@ -2,9 +2,9 @@
 	public class FramedClock : IClock {
 		public readonly IClock source;
 
-		public double curTime;
+		public double time;
 		public double lastTime;
-		public double delta;
+		public double deltaTime;
 
 		public FramedClock() {
 			source = new StopwatchClock();
@@ -15,13 +15,13 @@
 		}
 
 		public virtual void NewFrame() {
-			lastTime = curTime;
-			curTime = source.GetTime();
-			delta = curTime - lastTime;
+			lastTime = time;
+			time = source.GetTime();
+			deltaTime = time - lastTime;
 		}
 
 		public double GetTime() {
-			return curTime;
+			return time;
 		}
 
 		public void SetRate(double rate) {

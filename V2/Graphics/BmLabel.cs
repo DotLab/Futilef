@@ -49,8 +49,6 @@
 
 		public bool hasShadow;
 
-		public Vec4 color;
-
 		public Vec2 shadowPos;
 		public Vec4 shadowColor;
 
@@ -69,8 +67,6 @@
 			for (int i = 0; i < file.pages; i += 1) {
 				textureStore.Get(file.pageNames[i]);
 			}
-
-			color.One();
 		}
 
 		public void SetText(string text) {
@@ -90,14 +86,16 @@
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			if (hasTransformChanged) UpdateTransform();
+			if (hasColorChanged) UpdateColor();
 
 			var n = (Node)node;
-			n.color = color;
+			n.color = cachedColor;
 
 			n.hasShadow = hasShadow;
 			if (hasShadow) {
 				n.shadowPos = shadowPos;
 				n.shadowColor = shadowColor;
+				n.shadowColor.w *= alpha;
 			}
 
 			if (n.chars == null || n.charLen < textLen) {

@@ -54,6 +54,10 @@
 			return new Vec2(v1.x * v2.x, v1.y * v2.y);
 		}
 
+		public static Vec2 operator *(Vec2 v1, float f) {
+			return new Vec2(v1.x * f, v1.y * f);
+		}
+
 		/**
 		 * m0 m1 m2   x   x * m0 + y * m1 + m2
 		 * m3 m4 m5 . y = x * m3 + y * m4 + m5
