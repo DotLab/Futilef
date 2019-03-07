@@ -4,6 +4,7 @@
 		public Vec2 customAnchor;
 		public int pivot;
 		public Vec2 customPivot;
+		public Vec2 pivotPos;
 		public bool useLayout;
 
 		public Vec2 pos;
@@ -57,7 +58,7 @@
 			}
 
 			if (useLayout) {
-				var pivotPos = absSize * Alignment.Calc(pivot, customPivot);
+				pivotPos = absSize * Alignment.Calc(pivot, customPivot);
 				mat.FromTranslation(-pivotPos);
 				mat.ScaleRotateTranslate(scl, rotZ, absPos);
 			} else {

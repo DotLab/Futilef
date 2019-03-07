@@ -23,6 +23,11 @@
 			y += a.y;
 		}
 
+		public void Sub(Vec2 a) {
+			x -= a.x;
+			y -= a.y;
+		}
+
 		public void Mult(Vec2 a) {
 			x *= a.x;
 			y *= a.y;

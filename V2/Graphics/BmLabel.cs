@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Futilef.V2 {
+﻿namespace Futilef.V2 {
 	public sealed class BmLabel : Drawable {
 		public sealed class Node : DrawNode {
 			public struct CharDrawInfo {
@@ -111,8 +109,8 @@ namespace Futilef.V2 {
 			var lineDrawInfo = file.GenerateDrawInfo(text);
 
 			Vec2 textPivotPos;
+			var textPivot = Alignment.Calc(textAlign);
 			if (textAlign != Alignment.none) {
-				var textPivot = Alignment.Calc(textAlign);
 				if (alignMode == AlignMode.alignBase) {
 					textPivotPos = new Vec2(
 						(lineDrawInfo.size.w + lineDrawInfo.size.x) * textPivot.x, 
@@ -129,6 +127,10 @@ namespace Futilef.V2 {
 				textPivotPos.Mult(fontScaling);
 			} else {
 				textPivotPos = new Vec2();
+			}
+
+			if (useLayout) {
+				textPivotPos.Sub(textPivot * absSize);
 			}
 
 			for (int i = 0, end = lineDrawInfo.charDrawInfos.Length; i < end; i++) {
