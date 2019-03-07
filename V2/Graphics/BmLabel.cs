@@ -105,6 +105,11 @@
 				n.charLen = textLen;
 			}
 
+			if (string.IsNullOrEmpty(text)) {
+				n.charCount = 0;
+				return;
+			}
+
 			float fontScaling = fontSize / (float)file.fontSize;
 			var lineDrawInfo = file.GenerateDrawInfo(text);
 
