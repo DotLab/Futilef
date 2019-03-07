@@ -92,10 +92,6 @@
 			cachedColor.w *= alpha;
 		}
 
-		public AnimationConfig Animate() {
-			return new AnimationConfig(this);
-		}
-
 		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val, Vec2 parentSize) {
 			if ((axes & Axes.x) != 0) val.x *= parentSize.x;
 			if ((axes & Axes.y) != 0) val.y *= parentSize.y;
@@ -106,34 +102,6 @@
 			if ((axes & Axes.x) != 0) val.x = 0;
 			if ((axes & Axes.y) != 0) val.y = 0;
 			return val;
-		}
-	}
-
-	public sealed class AnimationConfig {
-		public Drawable target;
-
-		public AnimationConfig(Drawable target) {
-			this.target = target;
-		}
-
-		public AnimationConfig Delay(double delay) {
-			return this;
-		}
-
-		public AnimationConfig Then() {
-			return this;
-		}
-
-		public AnimationConfig Loop(double pause, int count) {
-			return this;
-		}
-
-		public AnimationConfig Loop(double pause) {
-			return this;
-		}
-
-		public void Finally(System.Action<Drawable> callback) {
-
 		}
 	}
 
