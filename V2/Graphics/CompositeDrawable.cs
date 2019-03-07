@@ -4,8 +4,11 @@ namespace Futilef.V2 {
 	public class CompositeDrawable : Drawable {
 		public class Node : DrawNode {
 			public readonly List<DrawNode> children = new List<DrawNode>();
+			public Quad quad;
 
 			public override void Draw(DrawCtx ctx, int g) {
+				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
+				b.DrawQuad(quad, new Quad(), new Vec4(.5f));
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
 				}
@@ -37,6 +40,11 @@ namespace Futilef.V2 {
 					child.parent = this;
 					child.UpdateMat();
 				}
+			}
+
+			var n = (Node)node;
+			if (useLayout) {
+				n.quad = matConcat * new Quad(0, 0, absSize.x, absSize.y);
 			}
 		}
 	}

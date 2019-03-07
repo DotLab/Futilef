@@ -3,7 +3,7 @@
 namespace Futilef.V2 {
 	[System.Serializable]
 	public sealed class BmFontFile {
-		public sealed class Glyph {
+		public struct Glyph {
 			// id			4	uint	0+c*20	These fields are repeated until all characters have been described
 			public uint id;
 			// x			2	uint	4+c*20
@@ -48,8 +48,20 @@ namespace Futilef.V2 {
 				// chnl			1	uint	19+c*20
 				Bit.ReadUInt8(bytes, ref i);
 
-				uvRect.Set(x / scaleW, 1f - (y + height) / scaleH, width / scaleW, height / scaleH);
+				uvRect = new Rect(x / scaleW, 1f - (y + height) / scaleH, width / scaleW, height / scaleH);
 			}
+		}
+
+		public struct LineDrawInfo {
+			public Rect size;
+			public Rect meshSize;
+			public CharDrawInfo[] charDrawInfos;
+		}
+
+		public struct CharDrawInfo {
+			public int page;
+			public Rect rect;
+			public Rect uvRect;
 		}
 
 		// fontSize		2	int		0
@@ -144,7 +156,7 @@ namespace Futilef.V2 {
 			// lineHeight	2	uint	0
 			lineHeight = Bit.ReadUInt16(bytes, ref i);
 			// base			2	uint	2
-			Bit.ReadUInt16(bytes, ref i);
+			lineBase = Bit.ReadUInt16(bytes, ref i);
 			// scaleW		2	uint	4
 			scaleW = Bit.ReadUInt16(bytes, ref i);
 			// scaleH		2	uint	6
@@ -204,6 +216,64 @@ namespace Futilef.V2 {
 			short k;
 			kerningDict.TryGetValue(((ulong)first << 32) | (ulong)second, out k);
 			return k;
+		}
+	
+		public LineDrawInfo GenerateDrawInfo(string line) {
+			int j = 0;
+			int curX = 0;
+			uint lastChar = 0;
+
+			var infoList = new List<CharDrawInfo>();
+			float meshLeft = 0;
+			float meshRight = 0;
+			float meshTop = 0;
+			float meshBottom = 0;
+
+			for (int i = 0, end = line.Length; i < end; i++) {
+				Glyph g;
+				char c = line[i];
+				if (!glyphDict.TryGetValue(c, out g)) continue;
+
+				if (char.IsWhiteSpace(c)) {
+					curX += g.xAdvance;
+					continue;
+				}
+
+				if (j > 0) curX += GetKerning(lastChar, c);
+
+				float left = curX + g.xOffset;
+				float right = left + g.width;
+				float top = lineBase - g.yOffset;
+				float bottom = top - g.height;
+
+				if (j == 0) {
+					meshLeft = left;
+					meshRight = right;
+					meshTop = top;
+					meshBottom = bottom;
+				} else {
+					if (left < meshLeft) meshLeft = left;
+					if (right > meshRight) meshRight = right;
+					if (top > meshTop) meshTop = top;
+					if (bottom < meshBottom) meshBottom = bottom;
+				}
+
+				infoList.Add(new CharDrawInfo{
+					page = g.page,
+					uvRect = g.uvRect,
+					rect = new Rect(left, bottom, g.width, g.height),
+				});
+
+				curX += g.xAdvance;
+				lastChar = c;
+				j += 1;
+			}
+
+			return new LineDrawInfo{ 
+				size = new Rect(0, lineBase - lineHeight, curX, lineBase),
+				meshSize = new Rect(meshLeft, meshBottom, meshRight - meshLeft, meshTop - meshBottom),
+				charDrawInfos = infoList.ToArray(), 
+			};
 		}
 	}
 }

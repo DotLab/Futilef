@@ -57,7 +57,7 @@
 			}
 
 			if (useLayout) {
-				var pivotPos = absSize * CalcAnchor(pivot, customPivot);
+				var pivotPos = absSize * Alignment.Calc(pivot, customPivot);
 				mat.FromTranslation(-pivotPos);
 				mat.ScaleRotateTranslate(scl, rotZ, absPos);
 			} else {
@@ -65,24 +65,11 @@
 			}
 
 			if (useParentSize) {
-				mat.Translate(parent.absSize * CalcAnchor(anchor, customAnchor));
+				mat.Translate(parent.absSize * Alignment.Calc(anchor, customAnchor));
 			}
 				
 			matConcat = parent == null ? mat : parent.matConcat * mat;
 //			if (needMatConcatInverse) matConcatInverse.FromInverting(matConcat);
-		}
-
-		public static Vec2 CalcAnchor(int anchor, Vec2 custom) {
-			if (anchor == Anchor.custom) return custom;
-
-			if ((anchor & Anchor.left) != 0) custom.x = 0;
-			else if ((anchor & Anchor.centerH) != 0) custom.x = .5f;
-			else if ((anchor & Anchor.right) != 0) custom.x = 1;
-
-			if ((anchor & Anchor.top) != 0) custom.y = 1;
-			else if ((anchor & Anchor.centerV) != 0) custom.y = .5f;
-			else if ((anchor & Anchor.bottom) != 0) custom.y = 0;
-			return custom;
 		}
 
 		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val, Vec2 parentSize) {
@@ -98,7 +85,9 @@
 		}
 	}
 
-	public static class Anchor {
+	public static class Alignment {
+		public const int none = 0;
+
 		public const int topLeft = top | left;
 		public const int topCenter = top | centerH;
 		public const int topRight = top | right;
@@ -120,6 +109,23 @@
 		public const int right = 1 << 5;
 
 		public const int custom = 1 << 6;
+
+		public static Vec2 Calc(int alignment, Vec2 value) {
+			if (alignment == Alignment.custom) return value;
+
+			if ((alignment & Alignment.left) != 0) value.x = 0;
+			else if ((alignment & Alignment.centerH) != 0) value.x = .5f;
+			else if ((alignment & Alignment.right) != 0) value.x = 1;
+
+			if ((alignment & Alignment.top) != 0) value.y = 1;
+			else if ((alignment & Alignment.centerV) != 0) value.y = .5f;
+			else if ((alignment & Alignment.bottom) != 0) value.y = 0;
+			return value;
+		}
+
+		public static Vec2 Calc(int alignment) {
+			return Calc(alignment, new Vec2());
+		}
 	}
 
 	public static class Axes {

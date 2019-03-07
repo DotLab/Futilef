@@ -24,6 +24,9 @@ namespace Futilef.V2 {
 		int curQueue;
 		DrawBat curBatch;
 
+		public readonly Shader debugShader = new Shader("Debug", UnityEngine.Shader.Find("Sprites/Default"));
+		public readonly Texture debugTexture = new Texture("Debug", new UnityEngine.Texture2D(2, 2));
+
 		public void Start() {
 			curQueue = TransparentQueue + 1;
 			curBatch = null;
@@ -50,7 +53,7 @@ namespace Futilef.V2 {
 
 		public int NewGroup() {
 			int res = groups.Count;
-			groups.Add(new Group(curQueue));
+			groups.Add(new Group(curQueue += 1));
 			return res;
 		}
 

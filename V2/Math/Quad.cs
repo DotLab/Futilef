@@ -50,6 +50,10 @@
 			return new Quad(q.tl + v, q.tr + v, q.bl + v, q.br + v);
 		}
 
+		public static Quad operator -(Quad q, Vec2 v) {
+			return new Quad(q.tl - v, q.tr - v, q.bl - v, q.br - v);
+		}
+
 		public static Quad operator *(Mat2D m, Quad a) {
 			return new Quad(m * a.tl, m * a.tr, m * a.bl, m * a.br);
 		}

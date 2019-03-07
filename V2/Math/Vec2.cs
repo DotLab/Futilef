@@ -23,6 +23,16 @@
 			y += a.y;
 		}
 
+		public void Mult(Vec2 a) {
+			x *= a.x;
+			y *= a.y;
+		}
+
+		public void Mult(float f) {
+			x *= f;
+			y *= f;
+		}
+
 		public static Vec2 operator +(Vec2 v1, Vec2 v2) {
 			return new Vec2(v1.x + v2.x, v1.y + v2.y);
 		}
