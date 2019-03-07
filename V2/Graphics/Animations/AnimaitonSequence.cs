@@ -69,7 +69,6 @@ namespace Futilef.V2 {
 			sequence.taskStartTime += time;
 			return sequence;
 		}
-
 		public static AnimationSequence<T> Then<T>(this AnimationSequence<T> sequence) where T : Drawable {
 			sequence.taskStartTime = sequence.taskFinishTime;
 			return sequence;
@@ -79,32 +78,26 @@ namespace Futilef.V2 {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = 1, setStartFromTarget = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FadeInFromZero<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){start = 0, end = 1}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FadeOut<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = 0, setStartFromTarget = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FadeOutFromOne<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){start = 1, end = 0}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FadeTo<T>(this AnimationSequence<T> sequence, float alpha, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = alpha, setStartFromTarget = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FadeColorTo<T>(this AnimationSequence<T> sequence, Vec4 color, double duration, int esType) where T : Drawable {
 			sequence.Append(new ColorTask(sequence.target, duration, esType){end = color, setStartFromTarget = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> FlashColor<T>(this AnimationSequence<T> sequence, Vec4 color, double duration, int esType) where T : Drawable {
 			sequence.Append(new ColorTask(sequence.target, duration, esType){start = color, setEndFromTarget = true}); 
 			return sequence;
@@ -129,14 +122,25 @@ namespace Futilef.V2 {
 			sequence.Append(new SizeTask(sequence.target, duration, esType){end = size, setStartFromTarget = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> ResizeWidthTo<T>(this AnimationSequence<T> sequence, float width, double duration, int esType) where T : Drawable {
 			sequence.Append(new SizeTask(sequence.target, duration, esType){end = new Vec2(width, 0), setStartFromTarget = true, applyXOnly = true}); 
 			return sequence;
 		}
-
 		public static AnimationSequence<T> ResizeHeightTo<T>(this AnimationSequence<T> sequence, float height, double duration, int esType) where T : Drawable {
 			sequence.Append(new SizeTask(sequence.target, duration, esType){end = new Vec2(0, height), setStartFromTarget = true, applyYOnly = true}); 
+			return sequence;
+		}
+			
+		public static AnimationSequence<T> MoveTo<T>(this AnimationSequence<T> sequence, Vec2 pos, double duration, int esType) where T : Drawable {
+			sequence.Append(new PosTask(sequence.target, duration, esType){end = pos, setStartFromTarget = true}); 
+			return sequence;
+		}
+		public static AnimationSequence<T> MoveXTo<T>(this AnimationSequence<T> sequence, float x, double duration, int esType) where T : Drawable {
+			sequence.Append(new PosTask(sequence.target, duration, esType){end = new Vec2(x, 0), setStartFromTarget = true, applyXOnly = true}); 
+			return sequence;
+		}
+		public static AnimationSequence<T> MoveYTo<T>(this AnimationSequence<T> sequence, float y, double duration, int esType) where T : Drawable {
+			sequence.Append(new PosTask(sequence.target, duration, esType){end = new Vec2(0, y), setStartFromTarget = true, applyYOnly = true}); 
 			return sequence;
 		}
 	}

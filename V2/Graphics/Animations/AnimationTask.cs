@@ -95,15 +95,40 @@
 		}
 		public override void Apply(double t) {
 			var value = start + delta * (float)t; 
-			     if (applyXOnly) target.size.x = value.x;
+			if (applyXOnly)      target.size.x = value.x;
 			else if (applyYOnly) target.size.y = value.y;
 			else                 target.size = value;
 			target.hasTransformChanged = true; 
 		}
 		public override void Finish() { 
-			     if (applyXOnly) target.size.x = end.x;
+			if (applyXOnly)      target.size.x = end.x;
 			else if (applyYOnly) target.size.y = end.y;
 			else                 target.size = end;
+			target.hasTransformChanged = true; 
+		}
+	}
+
+	public sealed class PosTask : AnimationTask<Drawable> {
+		public Vec2 start, end, delta;
+		public bool setStartFromTarget, setEndFromTarget, applyXOnly, applyYOnly;
+		public PosTask(Drawable target, double duration, int esType) : base(target, duration, esType) {}
+		public override void Start() { 
+			if (setStartFromTarget) start = target.pos; 
+			if (setEndFromTarget) end = target.pos; 
+			delta = end - start; 
+			UnityEngine.Debug.LogFormat("{0} {1}", start, end);
+		}
+		public override void Apply(double t) {
+			var value = start + delta * (float)t; 
+			if (applyXOnly)      target.pos.x = value.x;
+			else if (applyYOnly) target.pos.y = value.y;
+			else                 target.pos = value;
+			target.hasTransformChanged = true; 
+		}
+		public override void Finish() { 
+			if (applyXOnly)      target.pos.x = end.x;
+			else if (applyYOnly) target.pos.y = end.y;
+			else                 target.pos = end;
 			target.hasTransformChanged = true; 
 		}
 	}
