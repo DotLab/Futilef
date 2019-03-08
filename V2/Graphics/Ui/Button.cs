@@ -34,17 +34,19 @@
 		}
 
 		public override bool OnTouchDown(TouchDownEvent e) {
-			var matInverse = new Mat2D();
-			matInverse.FromInverse(cachedMatConcat);
-			var screenQuad = matInverse * new Quad(cachedReadPos.x, cachedReadPos.y, cachedRealSize.x, cachedRealSize.y);
-			UnityEngine.Debug.LogFormat("{0} {1} {2} {3}", screenQuad.bl, screenQuad.tr, e.pos, screenQuad.GetAabb());
+//			var matInverse = new Mat2D();
+//			matInverse.FromInverse(cachedMatConcat);
+			var screenQuad = cachedMatConcat * new Quad(cachedPos.x, cachedPos.y, cachedSize.x, cachedSize.y);
+			UnityEngine.Debug.LogFormat("{0} {1} {2} {3} {4} {5}", screenQuad.bl, screenQuad.br, screenQuad.tl, screenQuad.tr, e.pos, screenQuad.GetAabb());
 			if (screenQuad.GetAabb().Contains(e.pos)) {
 				animationManager.Animate(this)
+					.FadeOut(.2, EsType.CubicOut)
 					.MoveYTo(1, 0.2, EsType.CubicOut)
 					.RotateTo(.5f, 0.2, EsType.CubicOut).Then()
 					.MoveYTo(0, 0.2, EsType.CubicIn)
 					.RotateTo(0, 0.2, EsType.CubicIn).Then()
-					.Spin(3, 1, EsType.CubicOut);
+					.FadeIn(1, EsType.CubicOut)
+					.Spin(3.125f, 1, EsType.CubicOut);
 				return true;
 			}
 			return false;

@@ -103,7 +103,7 @@ namespace Futilef.V2 {
 			return sequence;
 		}
 
-		public static AnimationSequence<T> Spin<T>(this AnimationSequence<T> sequence, int count, double duration, int esType) where T : Drawable {
+		public static AnimationSequence<T> Spin<T>(this AnimationSequence<T> sequence, float count, double duration, int esType) where T : Drawable {
 			sequence.Append(new RotTask(sequence.target, duration, esType){end = (float)Es.TwoPi * count, isRelative = true}); 
 			return sequence;
 		}

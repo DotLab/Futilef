@@ -52,7 +52,6 @@
 		public Vec2 shadowPos;
 		public Vec4 shadowColor;
 
-		public int textLen;
 		public string text;
 		public int textAlign;
 		public int alignMode;
@@ -71,17 +70,6 @@
 			fontSize = file.fontSize;
 		}
 
-		public void SetText(string text) {
-			if (this.text == text) return;
-			this.text = text;
-			textLen = text.Length;
-		}
-
-		public void SetFontSize(float fontSize) {
-			if (this.fontSize == fontSize) return;
-			this.fontSize = fontSize;
-		}
-
 		protected override DrawNode CreateDrawNode() { 
 			return new Node{shader = shader}; 
 		}
@@ -91,6 +79,11 @@
 			if (hasColorChanged) UpdateColor();
 
 			var n = (Node)node;
+			if (string.IsNullOrEmpty(text)) {
+				n.charCount = 0;
+				return;
+			}
+
 			n.color = cachedColor;
 
 			n.hasShadow = hasShadow;
@@ -100,14 +93,10 @@
 				n.shadowColor.w *= alpha;
 			}
 
+			var textLen = text.Length;
 			if (n.chars == null || n.charLen < textLen) {
 				n.chars = new Node.CharDrawInfo[textLen];
 				n.charLen = textLen;
-			}
-
-			if (textLen == 0 || string.IsNullOrEmpty(text)) {
-				n.charCount = 0;
-				return;
 			}
 
 			float fontScaling = fontSize / (float)file.fontSize;
@@ -135,7 +124,7 @@
 			}
 
 			if (useLayout) {
-				textPivotPos.Sub(textPivot * cachedRealSize);
+				textPivotPos.Sub(textPivot * cachedSize);
 			}
 
 			for (int i = 0, end = lineDrawInfo.charDrawInfos.Length; i < end; i++) {

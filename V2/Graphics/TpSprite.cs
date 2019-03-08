@@ -46,7 +46,7 @@
 			n.color = cachedColor;
 			n.uvQuad = spriteData.uvQuad;
 			if (useLayout) {
-				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
+				n.quad = cachedMatConcat * new Quad(0, 0, cachedSize.x, cachedSize.y);
 			} else {
 				n.quad = cachedMatConcat * new Quad(spriteData.rect);
 			}

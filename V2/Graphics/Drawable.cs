@@ -1,55 +1,47 @@
 ﻿namespace Futilef.V2 {
 	public abstract class Drawable {
-		public bool handleInput;
-		public bool useLayout;
+		public Drawable parent;
 
-		public int anchorAlign;
+		public int anchorAlign = Align.bottomLeft;
 		public Vec2 customAnchorAlign;
-		public int pivotAlign;
+		public int pivotAlign = Align.bottomLeft;
 		public Vec2 customPivotAlign;
 
 		public Vec2 pos;
-		public int relativePosAxes;
-
+		public int relativePosAxes = Axes.none;
 		public Vec2 size;
-		public int relativeSizeAxes;
-
-		public Drawable parent;
-
-		public Vec2 scl;
+		public int relativeSizeAxes = Axes.none;
+		public Vec2 scl = new Vec2(1);
 		public float rot;
-		public bool hasTransformChanged;
 
-		public Vec4 color;
-		public float alpha;
-		public bool hasColorChanged;
+		public Vec4 color = new Vec4(1);
+		public float alpha = 1;
+		public int srcBlend = BlendFactor.dstColor;
+		public int dstBlend = BlendFactor.zero;
+		public int blendOp = BlendOperator.add;
+
+		public bool handleInput = true;
+		public bool useLayout = true;
+		public bool needMatConcatInverse;
+
+		public bool hasTransformChanged = true;
+		public bool hasColorChanged = true;
 
 		public Vec2 cachedAnchor;
 		public Vec2 cachedPivot;
-		public Vec2 cachedReadPos;
-		public Vec2 cachedRealSize;
+		public Vec2 cachedPos;
+		public Vec2 cachedSize;
 
 		public Mat2D cachedMat;
 		public Mat2D cachedMatConcat;
+		public Mat2D cachedMatConcatInverse;
 
 		public Vec4 cachedColor;
 
-		public readonly DrawNode[] drawNodes = new DrawNode[3];
-
-		protected Drawable() {
-			scl = new Vec2(1);
-			hasTransformChanged = true;
-
-			alpha = 1;
-			color.One();
-			hasColorChanged = true;
-		}
+		readonly DrawNode[] drawNodes = new DrawNode[3];
 
 		public virtual DrawNode GenerateDrawNodeSubtree(int index) {
-			var node = drawNodes[index];
-			if (node == null) {
-				node = drawNodes[index] = CreateDrawNode();
-			}
+			var node = drawNodes[index] ?? (drawNodes[index] = CreateDrawNode());
 			UpdateDrawNode(node);
 			return node;
 		}
@@ -62,28 +54,28 @@
 
 			bool useParentSize = parent != null && parent.useLayout;
 			if (useParentSize) {
-				cachedReadPos = CalcAbsoluteVal(relativePosAxes, pos, parent.cachedRealSize);
-				cachedRealSize = CalcAbsoluteVal(relativeSizeAxes, size, parent.cachedRealSize);
+				cachedPos = Axes.Calc(relativePosAxes, pos, parent.cachedSize);
+				cachedSize = Axes.Calc(relativeSizeAxes, size, parent.cachedSize);
 			} else {
-				cachedReadPos = CalcAbsoluteVal(relativePosAxes, pos);
-				cachedRealSize = CalcAbsoluteVal(relativeSizeAxes, size);
+				cachedPos = Axes.Calc(relativePosAxes, pos);
+				cachedSize = Axes.Calc(relativeSizeAxes, size);
 			}
 
 			if (useLayout) {
-				cachedPivot = cachedRealSize * Align.Calc(pivotAlign, customPivotAlign);
+				cachedPivot = cachedSize * Align.Calc(pivotAlign, customPivotAlign);
 				cachedMat.FromTranslation(-cachedPivot);
-				cachedMat.ScaleRotateTranslate(scl, rot, cachedReadPos);
+				cachedMat.ScaleRotateTranslate(scl, rot, cachedPos);
 			} else {
-				cachedMat.FromScalingRotationTranslation(scl, rot, cachedReadPos);
+				cachedMat.FromScalingRotationTranslation(scl, rot, cachedPos);
 			}
 
 			if (useParentSize) {
-				cachedAnchor = parent.cachedRealSize * Align.Calc(anchorAlign, customAnchorAlign);
+				cachedAnchor = parent.cachedSize * Align.Calc(anchorAlign, customAnchorAlign);
 				cachedMat.Translate(cachedAnchor);
 			}
 				
 			cachedMatConcat = parent == null ? cachedMat : parent.cachedMatConcat * cachedMat;
-//			if (needMatConcatInverse) matConcatInverse.FromInverting(matConcat);
+			if (needMatConcatInverse) cachedMatConcatInverse.FromInverse(cachedMatConcat);
 		}
 
 		public virtual void UpdateColor() {
@@ -91,10 +83,13 @@
 
 			cachedColor = color;
 			cachedColor.w *= alpha;
+
+			if (parent != null) {
+				cachedColor = Vec4.Blend(cachedColor, parent.cachedColor, srcBlend, dstBlend, blendOp);
+			}
 		}
 
 		public virtual bool Propagate(UiEvent e) { return e.Trigger(this); }
-
 		public virtual bool OnTouchDown(TouchDownEvent e) { return false; }
 		public virtual bool OnTouchMove(TouchMoveEvent e) { return false; }
 		public virtual bool OnTouchUp(TouchUpEvent e) { return false; }
@@ -104,18 +99,6 @@
 		public virtual bool OnDragEnd(DragEndEvent e) { return false; }
 		public virtual bool OnKeyDown(KeyDownEvent e) { return false; }
 		public virtual bool OnKeyUp(KeyUpEvent e) { return false; }
-
-		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val, Vec2 parentSize) {
-			if ((axes & Axes.x) != 0) val.x *= parentSize.x;
-			if ((axes & Axes.y) != 0) val.y *= parentSize.y;
-			return val;
-		}
-
-		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val) {
-			if ((axes & Axes.x) != 0) val.x = 0;
-			if ((axes & Axes.y) != 0) val.y = 0;
-			return val;
-		}
 	}
 
 	public static class Align {
@@ -143,21 +126,21 @@
 
 		public const int custom = 1 << 6;
 
-		public static Vec2 Calc(int alignment, Vec2 value) {
-			if (alignment == Align.custom) return value;
+		public static Vec2 Calc(int align, Vec2 val) {
+			if (align == Align.custom) return val;
 
-			if ((alignment & Align.left) != 0) value.x = 0;
-			else if ((alignment & Align.centerH) != 0) value.x = .5f;
-			else if ((alignment & Align.right) != 0) value.x = 1;
+			if ((align & Align.left) != 0) val.x = 0;
+			else if ((align & Align.centerH) != 0) val.x = .5f;
+			else if ((align & Align.right) != 0) val.x = 1;
 
-			if ((alignment & Align.top) != 0) value.y = 1;
-			else if ((alignment & Align.centerV) != 0) value.y = .5f;
-			else if ((alignment & Align.bottom) != 0) value.y = 0;
-			return value;
+			if ((align & Align.top) != 0) val.y = 1;
+			else if ((align & Align.centerV) != 0) val.y = .5f;
+			else if ((align & Align.bottom) != 0) val.y = 0;
+			return val;
 		}
 
-		public static Vec2 Calc(int alignment) {
-			return Calc(alignment, new Vec2());
+		public static Vec2 Calc(int align) {
+			return Calc(align, new Vec2());
 		}
 	}
 
@@ -166,12 +149,18 @@
 		public const int x = 1 << 0;
 		public const int y = 1 << 1;
 		public const int both = x | y;
-	}
 
-	public static class FillMode {
-		public const int stretch = 0;
-		public const int fill = 1;
-		public const int fit = 2;
+		public static Vec2 Calc(int relativeAxes, Vec2 val, Vec2 parentVal) {
+			if ((relativeAxes & Axes.x) != 0) val.x *= parentVal.x;
+			if ((relativeAxes & Axes.y) != 0) val.y *= parentVal.y;
+			return val;
+		}
+
+		public static Vec2 Calc(int relativeAxes, Vec2 val) {
+			if ((relativeAxes & Axes.x) != 0) val.x = 0;
+			if ((relativeAxes & Axes.y) != 0) val.y = 0;
+			return val;
+		}
 	}
 }
 

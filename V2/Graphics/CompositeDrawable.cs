@@ -8,7 +8,7 @@ namespace Futilef.V2 {
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
-				b.DrawQuad(quad, new Quad(), new Vec4(.5f));
+				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .5f));
 
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
@@ -29,23 +29,33 @@ namespace Futilef.V2 {
 			return n;
 		}
 
-		protected override DrawNode CreateDrawNode() {
-			return new Node();
-		}
+		protected override DrawNode CreateDrawNode() { return new Node(); }
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (hasTransformChanged) {
-				UpdateTransform();
-				for (int i = 0, end = children.Count; i < end; i++) {
-					var child = children[i];
-					child.parent = this;
-					child.UpdateTransform();
-				}
-			}
+			if (hasTransformChanged) UpdateTransform();
+			if (hasColorChanged) UpdateColor();
 
 			var n = (Node)node;
 			if (useLayout) {
-				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
+				n.quad = cachedMatConcat * new Quad(0, 0, cachedSize.x, cachedSize.y);
+			}
+		}
+
+		public override void UpdateTransform() {
+			base.UpdateTransform();
+			for (int i = 0, end = children.Count; i < end; i++) {
+				var child = children[i];
+				child.parent = this;
+				child.UpdateTransform();
+			}
+		}
+
+		public override void UpdateColor() {
+			base.UpdateColor();
+			for (int i = 0, end = children.Count; i < end; i++) {
+				var child = children[i];
+				child.parent = this;
+				child.UpdateColor();
 			}
 		}
 
