@@ -13,6 +13,11 @@
 			y = v;
 		}
 
+		public void One() {
+			x = 1;
+			y = 1;
+		}
+
 		public void Set(float x, float y) {
 			this.x = x;
 			this.y = y;

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Futilef.V2 {
-	public sealed class AnimationPlayer {
+	public sealed class AnimationManager {
 		public readonly LinkedList<AnimationSequence> sequenceList = new LinkedList<AnimationSequence>();
 
 		public AnimationSequence<T> Animate<T>(T target) where T : Drawable {
@@ -24,7 +24,6 @@ namespace Futilef.V2 {
 					var next = i.Next;
 					sequenceList.Remove(i);
 					i = next;
-					UnityEngine.Debug.Log("sequence finish");
 				} else {  // started, not finished
 					sequence.Update(time);
 					i = i.Next;

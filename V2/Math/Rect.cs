@@ -31,6 +31,10 @@
 			this.h = h;
 		}
 
+		public bool Contains(Vec2 v) {
+			return x <= v.x && v.x <= x + w && y <= v.y && v.y <= y + h;
+		}
+
 		public static Rect operator *(Rect r, float f) {
 			return new Rect(r.x * f, r.y * f, r.w * f, r.h * f);
 		}

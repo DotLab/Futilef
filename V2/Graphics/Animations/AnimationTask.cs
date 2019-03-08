@@ -116,7 +116,6 @@
 			if (setStartFromTarget) start = target.pos; 
 			if (setEndFromTarget) end = target.pos; 
 			delta = end - start; 
-			UnityEngine.Debug.LogFormat("{0} {1}", start, end);
 		}
 		public override void Apply(double t) {
 			var value = start + delta * (float)t; 

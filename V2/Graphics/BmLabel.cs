@@ -67,6 +67,8 @@
 			for (int i = 0; i < file.pages; i += 1) {
 				textureStore.Get(file.pageNames[i]);
 			}
+
+			fontSize = file.fontSize;
 		}
 
 		public void SetText(string text) {
@@ -103,7 +105,7 @@
 				n.charLen = textLen;
 			}
 
-			if (string.IsNullOrEmpty(text)) {
+			if (textLen == 0 || string.IsNullOrEmpty(text)) {
 				n.charCount = 0;
 				return;
 			}

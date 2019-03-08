@@ -1,5 +1,6 @@
 ﻿namespace Futilef.V2 {
 	public abstract class Drawable {
+		public bool handleInput;
 		public bool useLayout;
 
 		public int anchorAlign;
@@ -91,6 +92,18 @@
 			cachedColor = color;
 			cachedColor.w *= alpha;
 		}
+
+		public virtual bool Propagate(UiEvent e) { return e.Trigger(this); }
+
+		public virtual bool OnTouchDown(TouchDownEvent e) { return false; }
+		public virtual bool OnTouchMove(TouchMoveEvent e) { return false; }
+		public virtual bool OnTouchUp(TouchUpEvent e) { return false; }
+		public virtual bool OnTap(TapEvent e) { return false; }
+		public virtual bool OnDragStart(DragStartEvent e) { return false; }
+		public virtual bool OnDrag(DragEvent e) { return false; }
+		public virtual bool OnDragEnd(DragEndEvent e) { return false; }
+		public virtual bool OnKeyDown(KeyDownEvent e) { return false; }
+		public virtual bool OnKeyUp(KeyUpEvent e) { return false; }
 
 		public static Vec2 CalcAbsoluteVal(int axes, Vec2 val, Vec2 parentSize) {
 			if ((axes & Axes.x) != 0) val.x *= parentSize.x;

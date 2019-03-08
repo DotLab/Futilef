@@ -46,19 +46,19 @@ namespace Futilef.V2 {
 			m5 = 0;
 		}
 
-//		public void FromInverting(Mat2D a) {
-//			float aa = a.m0, ab = a.m1, ac = a.m2, ad = a.m3;
-//			float atx = a.m4, aty = a.m5;
-//			float det = aa * ad - ab * ac;
-//			if (det == 0) return;
-//			det = 1f / det;
-//			m0 = ad * det;
-//			m1 = -ab * det;
-//			m2 = -ac * det;
-//			m3 = aa * det;
-//			m4 = (ac * aty - ad * atx) * det;
-//			m5 = (ab * atx - aa * aty) * det;
-//		}
+		public void FromInverse(Mat2D a) {
+			float aa = a.m0, ab = a.m1, ac = a.m3, ad = a.m4;
+			float atx = a.m2, aty = a.m5;
+			float det = aa * ad - ab * ac;
+			if (det == 0) return;
+			det = 1f / det;
+			m0 = ad * det;
+			m1 = -ab * det;
+			m2 = (ac * aty - ad * atx) * det;
+			m3 = -ac * det;
+			m4 = aa * det;
+			m5 = (ab * atx - aa * aty) * det;
+		}
 
 		/**
 		 * 1 0 x   cos -sin 0   sx 0 0   (sx * cos) (sy * -sin) x

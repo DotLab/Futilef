@@ -48,6 +48,15 @@ namespace Futilef.V2 {
 				n.quad = cachedMatConcat * new Quad(0, 0, cachedRealSize.x, cachedRealSize.y);
 			}
 		}
+
+		public override bool Propagate(UiEvent e) {
+			// reverse propagation
+			for (int i = children.Count - 1; i > 0; i--) {
+				var child = children[i];
+				if (child.handleInput && child.Propagate(e)) return true;
+			}
+			return base.Propagate(e);
+		}
 	}
 }
 

@@ -46,6 +46,14 @@
 			br.Set(x + w, y);
 		}
 
+		public Rect GetAabb() {
+			float t = bl.y; if (t < br.y) t = br.y; if (t < tl.y) t = tl.y; if (t < tr.y) t = tr.y; 
+			float b = bl.y; if (b > br.y) b = br.y; if (b > tl.y) b = tl.y; if (b > tr.y) b = tr.y; 
+			float l = bl.x; if (l > br.x) l = br.x; if (l > tl.x) l = tl.x; if (l > tr.x) l = tr.x; 
+			float r = bl.x; if (r < br.x) r = br.x; if (r < tl.x) r = tl.x; if (r < tr.x) r = tr.x; 
+			return new Rect(l, b, r - l, t - b);
+		}
+
 		public static Quad operator +(Quad q, Vec2 v) {
 			return new Quad(q.tl + v, q.tr + v, q.bl + v, q.br + v);
 		}
