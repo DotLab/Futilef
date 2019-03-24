@@ -9,7 +9,7 @@
 
 		public Vec2 pos;
 		public int relativePosAxes = Axes.none;
-		public Vec2 size;
+		public Vec2 size = new Vec2(1);
 		public int relativeSizeAxes = Axes.none;
 		public Vec2 scl = new Vec2(1);
 		public float rot;

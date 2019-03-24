@@ -181,7 +181,7 @@ namespace Futilef.V2 {
 			pageNames = new string[pages];
 			for (int j = 0; j < pages; j += 1) {
 				pageNames[j] = Bit.TrimNull(Bit.ReadString(bytes, ref i, length / pages));
-				UnityEngine.Debug.Log(pageNames[j]);
+//				UnityEngine.Debug.Log(pageNames[j]);
 			}
 
 			// 4

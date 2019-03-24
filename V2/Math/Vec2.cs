@@ -18,6 +18,11 @@
 			y = 1;
 		}
 
+		public void Set(float v) {
+			x = v;
+			y = v;
+		}
+
 		public void Set(float x, float y) {
 			this.x = x;
 			this.y = y;
@@ -61,6 +66,10 @@
 
 		public static Vec2 operator *(Vec2 v1, float f) {
 			return new Vec2(v1.x * f, v1.y * f);
+		}
+
+		public static Vec2 operator /(Vec2 v1, Vec2 v2) {
+			return new Vec2(v1.x / v2.x, v1.y / v2.y);
 		}
 
 		/**

@@ -86,11 +86,13 @@ namespace Futilef.V2 {
 		}
 
 		public void Activate() {
-			gameObject.SetActive(true);
+//			gameObject.SetActive(true);
+			meshRenderer.enabled = true;
 		}
 
 		public void Deactivate() {
-			gameObject.SetActive(false);
+//			gameObject.SetActive(false);
+			meshRenderer.enabled = false;
 		}
 
 		public void Dispose() {
