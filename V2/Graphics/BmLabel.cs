@@ -75,8 +75,8 @@
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (hasTransformChanged) UpdateTransform();
-			if (hasColorChanged) UpdateColor();
+			if (transformDirty) UpdateTransform();
+			if (colorDirty) UpdateColor();
 
 			var n = (Node)node;
 			if (string.IsNullOrEmpty(text)) {
@@ -104,7 +104,7 @@
 
 			Vec2 textPivotPos;
 			var textPivot = Align.Calc(textAlign);
-			if (textAlign != Align.none) {
+			if (textAlign != Align.None) {
 				if (alignMode == AlignMode.alignBase) {
 					textPivotPos = new Vec2(
 						(lineDrawInfo.size.w + lineDrawInfo.size.x) * textPivot.x, 

@@ -15,19 +15,19 @@
 
 			background.useLayout = true;
 			background.size.One();
-			background.relativeSizeAxes = Axes.both;
-			background.anchorAlign = Align.center;
-			background.pivotAlign = Align.center;
-			background.hasTransformChanged = true;
+			background.relativeSizeAxes = Axes.Both;
+			background.anchorAlign = Align.Center;
+			background.pivotAlign = Align.Center;
+			background.transformDirty = true;
 
 			text.useLayout = true;
 			text.size.One();
-			text.relativeSizeAxes = Axes.both;
+			text.relativeSizeAxes = Axes.Both;
 			text.alignMode = BmLabel.AlignMode.alignMesh;
-			text.textAlign = Align.center;
-			text.anchorAlign = Align.center;
-			text.pivotAlign = Align.center;
-			text.hasTransformChanged = true;
+			text.textAlign = Align.Center;
+			text.anchorAlign = Align.Center;
+			text.pivotAlign = Align.Center;
+			text.transformDirty = true;
 
 			children.Add(background);
 			children.Add(text);

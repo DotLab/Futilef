@@ -8,7 +8,7 @@ namespace Futilef.V2 {
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
-				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .5f));
+				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .2f));
 
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
@@ -29,11 +29,15 @@ namespace Futilef.V2 {
 			return n;
 		}
 
+		public virtual void Add(Drawable child) {
+			children.Add(child);
+		}
+
 		protected override DrawNode CreateDrawNode() { return new Node(); }
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (hasTransformChanged) UpdateTransform();
-			if (hasColorChanged) UpdateColor();
+			if (transformDirty) UpdateTransform();
+			if (colorDirty) UpdateColor();
 
 			var n = (Node)node;
 			if (useLayout) {
@@ -48,6 +52,7 @@ namespace Futilef.V2 {
 				child.parent = this;
 				child.UpdateTransform();
 			}
+			Console.Log(GetType(), cachedPos, cachedSize, scl);
 		}
 
 		public override void UpdateColor() {

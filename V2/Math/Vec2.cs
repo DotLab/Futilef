@@ -85,7 +85,7 @@
 		}
 
 		public override string ToString() {
-			return string.Format("({0:F2}, {1:F2})", x, y);
+			return string.Format("({0:F4}, {1:F4})", x, y);
 		}
 	}
 }

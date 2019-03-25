@@ -39,8 +39,8 @@
 		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (hasTransformChanged) UpdateTransform();
-			if (hasColorChanged) UpdateColor();
+			if (transformDirty) UpdateTransform();
+			if (colorDirty) UpdateColor();
 
 			var n = (Node)node;
 			n.color = cachedColor;

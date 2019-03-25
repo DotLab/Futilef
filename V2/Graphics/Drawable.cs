@@ -2,15 +2,15 @@
 	public abstract class Drawable {
 		public Drawable parent;
 
-		public int anchorAlign = Align.bottomLeft;
+		public int anchorAlign = Align.BottomLeft;
 		public Vec2 customAnchorAlign;
-		public int pivotAlign = Align.bottomLeft;
+		public int pivotAlign = Align.BottomLeft;
 		public Vec2 customPivotAlign;
 
 		public Vec2 pos;
-		public int relativePosAxes = Axes.none;
+		public int relativePosAxes = Axes.None;
 		public Vec2 size = new Vec2(1);
-		public int relativeSizeAxes = Axes.none;
+		public int relativeSizeAxes = Axes.None;
 		public Vec2 scl = new Vec2(1);
 		public float rot;
 
@@ -24,8 +24,8 @@
 		public bool useLayout = true;
 		public bool needMatConcatInverse;
 
-		public bool hasTransformChanged = true;
-		public bool hasColorChanged = true;
+		public bool transformDirty = true;
+		public bool colorDirty = true;
 
 		public Vec2 cachedAnchor;
 		public Vec2 cachedPivot;
@@ -50,7 +50,7 @@
 		protected virtual void UpdateDrawNode(DrawNode node) {}
 
 		public virtual void UpdateTransform() {
-			hasTransformChanged = false;
+			transformDirty = false;
 
 			bool useParentSize = parent != null && parent.useLayout;
 			if (useParentSize) {
@@ -79,7 +79,7 @@
 		}
 
 		public virtual void UpdateColor() {
-			hasColorChanged = false;
+			colorDirty = false;
 
 			cachedColor = color;
 			cachedColor.w *= alpha;
@@ -101,41 +101,63 @@
 		public virtual bool OnKeyUp(KeyUpEvent e) { return false; }
 	}
 
+	public static class DrawableExtension {
+		public static T Layout<T> (this T self, float posX, float posY, float sizeX, float sizeY) where T : Drawable {
+			self.pos.Set(posX, posY); self.size.Set(sizeX, sizeY); 
+			self.transformDirty = true; return self;
+		}
+
+		public static T Layout<T> (this T self, float posX, float posY, int relativeSizeAxes, float sizeX, float sizeY) where T : Drawable {
+			self.pos.Set(posX, posY); self.relativeSizeAxes = relativeSizeAxes; self.size.Set(sizeX, sizeY); 
+			self.transformDirty = true; return self;
+		}
+
+		public static T Anchor<T> (this T self, int align, float x, float y) where T : Drawable {
+			self.anchorAlign = align; self.customAnchorAlign.Set(x, y); 
+			self.transformDirty = true; return self;
+		}
+
+		public static T Pivot<T> (this T self, int align, float x, float y) where T : Drawable {
+			self.pivotAlign = align; self.customPivotAlign.Set(x, y); 
+			self.transformDirty = true; return self;
+		}
+	}
+
 	public static class Align {
-		public const int none = 0;
+		public const int None = 0;
 
-		public const int topLeft = top | left;
-		public const int topCenter = top | centerH;
-		public const int topRight = top | right;
+		public const int TopLeft = Top | Left;
+		public const int TopCenter = Top | CenterH;
+		public const int TopRight = Top | Right;
 
-		public const int centerLeft = centerV | left;
-		public const int center = centerV | centerH;
-		public const int centerRight = centerV | right;
+		public const int CenterLeft = CenterV | Left;
+		public const int Center = CenterV | CenterH;
+		public const int centerRight = CenterV | Right;
 
-		public const int bottomLeft = bottom | left;
-		public const int bottomCentre = bottom | centerH;
-		public const int bottomRight = bottom | right;
+		public const int BottomLeft = Bottom | Left;
+		public const int BottomCentre = Bottom | CenterH;
+		public const int BottomRight = Bottom | Right;
 
-		public const int top = 1 << 0;
-		public const int centerV = 1 << 1;
-		public const int bottom = 1 << 2;
+		public const int Top = 1 << 0;
+		public const int CenterV = 1 << 1;
+		public const int Bottom = 1 << 2;
 
-		public const int left = 1 << 3;
-		public const int centerH = 1 << 4;
-		public const int right = 1 << 5;
+		public const int Left = 1 << 3;
+		public const int CenterH = 1 << 4;
+		public const int Right = 1 << 5;
 
-		public const int custom = 1 << 6;
+		public const int Custom = 1 << 6;
 
 		public static Vec2 Calc(int align, Vec2 val) {
-			if (align == Align.custom) return val;
+			if (align == Align.Custom) return val;
 
-			if ((align & Align.left) != 0) val.x = 0;
-			else if ((align & Align.centerH) != 0) val.x = .5f;
-			else if ((align & Align.right) != 0) val.x = 1;
+			if ((align & Align.Left) != 0) val.x = 0;
+			else if ((align & Align.CenterH) != 0) val.x = .5f;
+			else if ((align & Align.Right) != 0) val.x = 1;
 
-			if ((align & Align.top) != 0) val.y = 1;
-			else if ((align & Align.centerV) != 0) val.y = .5f;
-			else if ((align & Align.bottom) != 0) val.y = 0;
+			if ((align & Align.Top) != 0) val.y = 1;
+			else if ((align & Align.CenterV) != 0) val.y = .5f;
+			else if ((align & Align.Bottom) != 0) val.y = 0;
 			return val;
 		}
 
@@ -145,20 +167,20 @@
 	}
 
 	public static class Axes {
-		public const int none = 0;
-		public const int x = 1 << 0;
-		public const int y = 1 << 1;
-		public const int both = x | y;
+		public const int None = 0;
+		public const int X = 1 << 0;
+		public const int Y = 1 << 1;
+		public const int Both = X | Y;
 
 		public static Vec2 Calc(int relativeAxes, Vec2 val, Vec2 parentVal) {
-			if ((relativeAxes & Axes.x) != 0) val.x *= parentVal.x;
-			if ((relativeAxes & Axes.y) != 0) val.y *= parentVal.y;
+			if ((relativeAxes & Axes.X) != 0) val.x *= parentVal.x;
+			if ((relativeAxes & Axes.Y) != 0) val.y *= parentVal.y;
 			return val;
 		}
 
 		public static Vec2 Calc(int relativeAxes, Vec2 val) {
-			if ((relativeAxes & Axes.x) != 0) val.x = 0;
-			if ((relativeAxes & Axes.y) != 0) val.y = 0;
+			if ((relativeAxes & Axes.X) != 0) val.x = 0;
+			if ((relativeAxes & Axes.Y) != 0) val.y = 0;
 			return val;
 		}
 	}
