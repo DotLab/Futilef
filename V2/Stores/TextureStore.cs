@@ -1,6 +1,6 @@
 ﻿namespace Futilef.V2 {
 	public class TextureStore : CachedStore<Texture> {
-		public bool shouldTransform8BitPng;
+		public bool transform8BitPng;
 		public IStore<byte[]> provider;
 
 		public TextureStore(IStore<byte[]> provider) {
@@ -13,7 +13,7 @@
 			UnityEngine.ImageConversion.LoadImage(unityTexture, bytes);
 
 			var t = new Texture(name, unityTexture);
-			if (shouldTransform8BitPng) t.Transform8BitPng();
+			if (transform8BitPng) t.Transform8BitPng();
 			return t;
 		}
 	}
