@@ -9,7 +9,7 @@ namespace Futilef.V2 {
 			public const int Separate = 3;
 		}
 
-		public Vec2 targetSize = new Vec2(1024, 768);
+		public Vec2 targetSize = new Vec2(800, 600);
 		public int strategy = Strategy.Minimum;
 
 		readonly CompositeDrawable content;
@@ -24,6 +24,7 @@ namespace Futilef.V2 {
 
 		public override void Add(Drawable child) {
 			content.Add(child);
+			age += 1;
 		}
 
 		public override void UpdateTransform() {

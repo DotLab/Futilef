@@ -1,5 +1,7 @@
 ﻿namespace Futilef.V2 {
 	public abstract class Drawable {
+		public uint age;
+
 		public Drawable parent;
 
 		public int anchorAlign = Align.BottomLeft;
@@ -42,12 +44,16 @@
 
 		public virtual DrawNode GenerateDrawNodeSubtree(int index) {
 			var node = drawNodes[index] ?? (drawNodes[index] = CreateDrawNode());
-			UpdateDrawNode(node);
+			if (node.age != age) UpdateDrawNode(node);
 			return node;
 		}
 
 		protected abstract DrawNode CreateDrawNode();
-		protected virtual void UpdateDrawNode(DrawNode node) {}
+		protected virtual void UpdateDrawNode(DrawNode node) {
+			node.age = age;
+			if (transformDirty) UpdateTransform();
+			if (colorDirty) UpdateColor();
+		}
 
 		public virtual void UpdateTransform() {
 			transformDirty = false;
@@ -89,7 +95,9 @@
 			}
 		}
 
-		public virtual bool Propagate(UiEvent e) { return e.Trigger(this); }
+		public virtual bool Propagate(UiEvent e) { 
+			return e.Trigger(this); 
+		}
 		public virtual bool OnTouchDown(TouchDownEvent e) { return false; }
 		public virtual bool OnTouchMove(TouchMoveEvent e) { return false; }
 		public virtual bool OnTouchUp(TouchUpEvent e) { return false; }
@@ -103,23 +111,38 @@
 
 	public static class DrawableExtension {
 		public static T Layout<T> (this T self, float posX, float posY, float sizeX, float sizeY) where T : Drawable {
-			self.pos.Set(posX, posY); self.size.Set(sizeX, sizeY); 
-			self.transformDirty = true; return self;
+			self.pos.Set(posX, posY); self.size.Set(sizeX, sizeY);
+			self.transformDirty = true; self.age += 1; return self;
 		}
 
 		public static T Layout<T> (this T self, float posX, float posY, int relativeSizeAxes, float sizeX, float sizeY) where T : Drawable {
 			self.pos.Set(posX, posY); self.relativeSizeAxes = relativeSizeAxes; self.size.Set(sizeX, sizeY); 
-			self.transformDirty = true; return self;
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Pos<T> (this T self, float x, float y) where T : Drawable {
+			self.pos.Set(x, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Anchor<T> (this T self, int align) where T : Drawable {
+			self.anchorAlign = align;
+			self.transformDirty = true; self.age += 1; return self;
 		}
 
 		public static T Anchor<T> (this T self, int align, float x, float y) where T : Drawable {
 			self.anchorAlign = align; self.customAnchorAlign.Set(x, y); 
-			self.transformDirty = true; return self;
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Pivot<T> (this T self, int align) where T : Drawable {
+			self.pivotAlign = align;  
+			self.transformDirty = true; self.age += 1; return self;
 		}
 
 		public static T Pivot<T> (this T self, int align, float x, float y) where T : Drawable {
 			self.pivotAlign = align; self.customPivotAlign.Set(x, y); 
-			self.transformDirty = true; return self;
+			self.transformDirty = true; self.age += 1; return self;
 		}
 	}
 

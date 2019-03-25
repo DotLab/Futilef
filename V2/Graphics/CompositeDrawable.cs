@@ -17,7 +17,8 @@ namespace Futilef.V2 {
 		}
 
 		public readonly List<Drawable> children = new List<Drawable>();
-		public bool flattenSubtree = true;
+//		public bool flattenSubtree = true;
+		public bool flattenSubtree;
 
 		public override DrawNode GenerateDrawNodeSubtree(int index) {
 			var n = (Node)base.GenerateDrawNodeSubtree(index);
@@ -42,13 +43,13 @@ namespace Futilef.V2 {
 
 		public virtual void Add(Drawable child) {
 			children.Add(child);
+			age += 1;
 		}
 
 		protected override DrawNode CreateDrawNode() { return new Node(); }
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (transformDirty) UpdateTransform();
-			if (colorDirty) UpdateColor();
+			base.UpdateDrawNode(node);
 
 			var n = (Node)node;
 			if (useLayout) {
@@ -62,6 +63,7 @@ namespace Futilef.V2 {
 				var child = children[i];
 				child.parent = this;
 				child.UpdateTransform();
+				child.age += 1;
 			}
 			Console.Log(GetType(), cachedPos, cachedSize, scl);
 		}
@@ -70,8 +72,8 @@ namespace Futilef.V2 {
 			base.UpdateColor();
 			for (int i = 0, end = children.Count; i < end; i++) {
 				var child = children[i];
-				child.parent = this;
 				child.UpdateColor();
+				child.age += 1;
 			}
 		}
 

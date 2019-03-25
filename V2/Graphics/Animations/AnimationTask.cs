@@ -40,8 +40,8 @@
 			if (setStartFromTarget) start = target.alpha; 
 			delta = end - start;
 		}
-		public override void Apply(double t) { target.alpha = start + delta * (float)t; target.colorDirty = true; }
-		public override void Finish() { target.alpha = end; target.colorDirty = true; }
+		public override void Apply(double t) { target.alpha = start + delta * (float)t; target.colorDirty = true; target.age += 1; }
+		public override void Finish() { target.alpha = end; target.colorDirty = true; target.age += 1; }
 	}
 
 	public sealed class ColorTask : AnimationTask<Drawable> {
@@ -53,8 +53,8 @@
 			if (setEndFromTarget) end = target.color; 
 			delta = end - start; 
 		}
-		public override void Apply(double t) { target.color = start + delta * (float)t; target.colorDirty = true; }
-		public override void Finish() { target.color = end; target.colorDirty = true; }
+		public override void Apply(double t) { target.color = start + delta * (float)t; target.colorDirty = true; target.age += 1; }
+		public override void Finish() { target.color = end; target.colorDirty = true; target.age += 1; }
 	}
 
 	public sealed class RotTask : AnimationTask<Drawable> {
@@ -67,8 +67,8 @@
 			if (isRelative) { start = target.rot; end = target.rot + end; }
 			delta = end - start; 
 		}
-		public override void Apply(double t) { target.rot = start + delta * (float)t; target.transformDirty = true; }
-		public override void Finish() { target.rot = end; target.transformDirty = true; }
+		public override void Apply(double t) { target.rot = start + delta * (float)t; target.transformDirty = true; target.age += 1; }
+		public override void Finish() { target.rot = end; target.transformDirty = true; target.age += 1; }
 	}
 
 	public sealed class SclTask : AnimationTask<Drawable> {
@@ -80,8 +80,8 @@
 			if (setEndFromTarget) end = target.scl; 
 			delta = end - start; 
 		}
-		public override void Apply(double t) { target.scl = start + delta * (float)t; target.transformDirty = true; }
-		public override void Finish() { target.scl = end; target.transformDirty = true; }
+		public override void Apply(double t) { target.scl = start + delta * (float)t; target.transformDirty = true; target.age += 1; }
+		public override void Finish() { target.scl = end; target.transformDirty = true; target.age += 1; }
 	}
 
 	public sealed class SizeTask : AnimationTask<Drawable> {
@@ -98,13 +98,13 @@
 			if (applyXOnly)      target.size.x = value.x;
 			else if (applyYOnly) target.size.y = value.y;
 			else                 target.size = value;
-			target.transformDirty = true; 
+			target.transformDirty = true; target.age += 1; 
 		}
 		public override void Finish() { 
 			if (applyXOnly)      target.size.x = end.x;
 			else if (applyYOnly) target.size.y = end.y;
 			else                 target.size = end;
-			target.transformDirty = true; 
+			target.transformDirty = true; target.age += 1; 
 		}
 	}
 
@@ -122,13 +122,13 @@
 			if (applyXOnly)      target.pos.x = value.x;
 			else if (applyYOnly) target.pos.y = value.y;
 			else                 target.pos = value;
-			target.transformDirty = true; 
+			target.transformDirty = true; target.age += 1; 
 		}
 		public override void Finish() { 
 			if (applyXOnly)      target.pos.x = end.x;
 			else if (applyYOnly) target.pos.y = end.y;
 			else                 target.pos = end;
-			target.transformDirty = true; 
+			target.transformDirty = true; target.age += 1; 
 		}
 	}
 }

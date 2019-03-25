@@ -23,7 +23,7 @@
 			text.useLayout = true;
 			text.size.One();
 			text.relativeSizeAxes = Axes.Both;
-			text.alignMode = BmLabel.AlignMode.alignMesh;
+			text.verticalAlign = BmLabel.VerticalAlign.Mesh;
 			text.textAlign = Align.Center;
 			text.anchorAlign = Align.Center;
 			text.pivotAlign = Align.Center;
