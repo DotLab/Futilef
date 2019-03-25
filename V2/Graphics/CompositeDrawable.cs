@@ -17,16 +17,27 @@ namespace Futilef.V2 {
 		}
 
 		public readonly List<Drawable> children = new List<Drawable>();
+		public bool flattenSubtree = true;
 
 		public override DrawNode GenerateDrawNodeSubtree(int index) {
 			var n = (Node)base.GenerateDrawNodeSubtree(index);
 
 			n.children.Clear();
-			for (int i = 0, end = children.Count; i < end; i++) {
-				n.children.Add(children[i].GenerateDrawNodeSubtree(index));
-			}
+			AddDrawNodeSubtreeRecur(index, this, n.children);
 
 			return n;
+		}
+
+		static void AddDrawNodeSubtreeRecur(int index, CompositeDrawable parentDrawable, List<DrawNode> drawNodes) {
+			for (int i = 0, end = parentDrawable.children.Count; i < end; i++) {
+				var child = parentDrawable.children[i];
+				var compositeChild = child as CompositeDrawable;
+				if (compositeChild != null && parentDrawable.flattenSubtree) {
+					AddDrawNodeSubtreeRecur(index, compositeChild, drawNodes);
+				} else {
+					drawNodes.Add(child.GenerateDrawNodeSubtree(index));
+				}
+			}
 		}
 
 		public virtual void Add(Drawable child) {
