@@ -69,6 +69,10 @@
 		public static Quad operator *(Mat2D m, Quad a) {
 			return new Quad(m * a.tl, m * a.tr, m * a.bl, m * a.br);
 		}
+
+		public override string ToString() {
+			return string.Format("[Quad: tl={0}, tr={1}, bl={2}, br={3}]", tl, tr, bl, br);
+		}
 	}
 }
 

@@ -72,7 +72,7 @@
 				n.quadInner = cachedMatConcat * new Quad(cachedSpriteData.rectInner);
 
 			}
-			Console.Log("uv", cachedSpriteData.uvQuad, "inner", cachedSpriteData.uvQuadInner);
+//			Console.Log("uv", cachedSpriteData.uvQuad, "inner", cachedSpriteData.uvQuadInner);
 		}
 	}
 

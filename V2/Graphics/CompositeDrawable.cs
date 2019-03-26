@@ -8,7 +8,7 @@ namespace Futilef.V2 {
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
-//				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .2f));
+				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .1f));
 
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
@@ -21,6 +21,10 @@ namespace Futilef.V2 {
 		// non-cachable
 //		public bool flattenSubtree = true;
 		public bool flattenSubtree;
+
+		public CompositeDrawable() {
+			this.handleInput = true;
+		}
 
 		public override DrawNode GenerateDrawNodeSubtree(int index) {
 			var n = (Node)base.GenerateDrawNodeSubtree(index);
@@ -82,11 +86,13 @@ namespace Futilef.V2 {
 
 		public override bool Propagate(UiEvent e) {
 			// reverse propagation
-			for (int i = children.Count - 1; i > 0; i--) {
+//			Console.Log(GetType(), e.GetType());
+			for (int i = children.Count - 1; i >= 0; i--) {
 				var child = children[i];
 				if (child.handleInput && child.Propagate(e)) return true;
 			}
-			return base.Propagate(e);
+
+			return false;
 		}
 	}
 

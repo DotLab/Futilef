@@ -76,7 +76,6 @@
 				cachedSize = Axes.Calc(relativeSizeAxes, size);
 			}
 
-
 			if (useLayout) {
 				cachedPivot = cachedSize * Align.Calc(pivotAlign, customPivotAlign);
 				cachedPos.x += margin.l;

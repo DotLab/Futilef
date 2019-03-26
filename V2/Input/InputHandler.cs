@@ -29,12 +29,12 @@ namespace Futilef.V2 {
 			int touchCount = UnityInput.touchCount;
 			TouchState ts;
 
-			for (int i = 0; i < touchCount; i++) {
-				var touch = UnityInput.GetTouch(i);
-				int id = touch.fingerId;
-				var pos = new Vec2(touch.position.x, touch.position.y);
+			lock (eventListMutex) {
+				for (int i = 0; i < touchCount; i++) {
+					var touch = UnityInput.GetTouch(i);
+					int id = touch.fingerId;
+					var pos = new Vec2(touch.position.x, touch.position.y);
 
-				lock (eventListMutex) {
 					switch (touch.phase) {
 					case UnityEngine.TouchPhase.Began:  // new touch
 						if (touchStateDict.TryGetValue(id, out ts)) {

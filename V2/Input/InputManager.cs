@@ -17,7 +17,10 @@ namespace Futilef.V2 {
 			}
 
 			if (root.handleInput) {
-				foreach (var e in eventList) root.Propagate(e);
+				foreach (var e in eventList) {
+//					Console.Log("InputManager", root.GetType(), e.GetType());
+					root.Propagate(e);
+				}
 			}
 
 			eventList.Clear();
