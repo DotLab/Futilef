@@ -14,14 +14,14 @@
 			return new BmLabel(bmFontFileStore.Get(fontName), shaderStore.Get(defaultShaderName), fontTextureStore);
 		}
 
-		public TpSprite CreateTpSprite(string atlasName, string spriteName) {
+		public TpSprite CreateTpSprite(string atlasName) {
 			var file = tpDataFileStore.Get(atlasName);
-			return new TpSprite(file, shaderStore.Get(defaultShaderName), spriteTextureStore.Get(file.name)).Sprite(spriteName);
+			return new TpSprite(file, shaderStore.Get(defaultShaderName), spriteTextureStore.Get(file.name));
 		}
 
-		public TpSpriteSliced CreateTpSpriteSliced(string atlasName, string spriteName) {
+		public TpSpriteSliced CreateTpSpriteSliced(string atlasName) {
 			var file = tpDataFileStore.Get(atlasName);
-			return new TpSpriteSliced(file, shaderStore.Get(defaultShaderName), spriteTextureStore.Get(file.name)).Sprite(spriteName);
+			return new TpSpriteSliced(file, shaderStore.Get(defaultShaderName), spriteTextureStore.Get(file.name));
 		}
 	}
 }

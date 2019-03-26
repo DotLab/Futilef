@@ -8,16 +8,18 @@
 		public bool transformDirty = true;
 
 		public int anchorAlign = Align.BottomLeft;
-		public Vec2 customAnchorAlign;
 		public int pivotAlign = Align.BottomLeft;
+		public Vec2 customAnchorAlign;
 		public Vec2 customPivotAlign;
 
 		public Vec2 pos;
 		public int relativePosAxes = Axes.None;
-		public Vec2 size = new Vec2(1);
-		public int relativeSizeAxes = Axes.None;
 		public Vec2 scl = new Vec2(1);
 		public float rot;
+
+		public Vec2 size = new Vec2(1);
+		public int relativeSizeAxes = Axes.None;
+		public Border margin;
 
 		// color
 		public bool colorDirty = true;
@@ -29,7 +31,7 @@
 		public int blendOp = BlendOperator.add;
 
 		// non-cachable
-		public bool handleInput = true;
+		public bool handleInput;
 		public bool useLayout = true;
 		public bool needMatConcatInverse;
 
@@ -74,8 +76,13 @@
 				cachedSize = Axes.Calc(relativeSizeAxes, size);
 			}
 
+
 			if (useLayout) {
 				cachedPivot = cachedSize * Align.Calc(pivotAlign, customPivotAlign);
+				cachedPos.x += margin.l;
+				cachedPos.y += margin.b;
+				cachedSize.x -= margin.l + margin.r;
+				cachedSize.y -= margin.b + margin.t;
 				cachedMat.FromTranslation(-cachedPivot);
 				cachedMat.ScaleRotateTranslate(scl, rot, cachedPos);
 			} else {
@@ -140,6 +147,16 @@
 			self.transformDirty = true; self.age += 1; return self;
 		}
 
+		public static T Margin<T> (this T self, float v) where T : Drawable {
+			self.margin.Set(v);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Margin<T> (this T self, float x, float y) where T : Drawable {
+			self.margin.Set(x, x, y, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
 		public static T Anchor<T> (this T self, int align) where T : Drawable {
 			self.anchorAlign = align;
 			self.transformDirty = true; self.age += 1; return self;
@@ -158,6 +175,21 @@
 		public static T Pivot<T> (this T self, int align, float x, float y) where T : Drawable {
 			self.pivotAlign = align; self.customPivotAlign.Set(x, y); 
 			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T AnchorPivot<T> (this T self, int align) where T : Drawable {
+			self.anchorAlign = self.pivotAlign = align;; 
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Color<T> (this T self, float v) where T : Drawable {
+			self.color.Set(v, v, v, 1);; 
+			self.colorDirty = true; self.age += 1; return self;
+		}
+
+		public static T Color<T> (this T self, float v, float a) where T : Drawable {
+			self.color.Set(v, v, v, a);; 
+			self.colorDirty = true; self.age += 1; return self;
 		}
 	}
 

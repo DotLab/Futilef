@@ -31,7 +31,7 @@ namespace Futilef.V2 {
 				rectInner = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
 				rectInner.y = size.y - (rectInner.y + rectInner.h);
 
-				border = new Border(rectInner.x, size.x - (rectInner.x + rectInner.w), size.y - (rectInner.y + rectInner.h), rectInner.y);
+				border = new Border(rectInner.x, size.x - (rectInner.x + rectInner.w), rectInner.y, size.y - (rectInner.y + rectInner.h));
 
 				uv = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
 				uv.y = height - (uv.y + uv.h);

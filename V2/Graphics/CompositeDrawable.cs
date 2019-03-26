@@ -8,7 +8,7 @@ namespace Futilef.V2 {
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
-				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .2f));
+//				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .2f));
 
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);

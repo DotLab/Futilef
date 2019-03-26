@@ -83,6 +83,10 @@ namespace Futilef.V2 {
 			mesh.uv = uvs;
 
 			mesh.triangles = tris;
+
+//			mesh.RecalculateBounds();
+//			mesh.RecalculateNormals();
+//			mesh.RecalculateTangents();
 		}
 
 		public void Activate() {
@@ -155,7 +159,7 @@ namespace Futilef.V2 {
 		 * 12 - 13 - 14 - 15
 		 * 16, 18
 		 */
-		public static void DrawQuad9Sliced(this DrawBat bat, Quad q, Quad qI, Quad uv, Quad uvI, Vec4 c, bool fillInner = true) {
+		public static void DrawQuad9Sliced(this DrawBat bat, Quad q, Quad qI, Quad uv, Quad uvI, Vec4 c, bool fillInner) {
 			int vi = bat.vertCount;
 			int ti = bat.triCount;
 			bat.RequestQuota(16, fillInner ? 18 : 16);

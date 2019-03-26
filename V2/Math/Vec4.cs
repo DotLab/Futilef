@@ -12,11 +12,11 @@
 			this.w = w;
 		}
 
-		public Vec4(float x) {
-			this.x = x;
-			this.y = x;
-			this.z = x;
-			this.w = x;
+		public Vec4(float v) {
+			this.x = v;
+			this.y = v;
+			this.z = v;
+			this.w = v;
 		}
 
 		public void Zero() {
@@ -31,6 +31,20 @@
 			y = 1;
 			z = 1;
 			w = 1;
+		}
+
+		public void Set(float v) {
+			this.x = v;
+			this.y = v;
+			this.z = v;
+			this.w = v;
+		}
+
+		public void Set(float x, float y, float z, float w) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.w = w;
 		}
 
 		public static Vec4 Blend(Vec4 srcColor, Vec4 dstColor, int srcBlend, int dstBlend, int op) {

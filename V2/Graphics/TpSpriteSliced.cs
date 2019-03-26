@@ -5,6 +5,8 @@
 			public Texture texture;
 			public Vec4 color;
 
+			public bool fillInner;
+
 			public Quad quad;
 			public Quad quadInner;
 			public Quad uvQuad;
@@ -12,7 +14,7 @@
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(shader, texture);
-				b.DrawQuad9Sliced(quad, quadInner, uvQuad, uvQuadInner, color);
+				b.DrawQuad9Sliced(quad, quadInner, uvQuad, uvQuadInner, color, fillInner);
 			}
 		}
 
@@ -24,6 +26,9 @@
 		public bool spriteDirty;
 		public string spriteName;
 		public float spriteScale;
+
+		// non-cachable
+		public bool fillInner;
 
 		// cache
 		public TpDataFile.Sprite cachedSpriteData;
@@ -48,16 +53,20 @@
 			}
 
 			var n = (Node)node;
+
+			n.fillInner = fillInner;
+
 			n.color = cachedColor;
 			n.uvQuad = cachedSpriteData.uvQuad;
 			n.uvQuadInner = cachedSpriteData.uvQuadInner;
+
 			if (useLayout) {
 				n.quad = cachedMatConcat * new Quad(0, 0, cachedSize.x, cachedSize.y);
 				n.quadInner = cachedMatConcat * new Quad(
 					cachedBorder.l, 
 					cachedBorder.b, 
 					cachedSize.x - cachedBorder.l - cachedBorder.r, 
-					cachedSize.y - cachedBorder.t - cachedBorder.b);
+					cachedSize.y - cachedBorder.b - cachedBorder.t);
 			} else {
 				n.quad = cachedMatConcat * new Quad(cachedSpriteData.rect);
 				n.quadInner = cachedMatConcat * new Quad(cachedSpriteData.rectInner);
@@ -68,8 +77,8 @@
 	}
 
 	public static class TpSpriteSlicedExtension {
-		public static TpSpriteSliced Sprite(this TpSpriteSliced self, string spriteName, float spriteScale = 1) {
-			self.spriteName = spriteName; self.spriteScale = spriteScale;
+		public static TpSpriteSliced Sprite(this TpSpriteSliced self, string spriteName, float spriteScale = 1, bool fillInner = false) {
+			self.spriteName = spriteName; self.spriteScale = spriteScale; self.fillInner = fillInner;
 			self.spriteDirty = true; self.age += 1; return self;
 		}
 
