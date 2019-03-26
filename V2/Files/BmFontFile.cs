@@ -52,18 +52,6 @@ namespace Futilef.V2 {
 			}
 		}
 
-		public struct LineDrawInfo {
-			public Rect size;
-			public Rect meshSize;
-			public CharDrawInfo[] charDrawInfos;
-		}
-
-		public struct CharDrawInfo {
-			public int page;
-			public Rect rect;
-			public Rect uvRect;
-		}
-
 		// fontSize		2	int		0
 		public short fontSize;
 		// bitField		1	bits	2	bit 0: smooth, bit 1: unicode, bit 2: italic, bit 3: bold, bit 4: fixedHeigth, bits 5-7: reserved
@@ -216,64 +204,6 @@ namespace Futilef.V2 {
 			short k;
 			kerningDict.TryGetValue(((ulong)first << 32) | (ulong)second, out k);
 			return k;
-		}
-	
-		public LineDrawInfo GenerateDrawInfo(string line) {
-			int j = 0;
-			int curX = 0;
-			uint lastChar = 0;
-
-			var infoList = new List<CharDrawInfo>();
-			float meshLeft = 0;
-			float meshRight = 0;
-			float meshTop = 0;
-			float meshBottom = 0;
-
-			for (int i = 0, end = line.Length; i < end; i++) {
-				Glyph g;
-				char c = line[i];
-				if (!glyphDict.TryGetValue(c, out g)) continue;
-
-				if (char.IsWhiteSpace(c)) {
-					curX += g.xAdvance;
-					continue;
-				}
-
-				if (j > 0) curX += GetKerning(lastChar, c);
-
-				float left = curX + g.xOffset;
-				float right = left + g.width;
-				float top = lineBase - g.yOffset;
-				float bottom = top - g.height;
-
-				if (j == 0) {
-					meshLeft = left;
-					meshRight = right;
-					meshTop = top;
-					meshBottom = bottom;
-				} else {
-					if (left < meshLeft) meshLeft = left;
-					if (right > meshRight) meshRight = right;
-					if (top > meshTop) meshTop = top;
-					if (bottom < meshBottom) meshBottom = bottom;
-				}
-
-				infoList.Add(new CharDrawInfo{
-					page = g.page,
-					uvRect = g.uvRect,
-					rect = new Rect(left, bottom, g.width, g.height),
-				});
-
-				curX += g.xAdvance;
-				lastChar = c;
-				j += 1;
-			}
-
-			return new LineDrawInfo{ 
-				size = new Rect(0, lineBase - lineHeight, curX, lineBase),
-				meshSize = new Rect(meshLeft, meshBottom, meshRight - meshLeft, meshTop - meshBottom),
-				charDrawInfos = infoList.ToArray(), 
-			};
 		}
 	}
 }

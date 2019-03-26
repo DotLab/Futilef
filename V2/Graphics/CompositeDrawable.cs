@@ -17,6 +17,8 @@ namespace Futilef.V2 {
 		}
 
 		public readonly List<Drawable> children = new List<Drawable>();
+
+		// non-cachable
 //		public bool flattenSubtree = true;
 		public bool flattenSubtree;
 
@@ -57,22 +59,23 @@ namespace Futilef.V2 {
 			}
 		}
 
-		public override void UpdateTransform() {
-			base.UpdateTransform();
+		public override void CacheTransform() {
+			base.CacheTransform();
+
 			for (int i = 0, end = children.Count; i < end; i++) {
 				var child = children[i];
 				child.parent = this;
-				child.UpdateTransform();
+				child.CacheTransform();
 				child.age += 1;
 			}
-			Console.Log(GetType(), cachedPos, cachedSize, scl);
 		}
 
-		public override void UpdateColor() {
-			base.UpdateColor();
+		public override void CacheColor() {
+			base.CacheColor();
+
 			for (int i = 0, end = children.Count; i < end; i++) {
 				var child = children[i];
-				child.UpdateColor();
+				child.CacheColor();
 				child.age += 1;
 			}
 		}
@@ -86,5 +89,11 @@ namespace Futilef.V2 {
 			return base.Propagate(e);
 		}
 	}
+
+//	public static class CompositeDrawableExtension {
+//		public static T AddChild<T>(this T self, Drawable child) where T : CompositeDrawable {
+//			self.Add(child);
+//		}
+//	}
 }
 

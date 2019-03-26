@@ -1,19 +1,11 @@
 ﻿namespace Futilef.V2 {
 	public class BmLabel : Drawable {
 		public sealed class Node : DrawNode {
-			public struct CharDrawInfo {
-				public Quad quad;
-				public Quad uvQuad;
-
-				public Texture texture;
-			}
-
 			public Shader shader;
 			public Vec4 color;
 
-			public int charLen;
-			public int charCount;
-			public CharDrawInfo[] chars;
+			public int charInfoCount;
+			public CharInfo[] charInfos;
 
 			public bool hasShadow;
 			public Vec2 shadowPos;
@@ -23,18 +15,24 @@
 				if (g < 0) g = ctx.NewGroup();
 
 				if (!hasShadow) {
-					for (int i = 0; i < charCount; i += 1) {
-						var b = ctx.GetBatch(shader, chars[i].texture, g);
-						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
+					for (int i = 0; i < charInfoCount; i += 1) {
+						var b = ctx.GetBatch(shader, charInfos[i].texture, g);
+						b.DrawQuad(charInfos[i].quad, charInfos[i].uvQuad, color);
 					}
 				} else {
-					for (int i = 0; i < charCount; i += 1) {
-						var b = ctx.GetBatch(shader, chars[i].texture, g);
-						b.DrawQuad(chars[i].quad + shadowPos, chars[i].uvQuad, shadowColor);
-						b.DrawQuad(chars[i].quad, chars[i].uvQuad, color);
+					for (int i = 0; i < charInfoCount; i += 1) {
+						var b = ctx.GetBatch(shader, charInfos[i].texture, g);
+						b.DrawQuad(charInfos[i].quad + shadowPos, charInfos[i].uvQuad, shadowColor);
+						b.DrawQuad(charInfos[i].quad, charInfos[i].uvQuad, color);
 					}
 				}
 			}
+		}
+
+		public struct CharInfo {
+			public Quad quad;
+			public Quad uvQuad;
+			public Texture texture;
 		}
 
 		public static class VerticalAlign {
@@ -44,83 +42,56 @@
 		}
 
 		public readonly BmFontFile file;
+		public readonly Texture[] textures;
+
 		public readonly Shader shader;
-		public readonly IStore<Texture> textureStore;
 
-		public bool hasShadow;
-
-		public Vec2 shadowPos;
-		public Vec4 shadowColor;
-
+		// text
+		public bool textDirty;
 		public string text;
 
+		// text transform
+		public bool textTransformDirty;
 		public float fontSize;
 		public int textAlign = Align.BottomLeft;
 		public int verticalAlign = VerticalAlign.Base;
 
-		public bool textDirty;
-		public bool charTransformDirty;
+		// non-cachable
+		public bool hasShadow;
+		public Vec2 shadowPos;
+		public Vec4 shadowColor;
 
-		BmFontFile.LineDrawInfo lineDrawInfo;
-		float fontScaling;
-		Vec2 textPivotPos;
+		// cache
+		public Rect cachedLineRect;
+		public Rect cachedLineMeshRect;
+
+		public int cachedCharInfoCount;
+		public CharInfo[] cachedCharInfos;
+
+		public Vec2 cachedTextPivotPos;
 
 		public BmLabel(BmFontFile file, Shader shader, IStore<Texture> textureStore) {
 			this.file = file;
 			this.shader = shader;
-			this.textureStore = textureStore;
-
-			for (int i = 0; i < file.pages; i += 1) {
-				textureStore.Get(file.pageNames[i]);
-			}
 
 			fontSize = file.fontSize;
+
+			textures = new Texture[file.pages];
+			for (int i = 0; i < file.pages; i += 1) textures[i] = textureStore.Get(file.pageNames[i]);
 		}
 
-		protected override DrawNode CreateDrawNode() { 
-			return new Node{shader = shader}; 
-		}
+		protected override DrawNode CreateDrawNode() { return new Node{shader = shader}; }
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			base.UpdateDrawNode(node);
 
+			if (textDirty) CacheText();
+			if (textTransformDirty) CacheTextTransform();
+
 			var n = (Node)node;
 			if (string.IsNullOrEmpty(text)) {
-				n.charCount = 0;
+				n.charInfoCount = 0;
 				return;
-			}
-
-			if (textDirty) {
-				lineDrawInfo = file.GenerateDrawInfo(text);
-			}
-
-			if (textDirty || charTransformDirty) {
-				textDirty = charTransformDirty = false;
-
-				fontScaling = fontSize / (float)file.fontSize;
-				var textPivot = Align.Calc(textAlign);
-				if (textAlign != Align.None) {
-					if (verticalAlign == VerticalAlign.Base) {
-						textPivotPos = new Vec2(
-							(lineDrawInfo.size.w + lineDrawInfo.size.x) * textPivot.x, 
-							(lineDrawInfo.size.h + lineDrawInfo.size.y) * textPivot.y);
-					} else if (verticalAlign == VerticalAlign.Line) {
-						textPivotPos = new Vec2(
-							lineDrawInfo.size.w * textPivot.x + lineDrawInfo.size.x, 
-							lineDrawInfo.size.h * textPivot.y + lineDrawInfo.size.y);
-					} else {
-						textPivotPos = new Vec2(
-							lineDrawInfo.meshSize.w * textPivot.x + lineDrawInfo.meshSize.x, 
-							lineDrawInfo.meshSize.h * textPivot.y + lineDrawInfo.meshSize.y);
-					}
-					textPivotPos.Mult(fontScaling);
-				} else {
-					textPivotPos = new Vec2();
-				}
-
-				if (useLayout) {
-					textPivotPos.Sub(textPivot * cachedSize);
-				}
 			}
 
 			n.color = cachedColor;
@@ -132,19 +103,109 @@
 				n.shadowColor.w *= alpha;
 			}
 
-			var textLen = text.Length;
-			if (n.chars == null || n.charLen < textLen) {
-				n.chars = new Node.CharDrawInfo[textLen];
-				n.charLen = textLen;
+			if (n.charInfos == null || n.charInfos.Length < cachedCharInfoCount) {
+				n.charInfos = new CharInfo[cachedCharInfoCount];
+			}
+			n.charInfoCount = cachedCharInfoCount;
+
+			var fontScaling = fontSize / file.fontSize;
+			for (int i = 0; i < cachedCharInfoCount; i++) {
+				var info = cachedCharInfos[i];
+				n.charInfos[i].quad = cachedMatConcat * (info.quad * fontScaling - cachedTextPivotPos);
+				n.charInfos[i].uvQuad = info.uvQuad;
+				n.charInfos[i].texture = info.texture;
+			}
+		}
+
+		public void CacheText() {
+			textDirty = false;
+
+			int textLength = text.Length;
+			if (cachedCharInfos == null || cachedCharInfos.Length < textLength) {
+				cachedCharInfos = new CharInfo[textLength];
 			}
 
-			for (int i = 0, end = lineDrawInfo.charDrawInfos.Length; i < end; i++) {
-				var info = lineDrawInfo.charDrawInfos[i];
-				n.chars[i].quad = cachedMatConcat * (new Quad(info.rect * fontScaling) - textPivotPos);
-				n.chars[i].uvQuad.FromRect(info.uvRect);
-				n.chars[i].texture = textureStore.Get(file.pageNames[info.page]);
+			int j = 0;
+			int curX = 0;
+			uint lastChar = 0;
+
+			float meshLeft = 0;
+			float meshRight = 0;
+			float meshTop = 0;
+			float meshBottom = 0;
+
+			for (int i = 0; i < textLength; i++) {
+				BmFontFile.Glyph g;
+				char c = text[i];
+				if (!file.glyphDict.TryGetValue(c, out g)) continue;
+
+				if (char.IsWhiteSpace(c)) {
+					curX += g.xAdvance;
+					continue;
+				}
+
+				if (j > 0) curX += file.GetKerning(lastChar, c);
+
+				float left = curX + g.xOffset;
+				float right = left + g.width;
+				float top = file.lineBase - g.yOffset;
+				float bottom = top - g.height;
+
+				if (j == 0) {
+					meshLeft = left;
+					meshRight = right;
+					meshTop = top;
+					meshBottom = bottom;
+				} else {
+					if (left < meshLeft) meshLeft = left;
+					if (right > meshRight) meshRight = right;
+					if (top > meshTop) meshTop = top;
+					if (bottom < meshBottom) meshBottom = bottom;
+				}
+
+				cachedCharInfos[j].quad.Set(left, bottom, g.width, g.height);
+				cachedCharInfos[j].uvQuad.Set(g.uvRect);
+				cachedCharInfos[j].texture = textures[g.page];
+
+				curX += g.xAdvance;
+				lastChar = c;
+				j += 1;
 			}
-			n.charCount = lineDrawInfo.charDrawInfos.Length;
+
+			cachedCharInfoCount = j;
+			cachedLineRect = new Rect(0, file.lineBase - file.lineHeight, curX, file.lineBase);
+			cachedLineMeshRect = new Rect(meshLeft, meshBottom, meshRight - meshLeft, meshTop - meshBottom);
+
+			// need recalculate line size
+			CacheTextTransform();
+		}
+
+		public void CacheTextTransform() {
+			textTransformDirty = false;
+
+			var textPivot = Align.Calc(textAlign);
+			if (textAlign != Align.None) {
+				if (verticalAlign == VerticalAlign.Base) {
+					cachedTextPivotPos.Set(
+						(cachedLineRect.w + cachedLineRect.x) * textPivot.x, 
+						(cachedLineRect.h + cachedLineRect.y) * textPivot.y);
+				} else if (verticalAlign == VerticalAlign.Line) {
+					cachedTextPivotPos.Set(
+						cachedLineRect.w * textPivot.x + cachedLineRect.x, 
+						cachedLineRect.h * textPivot.y + cachedLineRect.y);
+				} else {
+					cachedTextPivotPos.Set(
+						cachedLineMeshRect.w * textPivot.x + cachedLineMeshRect.x, 
+						cachedLineMeshRect.h * textPivot.y + cachedLineMeshRect.y);
+				}
+				cachedTextPivotPos.Mult(fontSize / file.fontSize);
+			} else {
+				cachedTextPivotPos.Set(0);
+			}
+
+			if (useLayout) {
+				cachedTextPivotPos.Sub(textPivot * cachedSize);
+			}
 		}
 	}
 
@@ -161,7 +222,7 @@
 
 		public static T TextAlign<T>(this T self, int textAlign, int verticalAlign) where T : BmLabel {
 			self.textAlign = textAlign; self.verticalAlign = verticalAlign;
-			self.charTransformDirty = true; self.age += 1; return self;
+			self.textTransformDirty = true; self.age += 1; return self;
 		}
 
 		public static T TextShadow<T>(this T self, float x, float y, Vec4 color) where T : BmLabel {

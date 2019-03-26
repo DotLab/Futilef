@@ -4,6 +4,9 @@
 
 		public Drawable parent;
 
+		// transform
+		public bool transformDirty = true;
+
 		public int anchorAlign = Align.BottomLeft;
 		public Vec2 customAnchorAlign;
 		public int pivotAlign = Align.BottomLeft;
@@ -16,19 +19,21 @@
 		public Vec2 scl = new Vec2(1);
 		public float rot;
 
+		// color
+		public bool colorDirty = true;
+
 		public Vec4 color = new Vec4(1);
 		public float alpha = 1;
 		public int srcBlend = BlendFactor.dstColor;
 		public int dstBlend = BlendFactor.zero;
 		public int blendOp = BlendOperator.add;
 
+		// non-cachable
 		public bool handleInput = true;
 		public bool useLayout = true;
 		public bool needMatConcatInverse;
 
-		public bool transformDirty = true;
-		public bool colorDirty = true;
-
+		// cache
 		public Vec2 cachedAnchor;
 		public Vec2 cachedPivot;
 		public Vec2 cachedPos;
@@ -40,6 +45,7 @@
 
 		public Vec4 cachedColor;
 
+		// private
 		readonly DrawNode[] drawNodes = new DrawNode[3];
 
 		public virtual DrawNode GenerateDrawNodeSubtree(int index) {
@@ -51,11 +57,12 @@
 		protected abstract DrawNode CreateDrawNode();
 		protected virtual void UpdateDrawNode(DrawNode node) {
 			node.age = age;
-			if (transformDirty) UpdateTransform();
-			if (colorDirty) UpdateColor();
+
+			if (transformDirty) CacheTransform();
+			if (colorDirty) CacheColor();
 		}
 
-		public virtual void UpdateTransform() {
+		public virtual void CacheTransform() {
 			transformDirty = false;
 
 			bool useParentSize = parent != null && parent.useLayout;
@@ -84,7 +91,7 @@
 			if (needMatConcatInverse) cachedMatConcatInverse.FromInverse(cachedMatConcat);
 		}
 
-		public virtual void UpdateColor() {
+		public virtual void CacheColor() {
 			colorDirty = false;
 
 			cachedColor = color;
@@ -95,9 +102,7 @@
 			}
 		}
 
-		public virtual bool Propagate(UiEvent e) { 
-			return e.Trigger(this); 
-		}
+		public virtual bool Propagate(UiEvent e) { return e.Trigger(this); }
 		public virtual bool OnTouchDown(TouchDownEvent e) { return false; }
 		public virtual bool OnTouchMove(TouchMoveEvent e) { return false; }
 		public virtual bool OnTouchUp(TouchUpEvent e) { return false; }
@@ -122,6 +127,16 @@
 
 		public static T Pos<T> (this T self, float x, float y) where T : Drawable {
 			self.pos.Set(x, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Size<T> (this T self, float x, float y) where T : Drawable {
+			self.size.Set(x, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Size<T> (this T self, int relativeAxes, float x, float y) where T : Drawable {
+			self.relativeSizeAxes = relativeAxes; self.size.Set(x, y);
 			self.transformDirty = true; self.age += 1; return self;
 		}
 

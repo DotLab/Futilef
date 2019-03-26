@@ -1,5 +1,5 @@
 ﻿namespace Futilef.V2 {
-	public class TpSprite : Drawable {
+	public sealed class TpSprite : Drawable {
 		public sealed class Node : DrawNode {
 			public Shader shader;
 			public Texture texture;
@@ -19,7 +19,9 @@
 		public readonly Texture texture;
 
 		public string spriteName;
-		public float originalAspectRatio;
+		public bool spriteNameDirty;
+
+		float originalAspectRatio;
 		TpDataFile.Sprite spriteData;
 
 		public TpSprite(TpDataFile file, Shader shader, Texture texture) {
@@ -28,19 +30,18 @@
 			this.texture = texture;
 		}
 
-		public void SetSprite(string spriteName) {
-			this.spriteName = spriteName;
-			spriteData = file.spriteDict[spriteName];
-			originalAspectRatio = spriteData.size.x / spriteData.size.y;
-		}
-
-		protected override DrawNode CreateDrawNode() {
-			return new Node{shader = shader, texture = texture};
-		}
+		protected override DrawNode CreateDrawNode() { return new Node{shader = shader, texture = texture}; }
 
 		protected override void UpdateDrawNode(DrawNode node) {
-			if (transformDirty) UpdateTransform();
-			if (colorDirty) UpdateColor();
+			if (transformDirty) CacheTransform();
+			if (colorDirty) CacheColor();
+
+			if (spriteNameDirty) {
+				spriteNameDirty = false;
+
+				spriteData = file.spriteDict[spriteName];
+				originalAspectRatio = spriteData.size.x / spriteData.size.y;
+			}
 
 			var n = (Node)node;
 			n.color = cachedColor;
@@ -50,6 +51,13 @@
 			} else {
 				n.quad = cachedMatConcat * new Quad(spriteData.rect);
 			}
+		}
+	}
+
+	public static class TpSpriteExtension {
+		public static TpSprite Sprite(this TpSprite self, string spriteName) {
+			self.spriteName = spriteName; 
+			self.spriteNameDirty = true; self.age += 1; return self;
 		}
 	}
 }

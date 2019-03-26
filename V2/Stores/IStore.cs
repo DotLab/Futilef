@@ -47,7 +47,9 @@ namespace Futilef.V2 {
 
 	public sealed class TextureStore : IStore<Texture> {
 		public readonly IStore<byte[]> store;
-		public readonly bool transform8BitPng;
+		public bool setWrapModeClamp = true;
+		public bool setFilterModePoint;
+		public bool transform8BitPng;
 
 		public TextureStore(IStore<byte[]> store) {
 			this.store = store;
@@ -60,23 +62,37 @@ namespace Futilef.V2 {
 
 		public Texture Get(string name) {
 			var bytes = store.Get(name);
-			var unityTexture = new UnityEngine.Texture2D(2, 2);
+			var unityTexture = new UnityEngine.Texture2D(0, 0);
 			UnityEngine.ImageConversion.LoadImage(unityTexture, bytes);
 
-			var t = new Texture(name, unityTexture);
-			if (transform8BitPng) t.Transform8BitPng();
-			return t;
+			if (setWrapModeClamp) unityTexture.wrapMode = UnityEngine.TextureWrapMode.Clamp;
+			if (setFilterModePoint) unityTexture.filterMode = UnityEngine.FilterMode.Point;
+			if (transform8BitPng) {
+				var pixels = unityTexture.GetPixels32();
+				for (int i = 0, len = pixels.Length; i < len; i += 1) {
+					pixels[i].a = pixels[i].r;
+					pixels[i].r = 255;
+					pixels[i].g = 255;
+					pixels[i].b = 255;
+				}
+				unityTexture.SetPixels32(pixels);
+				unityTexture.Apply();
+			}
+
+			return new Texture(name, unityTexture);
 		}
 	}
 
 	public sealed class UnityResourceByteStore : IStore<byte[]> {
 		public byte[] Get(string name) {
+			UnityEngine.Debug.LogFormat("Load Bytes {0}", name);
 			return UnityEngine.Resources.Load<UnityEngine.TextAsset>(name).bytes;
 		}
 	}
 
 	public sealed class UnityResourceTextStore : IStore<string> {
 		public string Get(string name) {
+			UnityEngine.Debug.LogFormat("Load Text {0}", name);
 			return UnityEngine.Resources.Load<UnityEngine.TextAsset>(name).text;
 		}
 	}

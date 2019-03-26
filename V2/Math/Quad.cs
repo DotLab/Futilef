@@ -32,14 +32,14 @@
 			br = new Vec2(x + w, y);
 		}
 
-		public void FromRect(Rect rect) {
+		public void Set(Rect rect) {
 			tl.Set(rect.x, rect.y + rect.h);
 			tr.Set(rect.x + rect.w, rect.y + rect.h);
 			bl.Set(rect.x, rect.y);
 			br.Set(rect.x + rect.w, rect.y);
 		}
 
-		public void FromRect(float x, float y, float w, float h) {
+		public void Set(float x, float y, float w, float h) {
 			tl.Set(x, y + h);
 			tr.Set(x + w, y + h);
 			bl.Set(x, y);
@@ -60,6 +60,10 @@
 
 		public static Quad operator -(Quad q, Vec2 v) {
 			return new Quad(q.tl - v, q.tr - v, q.bl - v, q.br - v);
+		}
+
+		public static Quad operator *(Quad q, float f) {
+			return new Quad(q.tl * f, q.tr * f, q.bl * f, q.br * f);
 		}
 
 		public static Quad operator *(Mat2D m, Quad a) {

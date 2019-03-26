@@ -10,26 +10,48 @@ namespace Futilef.V2 {
 			public Vec2 size;
 			public Vec2 pivot;
 			public Rect rect;
+			public Rect rectInner;
+			public Rect uv;
+
+			public Border border;
 			public Quad uvQuad;
-			public Rect border;
+			public Quad uvQuadInner;
 
 			public Sprite(string[] segs, ref int i, float width, float height) {
 				name = segs[i++];
+
 				rotated = segs[i++] == "1";
+
 				size = new Vec2(int.Parse(segs[i++]), int.Parse(segs[i++]));
 				pivot = new Vec2(int.Parse(segs[i++]), int.Parse(segs[i++]));
+
 				rect = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
-				var uvRect = new Rect(int.Parse(segs[i++]) / width, int.Parse(segs[i++]) / height, int.Parse(segs[i++]) / width, int.Parse(segs[i++]) / height);
-				uvRect.y = 1 - (uvRect.y + uvRect.h);
-				uvQuad = new Quad(uvRect);
+				rect.y = size.y - (rect.y + rect.h);
+
+				rectInner = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
+				rectInner.y = size.y - (rectInner.y + rectInner.h);
+
+				border = new Border(rectInner.x, size.x - (rectInner.x + rectInner.w), size.y - (rectInner.y + rectInner.h), rectInner.y);
+
+				uv = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
+				uv.y = height - (uv.y + uv.h);
+
+				uvQuad = new Quad(uv.x / width, uv.y / height, uv.w / width, uv.h / height);
+				uvQuadInner = new Quad((uv.x + rectInner.x) / width, (uv.y + rectInner.y) / height, rectInner.w / width, rectInner.h / height);
+
 				if (rotated) {
 					var bl = uvQuad.bl;
 					uvQuad.bl = uvQuad.tl;
 					uvQuad.tl = uvQuad.tr;
 					uvQuad.tr = uvQuad.br;
 					uvQuad.br = bl;
+
+					bl = uvQuadInner.bl;
+					uvQuadInner.bl = uvQuad.tl;
+					uvQuadInner.tl = uvQuad.tr;
+					uvQuadInner.tr = uvQuad.br;
+					uvQuadInner.br = bl;
 				}
-				border = new Rect(int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]), int.Parse(segs[i++]));
 			}
 		}
 

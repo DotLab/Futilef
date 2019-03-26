@@ -27,8 +27,8 @@ namespace Futilef.V2 {
 			age += 1;
 		}
 
-		public override void UpdateTransform() {
-			base.UpdateTransform();
+		public override void CacheTransform() {
+			base.CacheTransform();
 
 			var ratio = cachedSize / targetSize;
 			switch (strategy) {
@@ -38,7 +38,7 @@ namespace Futilef.V2 {
 			case Strategy.Separate: content.scl = ratio; break;
 			}
 			content.size = cachedSize / content.scl;
-			content.UpdateTransform();
+			content.CacheTransform();
 		}
 	}
 }
