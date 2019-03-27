@@ -197,7 +197,7 @@ namespace Futilef.V2 {
 		public const int Colon = 58;
 		public const int Semicolon = 59;
 		public const int Less = 60;
-		public const int Equals = 61;
+		public const int Equal = 61;
 		public const int Greater = 62;
 		public const int Question = 63;
 		public const int At = 64;
