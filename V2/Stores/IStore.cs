@@ -85,14 +85,14 @@ namespace Futilef.V2 {
 
 	public sealed class UnityResourceByteStore : IStore<byte[]> {
 		public byte[] Get(string name) {
-			UnityEngine.Debug.LogFormat("Load Bytes {0}", name);
+//			UnityEngine.Debug.LogFormat("Load Bytes {0}", name);
 			return UnityEngine.Resources.Load<UnityEngine.TextAsset>(name).bytes;
 		}
 	}
 
 	public sealed class UnityResourceTextStore : IStore<string> {
 		public string Get(string name) {
-			UnityEngine.Debug.LogFormat("Load Text {0}", name);
+//			UnityEngine.Debug.LogFormat("Load Text {0}", name);
 			return UnityEngine.Resources.Load<UnityEngine.TextAsset>(name).text;
 		}
 	}

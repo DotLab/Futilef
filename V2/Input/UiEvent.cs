@@ -9,6 +9,10 @@
 		public double liveTime;
 	}
 
+	public abstract class KeyEvent : UiEvent {
+		public int key;
+	}
+
 	public sealed class TouchDownEvent : TouchEvent {
 		public override bool Trigger(Drawable root) { return root.handleInput && root.OnTouchDown(this); }
 	}
@@ -42,12 +46,17 @@
 		public override bool Trigger(Drawable root) { return root.handleInput && root.OnDragEnd(this); }
 	}
 
-	public sealed class KeyDownEvent : UiEvent {
+	public sealed class KeyDownEvent : KeyEvent {
 		public override bool Trigger(Drawable root) { return root.handleInput && root.OnKeyDown(this); }
 	}
 
-	public sealed class KeyUpEvent : UiEvent {
+	public sealed class KeyUpEvent : KeyEvent {
 		public override bool Trigger(Drawable root) { return root.handleInput && root.OnKeyUp(this); }
+	}
+
+	public sealed class TextInputEvent : UiEvent {
+		public string text;
+		public override bool Trigger(Drawable root) { return root.handleInput && root.OnTextInput(this); }
 	}
 }
 

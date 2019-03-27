@@ -33,6 +33,8 @@
 			public Quad quad;
 			public Quad uvQuad;
 			public Texture texture;
+			public float nextX;
+			public float right;
 		}
 
 		public static class VerticalAlign {
@@ -60,12 +62,17 @@
 		public bool hasShadow;
 		public Vec2 shadowPos;
 		public Vec4 shadowColor;
+		public bool truncate;
 
 		// cache
 		public Rect cachedLineRect;
-		public Rect cachedLineMeshRect;
+		public Rect cachedMeshRect;
+
+		public Border cachedLineBox;
+		public Border cachedMeshBox;
 
 		public int cachedCharInfoCount;
+		public int cachedDisplayCharInfoCount;
 		public CharInfo[] cachedCharInfos;
 
 		public Vec2 cachedTextPivotPos;
@@ -81,6 +88,12 @@
 		}
 
 		protected override DrawNode CreateDrawNode() { return new Node{shader = shader}; }
+
+		public override void CacheTransform() {
+			base.CacheTransform();
+
+			if (truncate) CacheTextTransform();
+		}
 
 		protected override void UpdateDrawNode(DrawNode node) {
 			base.UpdateDrawNode(node);
@@ -103,13 +116,13 @@
 				n.shadowColor.w *= alpha;
 			}
 
-			if (n.charInfos == null || n.charInfos.Length < cachedCharInfoCount) {
-				n.charInfos = new CharInfo[cachedCharInfoCount];
+			if (n.charInfos == null || n.charInfos.Length < cachedDisplayCharInfoCount) {
+				n.charInfos = new CharInfo[cachedDisplayCharInfoCount];
 			}
-			n.charInfoCount = cachedCharInfoCount;
+			n.charInfoCount = cachedDisplayCharInfoCount;
 
 			var fontScaling = fontSize / file.fontSize;
-			for (int i = 0; i < cachedCharInfoCount; i++) {
+			for (int i = 0; i < cachedDisplayCharInfoCount; i++) {
 				var info = cachedCharInfos[i];
 				n.charInfos[i].quad = cachedMatConcat * (info.quad * fontScaling - cachedTextPivotPos);
 				n.charInfos[i].uvQuad = info.uvQuad;
@@ -146,8 +159,20 @@
 
 				if (j > 0) curX += file.GetKerning(lastChar, c);
 
+				/** curX - xOffset - left - width - right */
 				float left = curX + g.xOffset;
 				float right = left + g.width;
+				/**
+				 * lineBase
+				 * |    |
+				 * |    yOffset
+				 * |    |
+				 * |    top
+				 * |    |
+				 * |    hight
+				 * curY |
+				 *      bottom
+				 */
 				float top = file.lineBase - g.yOffset;
 				float bottom = top - g.height;
 
@@ -163,25 +188,60 @@
 					if (bottom < meshBottom) meshBottom = bottom;
 				}
 
+				curX += g.xAdvance;
+
 				cachedCharInfos[j].quad.Set(left, bottom, g.width, g.height);
 				cachedCharInfos[j].uvQuad.Set(g.uvRect);
 				cachedCharInfos[j].texture = textures[g.page];
+				cachedCharInfos[j].nextX = curX;
+				cachedCharInfos[j].right = right;
 
-				curX += g.xAdvance;
 				lastChar = c;
 				j += 1;
 			}
 
-			cachedCharInfoCount = j;
-			cachedLineRect = new Rect(0, file.lineBase - file.lineHeight, curX, file.lineBase);
-			cachedLineMeshRect = new Rect(meshLeft, meshBottom, meshRight - meshLeft, meshTop - meshBottom);
+			cachedDisplayCharInfoCount = cachedCharInfoCount = j;
+
+			/**
+			 *      lineBase
+			 *      |     |
+			 * 0 - (base) | - meshRight
+			 *            |
+			 *            lineHeight
+			 */
+			cachedLineBox.Set(0, curX, file.lineBase - file.lineHeight, file.lineBase);
+			cachedLineRect.Set(cachedLineBox.l, cachedLineBox.b, cachedLineBox.r - cachedLineBox.l, cachedLineBox.t - cachedLineBox.b);
+			/**
+			 *          meshTop
+			 *          |
+			 * meshLeft - meshRight
+			 *          |
+			 *          meshBottom
+			 */
+			cachedMeshBox.Set(meshLeft, meshRight, meshBottom, meshTop);
+			cachedMeshRect.Set(cachedMeshBox.l, cachedMeshBox.b, cachedMeshBox.r - cachedMeshBox.l, cachedMeshBox.t - cachedMeshBox.b);
 
 			// need recalculate line size
 			CacheTextTransform();
 		}
 
 		public void CacheTextTransform() {
-			textTransformDirty = false;
+			textTransformDirty = false; 
+
+			float fontScaling = fontSize / file.fontSize;
+
+			if (truncate) {
+				float meshL = cachedMeshBox.l;
+				Console.Log((cachedMeshBox.r - cachedMeshBox.l) * fontScaling, cachedSize.x);
+				for (int i = 1; i < cachedCharInfoCount; i++) {
+					if ((cachedCharInfos[i].right - meshL) * fontScaling > cachedSize.x) {
+						cachedDisplayCharInfoCount = i;
+						cachedLineRect.Set(cachedLineBox.l, cachedLineBox.b, cachedCharInfos[i - 1].nextX - cachedLineBox.l, cachedLineBox.t - cachedLineBox.b);
+						cachedMeshRect.Set(cachedMeshBox.l, cachedMeshBox.b, cachedCharInfos[i - 1].right - cachedMeshBox.l, cachedMeshBox.t - cachedMeshBox.b);
+						break;
+					}
+				}
+			}
 
 			var textPivot = Align.Calc(textAlign);
 			if (textAlign != Align.None) {
@@ -195,10 +255,10 @@
 						cachedLineRect.h * textPivot.y + cachedLineRect.y);
 				} else {
 					cachedTextPivotPos.Set(
-						cachedLineMeshRect.w * textPivot.x + cachedLineMeshRect.x, 
-						cachedLineMeshRect.h * textPivot.y + cachedLineMeshRect.y);
+						cachedMeshRect.w * textPivot.x + cachedMeshRect.x, 
+						cachedMeshRect.h * textPivot.y + cachedMeshRect.y);
 				}
-				cachedTextPivotPos.Mult(fontSize / file.fontSize);
+				cachedTextPivotPos.Mult(fontScaling);
 			} else {
 				cachedTextPivotPos.Set(0);
 			}

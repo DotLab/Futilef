@@ -8,7 +8,7 @@ namespace Futilef.V2 {
 
 			public override void Draw(DrawCtx ctx, int g) {
 				var b = ctx.GetBatch(ctx.debugShader, ctx.debugTexture);
-				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .1f));
+				b.DrawQuad(quad, new Quad(), new Vec4(1, 0, 1, .2f));
 
 				for (int i = 0, end = children.Count; i < end; i++) {
 					children[i].Draw(ctx, g);
@@ -84,22 +84,27 @@ namespace Futilef.V2 {
 			}
 		}
 
-		public override bool Propagate(UiEvent e) {
-			// reverse propagation
-//			Console.Log(GetType(), e.GetType());
+		public bool PropagateChildren(UiEvent e) {
 			for (int i = children.Count - 1; i >= 0; i--) {
 				var child = children[i];
 				if (child.handleInput && child.Propagate(e)) return true;
 			}
-
 			return false;
+		}
+
+		public override bool Propagate(UiEvent e) {
+			// reverse propagation
+//			Console.Log(GetType(), e.GetType());
+			if (PropagateChildren(e)) return true;
+
+			return handleInput && base.Propagate(e);
 		}
 	}
 
-//	public static class CompositeDrawableExtension {
-//		public static T AddChild<T>(this T self, Drawable child) where T : CompositeDrawable {
-//			self.Add(child);
-//		}
-//	}
+	public static class CompositeDrawableExtension {
+		public static T AddChild<T>(this T self, Drawable child) where T : CompositeDrawable {
+			self.Add(child); return self;
+		}
+	}
 }
 

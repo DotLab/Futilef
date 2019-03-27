@@ -74,6 +74,11 @@ namespace Futilef.V2 {
 			return sequence;
 		}
 
+		public static AnimationSequence<T> Alpha<T>(this AnimationSequence<T> sequence, float alpha, double duration, int esType) where T : Drawable {
+			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = alpha, setStartFromTarget = true}); 
+			return sequence;
+		}
+
 		public static AnimationSequence<T> FadeIn<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = 1, setStartFromTarget = true}); 
 			return sequence;
@@ -88,10 +93,6 @@ namespace Futilef.V2 {
 		}
 		public static AnimationSequence<T> FadeOutFromOne<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){start = 1, end = 0}); 
-			return sequence;
-		}
-		public static AnimationSequence<T> FadeTo<T>(this AnimationSequence<T> sequence, float alpha, double duration, int esType) where T : Drawable {
-			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = alpha, setStartFromTarget = true}); 
 			return sequence;
 		}
 		public static AnimationSequence<T> FadeColorTo<T>(this AnimationSequence<T> sequence, Vec4 color, double duration, int esType) where T : Drawable {

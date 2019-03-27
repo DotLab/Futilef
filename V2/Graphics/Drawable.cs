@@ -34,6 +34,7 @@
 		public bool handleInput;
 		public bool useLayout = true;
 		public bool needMatConcatInverse;
+		public bool needScreenAabb;
 
 		// cache
 		public Vec2 cachedAnchor;
@@ -46,6 +47,8 @@
 		public Mat2D cachedMatConcatInverse;
 
 		public Vec4 cachedColor;
+
+		public Rect cachedScreenAabb;
 
 		// private
 		readonly DrawNode[] drawNodes = new DrawNode[3];
@@ -94,7 +97,9 @@
 			}
 				
 			cachedMatConcat = parent == null ? cachedMat : parent.cachedMatConcat * cachedMat;
+
 			if (needMatConcatInverse) cachedMatConcatInverse.FromInverse(cachedMatConcat);
+			if (needScreenAabb) cachedScreenAabb = (cachedMatConcat * new Quad(0, 0, cachedSize.x, cachedSize.y)).GetAabb();
 		}
 
 		public virtual void CacheColor() {
@@ -118,6 +123,7 @@
 		public virtual bool OnDragEnd(DragEndEvent e) { return false; }
 		public virtual bool OnKeyDown(KeyDownEvent e) { return false; }
 		public virtual bool OnKeyUp(KeyUpEvent e) { return false; }
+		public virtual bool OnTextInput(TextInputEvent e) { return false; }
 	}
 
 	public static class DrawableExtension {
@@ -143,6 +149,11 @@
 
 		public static T Size<T> (this T self, int relativeAxes, float x, float y) where T : Drawable {
 			self.relativeSizeAxes = relativeAxes; self.size.Set(x, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Size<T> (this T self, int relativeAxes) where T : Drawable {
+			self.relativeSizeAxes = relativeAxes; self.size.Set(1, 1);
 			self.transformDirty = true; self.age += 1; return self;
 		}
 
@@ -190,6 +201,11 @@
 			self.color.Set(v, v, v, a);; 
 			self.colorDirty = true; self.age += 1; return self;
 		}
+
+		public static T Alpha<T> (this T self, float a) where T : Drawable {
+			self.alpha = a;
+			self.colorDirty = true; self.age += 1; return self;
+		}
 	}
 
 	public static class Align {
@@ -201,7 +217,7 @@
 
 		public const int CenterLeft = CenterV | Left;
 		public const int Center = CenterV | CenterH;
-		public const int centerRight = CenterV | Right;
+		public const int CenterRight = CenterV | Right;
 
 		public const int BottomLeft = Bottom | Left;
 		public const int BottomCentre = Bottom | CenterH;

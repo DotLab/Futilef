@@ -10,18 +10,14 @@
 		public System.Func<KeyDownEvent, bool> onKeyDown;
 		public System.Func<KeyUpEvent, bool> onKeyUp;
 
-		public Rect cachedScreenAabb;
-
-		protected override void UpdateDrawNode(DrawNode node) {
-			base.UpdateDrawNode(node);
-
-			cachedScreenAabb = (cachedMatConcat * new Quad(0, 0, cachedSize.x, cachedSize.y)).GetAabb();
+		public UiEventDelegatingContainer() {
+			needScreenAabb = true;
 		}
 
 		public override bool Propagate(UiEvent e) {
-			if (base.Propagate(e)) return true;
+			if (PropagateChildren(e)) return true;
+
 			var touchEvent = e as TouchEvent;
-//			if (touchEvent != null) Console.Log(cachedScreenAabb, touchEvent.pos, cachedScreenAabb.Contains(touchEvent.pos));
 			if (touchEvent == null || cachedScreenAabb.Contains(touchEvent.pos)) {
 				return e.Trigger(this);
 			}
