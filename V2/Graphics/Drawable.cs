@@ -113,7 +113,11 @@
 			}
 		}
 
-		public virtual bool Propagate(UiEvent e) { return e.Trigger(this); }
+		public virtual Drawable Propagate(UiEvent e) { 
+			return e.Trigger(this) ? this : null;
+		}
+
+		public virtual void OnFocusLost(FocusLostEvent e) { }
 		public virtual bool OnTouchDown(TouchDownEvent e) { return false; }
 		public virtual bool OnTouchMove(TouchMoveEvent e) { return false; }
 		public virtual bool OnTouchUp(TouchUpEvent e) { return false; }

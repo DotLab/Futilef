@@ -84,20 +84,21 @@ namespace Futilef.V2 {
 			}
 		}
 
-		public bool PropagateChildren(UiEvent e) {
+		public Drawable PropagateChildren(UiEvent e) {
 			for (int i = children.Count - 1; i >= 0; i--) {
 				var child = children[i];
-				if (child.handleInput && child.Propagate(e)) return true;
+				if (child.handleInput) {
+					var focus = child.Propagate(e);
+					if (focus != null) return focus;
+				}
 			}
-			return false;
+			return null;
 		}
 
-		public override bool Propagate(UiEvent e) {
+		public override Drawable Propagate(UiEvent e) {
 			// reverse propagation
 //			Console.Log(GetType(), e.GetType());
-			if (PropagateChildren(e)) return true;
-
-			return handleInput && base.Propagate(e);
+			return PropagateChildren(e) ?? base.Propagate(e);
 		}
 	}
 

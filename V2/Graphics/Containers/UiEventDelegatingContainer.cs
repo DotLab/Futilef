@@ -14,15 +14,16 @@
 			needScreenAabb = true;
 		}
 
-		public override bool Propagate(UiEvent e) {
-			if (PropagateChildren(e)) return true;
+		public override Drawable Propagate(UiEvent e) {
+			var focus = PropagateChildren(e);
+			if (focus != null) return focus;
 
 			var touchEvent = e as TouchEvent;
 			if (touchEvent == null || cachedScreenAabb.Contains(touchEvent.pos)) {
-				return e.Trigger(this);
+				if (e.Trigger(this)) return this;
 			}
 
-			return false;
+			return null;
 		}
 
 		public override bool OnTouchDown(TouchDownEvent e) { return onTouchDown != null && onTouchDown(e); }

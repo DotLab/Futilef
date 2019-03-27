@@ -232,7 +232,7 @@
 
 			if (truncate) {
 				float meshL = cachedMeshBox.l;
-				Console.Log((cachedMeshBox.r - cachedMeshBox.l) * fontScaling, cachedSize.x);
+//				Console.Log((cachedMeshBox.r - cachedMeshBox.l) * fontScaling, cachedSize.x);
 				for (int i = 1; i < cachedCharInfoCount; i++) {
 					if ((cachedCharInfos[i].right - meshL) * fontScaling > cachedSize.x) {
 						cachedDisplayCharInfoCount = i;
@@ -275,7 +275,7 @@
 			self.textDirty = true; self.age += 1; return self;
 		}
 
-		public static T Text<T>(this T self, float fontSize, string text) where T : BmLabel {
+		public static T Text<T>(this T self, float fontSize, string text = "") where T : BmLabel {
 			self.fontSize = fontSize; self.text = text;
 			self.textDirty = true; self.age += 1; return self;
 		}

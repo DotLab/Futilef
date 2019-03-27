@@ -58,5 +58,9 @@
 		public string text;
 		public override bool Trigger(Drawable root) { return root.handleInput && root.OnTextInput(this); }
 	}
+
+	public sealed class FocusLostEvent : UiEvent {
+		public override bool Trigger(Drawable root) { if (root.handleInput) root.OnFocusLost(this); return true; }
+	}
 }
 
