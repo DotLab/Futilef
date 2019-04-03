@@ -1,57 +1,50 @@
 ﻿using System.Collections.Generic;
 
 namespace Futilef.V2 {
-	public abstract class AnimationSequence {
-		public readonly LinkedList<AnimationTask> taskList = new LinkedList<AnimationTask>();
+	public abstract class AnimationSequence : AnimationTask {
+		public readonly List<AnimationTask> taskList = new List<AnimationTask>();
+		public int repeat;
 
-		public double taskStartTime;
-		public double taskFinishTime;
+		public double nextTaskStartTime;
 
-		public bool hasStarted;
-		public double startTime;
-		public double finishTime;
+		int index;
+		int repeatIndex;
 
 		public void Append(AnimationTask task) {
-			task.startTime = taskStartTime;
-			task.finishTime = taskStartTime + task.duration;
-			taskList.AddLast(task);
-			if (taskFinishTime < task.finishTime) taskFinishTime = task.finishTime;
+			task.startTime = nextTaskStartTime;
+			task.finishTime = nextTaskStartTime + task.duration;
+			taskList.Add(task);
+			if (duration < task.finishTime) duration = task.finishTime;
 		}
 
-		public void Start(double time) {
-			startTime = time;
-			finishTime = time + taskFinishTime;
+		public override void Start() {
+			index = 0;
+			repeatIndex = 0;
 		}
 
-		public void Update(double time) {
-			time -= startTime;
-			for (var i = taskList.First; i != null;) {
-				var task = i.Value;
+		public override void Update(double time) {
+			for (int i = index, end = taskList.Count; i < end; i += 1) {
+				var task = taskList[i];
 				if (task.startTime > time) break;  // should not start
 
 				if (!task.hasStarted) {  // not started
 					task.hasStarted = true;
 					task.Start();
-					task.Update(time);
-					i = i.Next;
-				} else if (time > task.finishTime) {  // started, finished
-					var next = i.Next;
+				} 
+
+				if (time >= task.finishTime) {  // started, finished
 					task.Finish();
-					taskList.Remove(i);
-					i = next;
+					index += 1;
 				} else {  // started, not finished
-					task.Update(time);
-					i = i.Next;
+					task.Update(time - task.startTime);
 				}
 			}
 		}
 
-		public void Finish() {
-			var i = taskList.First;
-			while (i != null) {
-				i.Value.Finish();
-				taskList.RemoveFirst();
-				i = taskList.First;
+		public override void Finish() {
+			for (int i = index, end = taskList.Count; i < end; i += 1) {
+				taskList[i].Finish();
+				index += 1;
 			}
 		}
 	}
@@ -64,21 +57,7 @@ namespace Futilef.V2 {
 		}
 	}
 
-	public static class AnimationSequenceExtension {
-		public static AnimationSequence<T> Delay<T>(this AnimationSequence<T> sequence, double time) where T : Drawable {
-			sequence.taskStartTime += time;
-			return sequence;
-		}
-		public static AnimationSequence<T> Then<T>(this AnimationSequence<T> sequence) where T : Drawable {
-			sequence.taskStartTime = sequence.taskFinishTime;
-			return sequence;
-		}
-
-		public static AnimationSequence<T> Alpha<T>(this AnimationSequence<T> sequence, float alpha, double duration, int esType) where T : Drawable {
-			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = alpha, setStartFromTarget = true}); 
-			return sequence;
-		}
-
+	public static class AnimationSequenceExtension1 {
 		public static AnimationSequence<T> FadeIn<T>(this AnimationSequence<T> sequence, double duration, int esType) where T : Drawable {
 			sequence.Append(new AlphaTask(sequence.target, duration, esType){end = 1, setStartFromTarget = true}); 
 			return sequence;

@@ -1,47 +1,58 @@
 ﻿namespace Futilef.V2 {
 	public abstract class AnimationTask {
-		public bool hasStarted;
-
 		public double duration;
-		public double startTime;
-		public double finishTime;
-		public double durationRecip;
 
-		public int esType;
+		public bool hasStarted;
+		public double startTime;  // parent time
+		public double finishTime;  // parent time
 
-		protected AnimationTask(double duration, int esType) {
-			this.duration = duration;
-			durationRecip = 1.0 / duration;
-			this.esType = esType;
-		}
-
-		public void Update(double time) {
-			Apply(Es.Calc(esType, (time - startTime) * durationRecip));
-		}
-
-		public abstract void Start();
-		public abstract void Apply(double t);
+		public virtual void Start() {}
+		public abstract void Update(double time);  // local time
 		public abstract void Finish();
 	}
 
 	public abstract class AnimationTask <T> : AnimationTask where T : Drawable {
 		public readonly T target;
+		public double durationRecip;
+		public int esType;
 
-		protected AnimationTask(T target, double duration, int esType) : base(duration, esType) {
+		protected AnimationTask(T target, double duration, int esType) {
 			this.target = target;
+			this.duration = duration;
+			durationRecip = 1.0 / duration;
+			this.esType = esType;
 		}
+
+		public override void Update(double time) {
+			Apply(Es.Calc(esType, time * durationRecip));
+		}
+
+		public abstract void Apply(double t);
+	}
+
+	public sealed class SclTask : AnimationTask<Drawable> {
+		public Vec2 start, end, delta;
+		public bool setStartFromTarget, setEndFromTarget;
+		public SclTask(Drawable target, double duration, int esType) : base(target, duration, esType) {}
+		public override void Start() {
+			if (setStartFromTarget) start = target.scl; 
+			if (setEndFromTarget) end = target.scl; 
+			delta = end - start; 
+		}
+		public override void Apply(double t) { target.Scl(start + delta * (float)t); }
+		public override void Finish() { target.Scl(end); }
 	}
 
 	public sealed class AlphaTask : AnimationTask<Drawable> {
 		public float start, end, delta;
 		public bool setStartFromTarget;
 		public AlphaTask(Drawable target, double duration, int esType) : base(target, duration, esType) {}
-		public override void Start() { 
+		public override void Start() {
 			if (setStartFromTarget) start = target.alpha; 
 			delta = end - start;
 		}
-		public override void Apply(double t) { target.alpha = start + delta * (float)t; target.colorDirty = true; target.age += 1; }
-		public override void Finish() { target.alpha = end; target.colorDirty = true; target.age += 1; }
+		public override void Apply(double t) { target.Alpha(start + delta * (float)t); }
+		public override void Finish() { target.Alpha(end); }
 	}
 
 	public sealed class ColorTask : AnimationTask<Drawable> {
@@ -69,19 +80,6 @@
 		}
 		public override void Apply(double t) { target.rot = start + delta * (float)t; target.transformDirty = true; target.age += 1; }
 		public override void Finish() { target.rot = end; target.transformDirty = true; target.age += 1; }
-	}
-
-	public sealed class SclTask : AnimationTask<Drawable> {
-		public Vec2 start, end, delta;
-		public bool setStartFromTarget, setEndFromTarget;
-		public SclTask(Drawable target, double duration, int esType) : base(target, duration, esType) {}
-		public override void Start() { 
-			if (setStartFromTarget) start = target.scl; 
-			if (setEndFromTarget) end = target.scl; 
-			delta = end - start; 
-		}
-		public override void Apply(double t) { target.scl = start + delta * (float)t; target.transformDirty = true; target.age += 1; }
-		public override void Finish() { target.scl = end; target.transformDirty = true; target.age += 1; }
 	}
 
 	public sealed class SizeTask : AnimationTask<Drawable> {

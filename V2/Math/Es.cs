@@ -4,6 +4,7 @@ namespace Futilef.V2 {
 	public static class EsType {
 		public const int In = 1, Out = 2, InOut = 3;
 
+		public const int None = 0;
 		public const int Linear = 4;
 		public const int Quad = 8, QuadIn = 9, QuadOut = 10, QuadInOut = 11;
 		public const int Cubic = 12, CubicIn = 13, CubicOut = 14, CubicInOut = 15;

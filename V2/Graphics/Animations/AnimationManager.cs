@@ -16,16 +16,20 @@ namespace Futilef.V2 {
 
 				if (!sequence.hasStarted) {  // not started
 					sequence.hasStarted = true;
-					sequence.Start(time);
-					sequence.Update(time);
-					i = i.Next;
-				} else if (time > sequence.finishTime) {  // started, finished
+					sequence.startTime = time;
+					sequence.finishTime = time + sequence.duration;
+					sequence.Start();
+					Console.Log("start sequence");
+				}
+
+				if (time >= sequence.finishTime) {  // started, finished
+					Console.Log("finish sequence");
 					sequence.Finish();
 					var next = i.Next;
 					sequenceList.Remove(i);
 					i = next;
 				} else {  // started, not finished
-					sequence.Update(time);
+					sequence.Update(time - sequence.startTime);
 					i = i.Next;
 				}
 			}

@@ -2,12 +2,12 @@
 
 namespace Futilef.V2 {
 	public class InputManager {
-		public readonly InputHandler handler;
+		public readonly UnityInputHandler handler;
 		public List<UiEvent> eventList = new List<UiEvent>();
 
 		public Drawable curFocus;
 
-		public InputManager(InputHandler handler) {
+		public InputManager(UnityInputHandler handler) {
 			this.handler = handler;
 		}
 

@@ -2,7 +2,7 @@
 using UnityInput = UnityEngine.Input;
 
 namespace Futilef.V2 {
-	public class InputHandler {
+	public class UnityInputHandler {
 		public sealed class TouchState {
 			public int id;
 			public Vec2 startPos;
@@ -30,7 +30,7 @@ namespace Futilef.V2 {
 
 		readonly bool[] keyStates;
 
-		public InputHandler(UnityEngine.Camera eventCamera) {
+		public UnityInputHandler(UnityEngine.Camera eventCamera) {
 			this.eventCamera = eventCamera;
 
 			keyStates = new bool[keys.Length];

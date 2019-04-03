@@ -146,6 +146,16 @@
 			self.transformDirty = true; self.age += 1; return self;
 		}
 
+		public static T Scl<T> (this T self, float x, float y) where T : Drawable {
+			self.scl.Set(x, y);
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
+		public static T Scl<T> (this T self, Vec2 scl) where T : Drawable {
+			self.scl = scl;
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
 		public static T Size<T> (this T self, float x, float y) where T : Drawable {
 			self.size.Set(x, y);
 			self.transformDirty = true; self.age += 1; return self;
