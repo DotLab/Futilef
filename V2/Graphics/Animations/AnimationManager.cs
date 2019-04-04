@@ -17,19 +17,17 @@ namespace Futilef.V2 {
 				if (!sequence.hasStarted) {  // not started
 					sequence.hasStarted = true;
 					sequence.startTime = time;
-					sequence.finishTime = time + sequence.duration;
 					sequence.Start();
-					Console.Log("start sequence");
 				}
 
-				if (time >= sequence.finishTime) {  // started, finished
-					Console.Log("finish sequence");
-					sequence.Finish();
+				sequence.Update(time - sequence.startTime);
+
+				if (sequence.hasFinished) {  // started, finished
+					Console.Log("sequence finish");
 					var next = i.Next;
 					sequenceList.Remove(i);
 					i = next;
 				} else {  // started, not finished
-					sequence.Update(time - sequence.startTime);
 					i = i.Next;
 				}
 			}

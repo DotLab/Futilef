@@ -3,26 +3,37 @@
 namespace Futilef.V2 {
 	public abstract class AnimationSequence : AnimationTask {
 		public readonly List<AnimationTask> taskList = new List<AnimationTask>();
-		public int repeat;
+
+		public int repeatCount;
+		public double repeatDuration;
 
 		public double nextTaskStartTime;
 
 		int index;
 		int repeatIndex;
+		double repeatTimeOffset;
 
 		public void Append(AnimationTask task) {
-			task.startTime = nextTaskStartTime;
-			task.finishTime = nextTaskStartTime + task.duration;
 			taskList.Add(task);
-			if (duration < task.finishTime) duration = task.finishTime;
+			task.startTime = nextTaskStartTime;
+			if (task.durationInfinite) {
+				durationInfinite = true;
+			} else {
+				double taskFinishTime = nextTaskStartTime + task.duration;
+				if (duration < taskFinishTime) duration = taskFinishTime;
+			}
 		}
 
 		public override void Start() {
 			index = 0;
 			repeatIndex = 0;
+			repeatTimeOffset = 0;
+			Console.Log("sequence start", repeatCount);
 		}
 
 		public override void Update(double time) {
+			time -= repeatTimeOffset;
+
 			for (int i = index, end = taskList.Count; i < end; i += 1) {
 				var task = taskList[i];
 				if (task.startTime > time) break;  // should not start
@@ -32,12 +43,24 @@ namespace Futilef.V2 {
 					task.Start();
 				} 
 
-				if (time >= task.finishTime) {  // started, finished
-					task.Finish();
-					index += 1;
-				} else {  // started, not finished
-					task.Update(time - task.startTime);
+				task.Update(time - task.startTime);
+
+				if (task.hasFinished) index += 1;
+			}
+
+			if (repeatCount != 0 && time >= repeatDuration && (repeatIndex < repeatCount || repeatCount < 0)) {
+				repeatIndex += 1;
+				index = 0;
+				repeatTimeOffset += time;
+				for (int i = index, end = taskList.Count; i < end; i += 1) {
+					var task = taskList[i];
+					task.hasStarted = false;
+					task.hasFinished = false;
 				}
+				Console.Log("sequence repeat", time, repeatTimeOffset, repeatIndex, repeatCount);
+			} else if (!durationInfinite && time >= duration) {
+				Console.Log("sequence mark finish", time, repeatCount);
+				hasFinished = true;
 			}
 		}
 
@@ -85,11 +108,6 @@ namespace Futilef.V2 {
 
 		public static AnimationSequence<T> Spin<T>(this AnimationSequence<T> sequence, float count, double duration, int esType) where T : Drawable {
 			sequence.Append(new RotTask(sequence.target, duration, esType){end = (float)Es.TwoPi * count, isRelative = true}); 
-			return sequence;
-		}
-
-		public static AnimationSequence<T> RotateTo<T>(this AnimationSequence<T> sequence, float rot, double duration, int esType) where T : Drawable {
-			sequence.Append(new RotTask(sequence.target, duration, esType){end = rot, setStartFromTarget = true}); 
 			return sequence;
 		}
 

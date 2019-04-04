@@ -146,6 +146,11 @@
 			self.transformDirty = true; self.age += 1; return self;
 		}
 
+		public static T Pos<T> (this T self, int relativeAxes, float x, float y) where T : Drawable {
+			self.pos.Set(x, y); self.relativePosAxes = relativeAxes;
+			self.transformDirty = true; self.age += 1; return self;
+		}
+
 		public static T Scl<T> (this T self, float x, float y) where T : Drawable {
 			self.scl.Set(x, y);
 			self.transformDirty = true; self.age += 1; return self;

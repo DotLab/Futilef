@@ -42,9 +42,9 @@
 				animationManager.Animate(this)
 					.FadeOut(.2, EsType.CubicOut)
 					.MoveYTo(1, 0.2, EsType.CubicOut)
-					.RotateTo(.5f, 0.2, EsType.CubicOut).Then()
+					.RotTo(.5f, 0.2, EsType.CubicOut).Then()
 					.MoveYTo(0, 0.2, EsType.CubicIn)
-					.RotateTo(0, 0.2, EsType.CubicIn).Then()
+					.RotTo(0, 0.2, EsType.CubicIn).Then()
 					.FadeIn(1, EsType.CubicOut)
 					.Spin(3.125f, 1, EsType.CubicOut);
 				return true;

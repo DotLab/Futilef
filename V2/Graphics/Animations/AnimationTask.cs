@@ -1,12 +1,13 @@
 ﻿namespace Futilef.V2 {
 	public abstract class AnimationTask {
 		public double duration;
+		public bool durationInfinite;
 
 		public bool hasStarted;
+		public bool hasFinished;
 		public double startTime;  // parent time
-		public double finishTime;  // parent time
 
-		public virtual void Start() {}
+		public abstract void Start();
 		public abstract void Update(double time);  // local time
 		public abstract void Finish();
 	}
@@ -25,6 +26,12 @@
 
 		public override void Update(double time) {
 			Apply(Es.Calc(esType, time * durationRecip));
+
+			if (time >= duration) {
+				Console.Log("task finish");
+				Finish();
+				hasFinished = true;
+			}
 		}
 
 		public abstract void Apply(double t);
@@ -74,9 +81,9 @@
 		public RotTask(Drawable target, double duration, int esType) : base(target, duration, esType) {}
 		public override void Start() { 
 			if (setStartFromTarget) start = target.rot; 
-			if (setEndFromTarget) end = target.rot; 
-			if (isRelative) { start = target.rot; end = target.rot + end; }
-			delta = end - start; 
+			if (setEndFromTarget) end = target.rot;
+			if (isRelative) { start = target.rot; end = target.rot + delta; }
+			else delta = end - start; 
 		}
 		public override void Apply(double t) { target.rot = start + delta * (float)t; target.transformDirty = true; target.age += 1; }
 		public override void Finish() { target.rot = end; target.transformDirty = true; target.age += 1; }
