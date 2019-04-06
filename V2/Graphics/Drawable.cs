@@ -128,9 +128,17 @@
 		public virtual bool OnKeyDown(KeyDownEvent e) { return false; }
 		public virtual bool OnKeyUp(KeyUpEvent e) { return false; }
 		public virtual bool OnTextInput(TextInputEvent e) { return false; }
+
+		public virtual void SetHandleInput(bool value) {
+			handleInput = value;
+		}
 	}
 
 	public static class DrawableExtension {
+		public static AnimationSequence<T> Animate<T>(this T self, AnimationManager anim) where T : Drawable {
+			return anim.Animate(self);
+		}
+
 		public static T Layout<T> (this T self, float posX, float posY, float sizeX, float sizeY) where T : Drawable {
 			self.pos.Set(posX, posY); self.size.Set(sizeX, sizeY);
 			self.transformDirty = true; self.age += 1; return self;
@@ -224,6 +232,10 @@
 		public static T Alpha<T> (this T self, float a) where T : Drawable {
 			self.alpha = a;
 			self.colorDirty = true; self.age += 1; return self;
+		}
+
+		public static T HandleInput<T> (this T self, bool v = true) where T : Drawable {
+			self.SetHandleInput(v); return self;
 		}
 	}
 

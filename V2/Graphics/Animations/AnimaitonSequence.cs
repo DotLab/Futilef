@@ -28,7 +28,7 @@ namespace Futilef.V2 {
 			index = 0;
 			repeatIndex = 0;
 			repeatTimeOffset = 0;
-			Console.Log("sequence start", repeatCount);
+//			Console.Log("sequence start", repeatCount);
 		}
 
 		public override void Update(double time) {
@@ -57,9 +57,9 @@ namespace Futilef.V2 {
 					task.hasStarted = false;
 					task.hasFinished = false;
 				}
-				Console.Log("sequence repeat", time, repeatTimeOffset, repeatIndex, repeatCount);
+//				Console.Log("sequence repeat", time, repeatTimeOffset, repeatIndex, repeatCount);
 			} else if (!durationInfinite && time >= duration) {
-				Console.Log("sequence mark finish", time, repeatCount);
+//				Console.Log("sequence mark finish", time, repeatCount);
 				hasFinished = true;
 			}
 		}

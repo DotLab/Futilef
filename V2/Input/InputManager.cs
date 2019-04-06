@@ -23,8 +23,8 @@ namespace Futilef.V2 {
 //					Console.Log("InputManager", root.GetType(), e.GetType());
 					if (e is TouchDownEvent) {
 						var focus = root.Propagate(e);
-						Console.Log("focus", focus != null ? focus.GetType().ToString() : "null");
 						if (curFocus != focus) {
+							Console.Log("focus", focus != null ? focus.GetType().ToString() : "null");
 							if (curFocus != null) curFocus.Propagate(new FocusLostEvent{});
 							curFocus = focus;
 						}

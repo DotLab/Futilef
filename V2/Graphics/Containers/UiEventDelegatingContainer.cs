@@ -11,6 +11,7 @@
 		public System.Func<KeyUpEvent, bool> onKeyUp;
 
 		public UiEventDelegatingContainer() {
+			handleInput = true;
 			needScreenAabb = true;
 		}
 

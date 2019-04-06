@@ -40,6 +40,11 @@ namespace Futilef.V2 {
 			content.size = cachedSize / content.scl;
 			content.CacheTransform();
 		}
+
+		public override void SetHandleInput(bool value) {
+			base.SetHandleInput(value);
+			content.SetHandleInput(value);
+		}
 	}
 }
 

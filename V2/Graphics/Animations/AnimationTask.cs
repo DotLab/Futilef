@@ -28,7 +28,7 @@
 			Apply(Es.Calc(esType, time * durationRecip));
 
 			if (time >= duration) {
-				Console.Log("task finish");
+//				Console.Log("task finish");
 				Finish();
 				hasFinished = true;
 			}

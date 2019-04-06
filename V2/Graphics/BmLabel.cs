@@ -289,6 +289,10 @@
 			self.shadowPos.Set(x, y); self.shadowColor = color; self.hasShadow = true;
 			self.age += 1; return self;
 		}
+
+		public static T Truncate<T>(this T self, bool v = true) where T : BmLabel {
+			self.truncate = v; return self;
+		}
 	}
 }
 

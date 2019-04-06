@@ -23,7 +23,7 @@ namespace Futilef.V2 {
 				sequence.Update(time - sequence.startTime);
 
 				if (sequence.hasFinished) {  // started, finished
-					Console.Log("sequence finish");
+//					Console.Log("sequence finish");
 					var next = i.Next;
 					sequenceList.Remove(i);
 					i = next;
